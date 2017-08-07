@@ -1,0 +1,48 @@
+{
+  "name": "PrimarySources",
+  "author": "Kiailandi",
+  "type": "other",
+  "MessagesDirs": {
+    "ContentAction": [
+      "i18n"
+    ]
+  },
+  "Hooks": {
+    "BeforePageDisplay": "PrimarySourcesHooks::onBeforePageDisplay",
+    "ResourceLoaderGetConfigVars": "PrimarySourcesHooks::onResourceLoaderGetConfigVars",
+    //"ParserFirstCallInit": "PrimarySourcesHooks::onParserFirstCallInit",
+    //"MagicWordwgVariableIDs": "PrimarySourcesHooks::onRegisterMagicWords",
+    "ParserGetVariableValueSwitch": "PrimarySourcesHooks::onParserGetVariableValueSwitch",
+    "LoadExtensionSchemaUpdates": "PrimarySourcesHooks::onLoadExtensionSchemaUpdates",
+    "OutputPageParserOutput": "PrimarySourcesHooks::onOutputPageParserOutput",
+    "ResourceLoaderTestModules": "PrimarySourcesHooks::onResourceLoaderTestModules"
+  },
+  "AutoloadClasses": {
+    "PrimarySources": "PrimarySources.php",
+    "PrimarySourcesHooks": "PrimarySources.hooks.php",
+    "SpecialPrimarySources":"/specials/SpecialPrimarySources.php"
+  },
+  "SpecialPages":{
+    "SpecialPrimarySources":"SpecialPrimarySources"
+  },
+  "Actions": {
+    "myact": "Example"
+  },
+  "ResourceModules": {
+    "ext.PrimarySources.frontend": {
+      "scripts": "/modules/ext.PrimarySources.frontend.js",
+      "styles": [
+        "/modules/ext.PrimarySources.frontend.css"
+      ],
+      "messages": [
+      ],
+      "dependencies": [
+      ]
+    }
+  },
+  "ResourceFileModulePaths": {
+    "localBasePath": "",
+    "remoteExtPath": "PrimarySources"
+  },
+  "manifest_version": 2
+}
