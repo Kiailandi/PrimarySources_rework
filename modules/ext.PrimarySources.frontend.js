@@ -10,22 +10,22 @@
                             .replace('$2', 'wikibase-snakview-variation-valuesnak')
                             .replace('$3', '{{qualifier-object}}'))))
                             .replace(/(?:\r\n|\r|\n)/g, ""),*/
-        wb_qualifierHtml:   mw.wbTemplate("wikibase-listview", 
+        /*wb_qualifierHtml:   mw.wbTemplate("wikibase-listview", 
                             mw.wbTemplate("wikibase-snaklistview",
                             mw.wbTemplate("wikibase-snakview", 
                             '{{qualifier-property-html}}', 'wikibase-snakview-variation-valuesnak', '{{qualifier-object}}')))
-                            [0].outerHTML.replace(/(?:\r\n|\r|\n)/g, ""),
+                            [0].outerHTML.replace(/(?:\r\n|\r|\n)/g, ""),*/
 
         qualifierHtml:  mw.wbTemplate("wikibase-listview", 
                         mw.wbTemplate("wikibase-snaklistview",
                         mw.wbTemplate("wikibase-snakview", 
-                        '{{qualifier-property-html}}', 'wikibase-snakview-variation-valuesnak', '{{qualifier-object}}').addClass("listview-item")).addClass("listview-item"))
+                        '{{qualifier-property-html}}', 'wikibase-snakview-variation-valuesnak', '{{qualifier-object}}')))
                         [0].outerHTML.replace(/(?:\r\n|\r|\n)/g, ""),
 
-        wb_sourceHtml: (mw.wbTemplates.store.values["wikibase-toolbar-container"]
+        /*wb_sourceHtml: (mw.wbTemplates.store.values["wikibase-toolbar-container"]
                     .replace('$1', mw.wbTemplates.store.values["wikibase-toolbar-item"]
                     .replace('$1', mw.wbTemplates.store.values["wikibase-toolbar-button"])))
-                    .replace(/(?:\r\n|\r|\n)/g, ""),                      
+                    .replace(/(?:\r\n|\r|\n)/g, ""), */                     
         sourceHtml:    /*(mw.wbTemplates.store.values["wikibase-referenceview"]
                         .replace('$1', 'listview-item wikibase-toolbar-item')
                         .replace('$2', mw.wbTemplates.store.values["wikibase-toolbar-container"]
@@ -42,22 +42,22 @@
                             .replace('$4', 'do something here'))
                         ))))
                         .replace(/(?:\r\n|\r|\n)/g, ""),*/
-                        mw.PrimarySources.addNewClass(mw.wbTemplate("wikibase-referenceview", 'listview-item wikibase-toolbar-item', 
+                        mw.wbTemplate("wikibase-referenceview", 'listview-item wikibase-toolbar-item', 
                         mw.wbTemplate("wikibase-toolbar-container", 
                         mw.wbTemplate("wikibase-toolbar-button", "wikibase-toolbar-button-add")
-                    ),"source"))
+                    ),"source")
                     [0].outerHTML.replace(/(?:\r\n|\r|\n)/g, ""),  
-        wb_sourceItemHtml: (mw.wbTemplates.store.values["wikibase-snakview"]
+        /*wb_sourceItemHtml: (mw.wbTemplates.store.values["wikibase-snakview"]
                             .replace('$1', "{{source-property-html}}")
                             .replace('$2', "wikibase-snakview-variation-valuesnak")
                             .replace('$3', "{{source-object}}"))
-                            .replace(/(?:\r\n|\r|\n)/g, ""),
+                            .replace(/(?:\r\n|\r|\n)/g, ""),*/
         sourceItemHtml:    (mw.wbTemplates.store.values["wikibase-snakview"]
                             .replace('$1', "{{source-property-html}}")
                             .replace('$2', "wikibase-snakview-variation-valuesnak")
                             .replace('$3', '<div class="valueview valueview-instaticmode" aria-disabled="false">{{source-object}}</div>'))
                             .replace(/(?:\r\n|\r|\n)/g, ""),
-        wb_statementViewHtml:  (mw.wbTemplates.store.values["wikibase-statementview"]
+        /*wb_statementViewHtml:  (mw.wbTemplates.store.values["wikibase-statementview"]
                             .replace('$1', "")
                             .replace('$2', "normal wikibase-toolbar-item")
                             .replace('$3', mw.wbTemplates.store.values["wikibase-rankselector"]
@@ -94,9 +94,9 @@
                                            '</div>')
                             .replace('$9', ""))
                             .replace(/(?:\r\n|\r|\n)/g, "")
-                            .replace(' wikibase-statement-', ""),
+                            .replace(' wikibase-statement-', ""),*/
         ps_statementViewHtml: "",
-        wb_mainHtml: (mw.wbTemplates.store.values["wikibase-statementgroupview"]
+        /*wb_mainHtml: (mw.wbTemplates.store.values["wikibase-statementgroupview"]
                     .replace('$1', "{{property-html}}")
                     .replace('$2', mw.wbTemplates.store.values["wikibase-statementlistview"]
                         .replace('$1', "{{statement-views}}"
@@ -111,8 +111,8 @@
                                                     .replace('$4', "Add a new value")))))
                         .replace('$2', ""))
                     .replace('$3', ""))
-                    .replace(/(?:\r\n|\r|\n)/g, ""),
-        ps_mainHtml: "",
+                    .replace(/(?:\r\n|\r|\n)/g, ""),*/
+        ps_mainHtml: ""
         
     },
     

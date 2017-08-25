@@ -110,10 +110,10 @@ $wgResourceModules['ext.PrimarySources.frontend'] = array(
     'messages' => array(
     ),
     'dependencies' => array(
-        'oojs-ui',
-        'wikibase.dataTypeStore',
-        'jquery.wikibase.snakview',
-        'wikibase.datamodel'
+        //'oojs-ui',
+        //'wikibase.dataTypeStore',
+        'jquery.wikibase',
+        //'wikibase.datamodel'
     ),
     'localBasePath' => $dir,
     'remoteExtPath' => $dirbasename,

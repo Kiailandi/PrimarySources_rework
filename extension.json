@@ -10,8 +10,6 @@
   "Hooks": {
     "BeforePageDisplay": "PrimarySourcesHooks::onBeforePageDisplay",
     "ResourceLoaderGetConfigVars": "PrimarySourcesHooks::onResourceLoaderGetConfigVars",
-    //"ParserFirstCallInit": "PrimarySourcesHooks::onParserFirstCallInit",
-    //"MagicWordwgVariableIDs": "PrimarySourcesHooks::onRegisterMagicWords",
     "ParserGetVariableValueSwitch": "PrimarySourcesHooks::onParserGetVariableValueSwitch",
     "LoadExtensionSchemaUpdates": "PrimarySourcesHooks::onLoadExtensionSchemaUpdates",
     "OutputPageParserOutput": "PrimarySourcesHooks::onOutputPageParserOutput",
