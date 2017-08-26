@@ -1,5 +1,11 @@
 (function(mw, $) {
 
+
+    (function extendWbTemplates (){
+        mw.wbTemplates.store.values["primarysources-referenceview"] = "<div class=\"wikibase-referenceview $1\">\n<div class=\"wikibase-referenceview-heading $4\">$3</div>\n<div class=\"wikibase-referenceview-listview\">$2</div>\n</div>";
+        mw.wbTemplates.store.values["primarysources-toolbar-button"] = "<span class=\"$3 wikibase-toolbar-item wikibase-toolbar-button $1\"><a class=\"$4\" href=\"#\" data-statement-id=\"$5\" data-property=\"$6\" data-object=\"$7\" data-source=\"$8\" data-qualifiers=\"$9\"><span class=\"wb-icon\"></span>$2</a></span>";
+    })();
+
     var PrimarySources = {};
     
     PrimarySources.template = {
@@ -17,9 +23,14 @@
                             [0].outerHTML.replace(/(?:\r\n|\r|\n)/g, ""),*/
 
         qualifierHtml:  mw.wbTemplate("wikibase-listview", 
-                        mw.wbTemplate("wikibase-snaklistview",
-                        mw.wbTemplate("wikibase-snakview", 
-                        '{{qualifier-property-html}}', 'wikibase-snakview-variation-valuesnak', '{{qualifier-object}}')))
+                            mw.wbTemplate("wikibase-snaklistview",
+                                mw.wbTemplate("wikibase-snakview", 
+                                    '{{qualifier-property-html}}', 
+                                    'wikibase-snakview-variation-valuesnak', 
+                                    '{{qualifier-object}}'
+                                )
+                            )
+                        )
                         [0].outerHTML.replace(/(?:\r\n|\r|\n)/g, ""),
 
         /*wb_sourceHtml: (mw.wbTemplates.store.values["wikibase-toolbar-container"]
@@ -42,11 +53,57 @@
                             .replace('$4', 'do something here'))
                         ))))
                         .replace(/(?:\r\n|\r|\n)/g, ""),*/
-                        mw.wbTemplate("wikibase-referenceview", 'listview-item wikibase-toolbar-item', 
-                        mw.wbTemplate("wikibase-toolbar-container", 
-                        mw.wbTemplate("wikibase-toolbar-button", "wikibase-toolbar-button-add")
-                    ),"source")
-                    [0].outerHTML.replace(/(?:\r\n|\r|\n)/g, ""),  
+                        mw.wbTemplate("primarysources-referenceview", 
+                            'new-source', 
+                            mw.wbTemplate("wikibase-toolbar",
+                                "wikibase-edittoolbar-container wikibase-toolbar-container",
+                                mw.wbTemplate("wikibase-toolbar",
+                                    "wikibase-toolbar-container",
+                                    mw.wbTemplate("primarysources-toolbar-button",
+                                        "wikibase-toolbar-button-add",
+                                        "approve reference",
+                                        "wikibase-toolbarbutton",
+                                        "f2w-button f2w-source f2w-approve",
+                                        "{{statement-id}}",
+                                        "{{data-property}}",
+                                        "{{data-object}}",
+                                        "{{data-source}}",
+                                        "{{data-qualifiers}}"
+                                    )
+                                ).add(
+                                mw.wbTemplate("wikibase-toolbar",
+                                    "wikibase-toolbar-container",
+                                    mw.wbTemplate("primarysources-toolbar-button",
+                                        "wikibase-toolbar-button-edit",
+                                        "edit reference",
+                                        "wikibase-toolbarbutton",
+                                        "f2w-button f2w-source f2w-edit",
+                                        "{{statement-id}}",
+                                        "{{data-property}}",
+                                        "{{data-object}}",
+                                        "{{data-source}}",
+                                        "{{data-qualifiers}}"
+                                    )
+                                ).add(
+                                mw.wbTemplate("wikibase-toolbar",
+                                    "wikibase-toolbar-container",
+                                    mw.wbTemplate("primarysources-toolbar-button",
+                                        "wikibase-toolbar-button-remove",
+                                        "reject reference",
+                                        "wikibase-toolbarbutton",
+                                        "f2w-button f2w-source f2w-reject",
+                                        "{{statement-id}}",
+                                        "{{data-property}}",
+                                        "{{data-object}}",
+                                        "{{data-source}}",
+                                        "{{data-qualifiers}}"
+                                    )
+                                )))
+                            ),
+                            mw.wbTemplate("wikibase-snaklistview", "{{source-html}}"),
+                            "new-source"
+                        )
+                        [0].outerHTML.replace(/(?:\r\n|\r|\n)/g, ""),  
         /*wb_sourceItemHtml: (mw.wbTemplates.store.values["wikibase-snakview"]
                             .replace('$1', "{{source-property-html}}")
                             .replace('$2', "wikibase-snakview-variation-valuesnak")
