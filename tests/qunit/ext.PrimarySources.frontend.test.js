@@ -164,7 +164,7 @@ HTML_TEMPLATES = {
       '<span class="wikibase-toolbar-item wikibase-toolbar wikibase-edittoolbar-container wikibase-toolbar-container">' +
         '<span class="wikibase-toolbar-item wikibase-toolbar wikibase-toolbar-container">' +
           '<span class="wikibase-toolbarbutton wikibase-toolbar-item wikibase-toolbar-button wikibase-toolbar-button-add">' +
-            '<a class="f2w-button f2w-source f2w-approve" href="#" data-statement-id="{{statement-id}}" data-property="{{data-property}}" data-object="{{data-object}}" data-source="{{data-source}}" data-qualifiers="{{data-qualifiers}}">' +
+            '<a class="f2w-button f2w-source f2w-approve" href="#" data-statement-id="{{statement-id}}" data-property="{{data-property}}" data-object="{{data-object}}" data-sources="{{data-source}}" data-qualifiers="{{data-qualifiers}}">' +
               '<span class="wb-icon">' +
               '</span>' +
               'approve reference' +
@@ -173,7 +173,7 @@ HTML_TEMPLATES = {
         '</span>' +
         '<span class="wikibase-toolbar-item wikibase-toolbar wikibase-toolbar-container">' +
           '<span class="wikibase-toolbarbutton wikibase-toolbar-item wikibase-toolbar-button wikibase-toolbar-button-edit">' +
-            '<a class="f2w-button f2w-source f2w-edit" href="#" data-statement-id="{{statement-id}}" data-property="{{data-property}}" data-object="{{data-object}}" data-source="{{data-source}}" data-qualifiers="{{data-qualifiers}}">' +
+            '<a class="f2w-button f2w-source f2w-edit" href="#" data-statement-id="{{statement-id}}" data-property="{{data-property}}" data-object="{{data-object}}" data-sources="{{data-source}}" data-qualifiers="{{data-qualifiers}}">' +
               '<span class="wb-icon">' +
               '</span>' +
               'edit reference' +
@@ -182,7 +182,7 @@ HTML_TEMPLATES = {
         '</span>' +
         '<span class="wikibase-toolbar-item wikibase-toolbar wikibase-toolbar-container">' +
           '<span class="wikibase-toolbarbutton wikibase-toolbar-item wikibase-toolbar-button wikibase-toolbar-button-remove">' +
-            '<a class="f2w-button f2w-source f2w-reject" href="#" data-statement-id="{{statement-id}}" data-property="{{data-property}}" data-object="{{data-object}}" data-source="{{data-source}}" data-qualifiers="{{data-qualifiers}}">' +
+            '<a class="f2w-button f2w-source f2w-reject" href="#" data-statement-id="{{statement-id}}" data-property="{{data-property}}" data-object="{{data-object}}" data-sources="{{data-source}}" data-qualifiers="{{data-qualifiers}}">' +
               '<span class="wb-icon">' +
               '</span>' +
                 'reject reference' +
@@ -216,87 +216,87 @@ HTML_TEMPLATES = {
   '</div>',
   statementViewHtml:
   '<div class="wikibase-statementview wb-normal listview-item wikibase-toolbar-item new-object">' +
-  '<div class="wikibase-statementview-rankselector">' +
-  '<div class="wikibase-rankselector ui-state-disabled">' +
-  '<span class="ui-icon ui-icon-rankselector wikibase-rankselector-normal" title="Normal rank">' +
-  '</span>' +
-  '</div>' + 
-  '</div>' +
-  '<div class="wikibase-statementview-mainsnak-container">' +
-  '<div class="wikibase-statementview-mainsnak" dir="auto">' +
-  '<div class="wikibase-snakview">' +
-  '<div class="wikibase-snakview-property-container">' +
-  '<div class="wikibase-snakview-property" dir="auto">' +
-  '{{property-html}}' +
-  '</div>' +
-  '</div>' +
-  '<div class="wikibase-snakview-value-container" dir="auto">' +
-  '<div class="wikibase-snakview-typeselector">' +
-  '</div>' +
-  '<div class="wikibase-snakview-value wikibase-snakview-variation-valuesnak">' +
-  '{{object}}' +
-  '</div>' +
-  '</div>' +
-  '</div>' +
-  '</div>' +    
-  '<div class="wikibase-statementview-qualifiers">' +
-  '{{qualifiers}}' +
-  '</div>' +
-  '</div>' +
-  '<span class="wikibase-toolbar-container wikibase-edittoolbar-container">' +
-  '<span class="wikibase-toolbar-item wikibase-toolbar wikibase-toolbar-container">' +
-  '<span class="wikibase-toolbarbutton wikibase-toolbar-item wikibase-toolbar-button wikibase-toolbar-button-add">' +
-  '<a class="f2w-button f2w-property f2w-approve" href="#" data-statement-id="{{statement-id}}" data-property="{{data-property}}" data-object="{{data-object}}" data-qualifiers="{{data-qualifiers}}" data-sources="{{data-sources}}">' +
-  '<span class="wb-icon">' +
-  '</span>' +
-  'approve claim' +
-  '</a>' +
-  '</span>' +
-  '</span>' +
-  '<span class="wikibase-toolbar-item wikibase-toolbar wikibase-toolbar-container">' +
-  '<span class="wikibase-toolbarbutton wikibase-toolbar-item wikibase-toolbar-button wikibase-toolbar-button-edit">' +
-  '<a class="f2w-button f2w-property f2w-edit" href="#" data-statement-id="{{statement-id}}" data-property="{{data-property}}" data-object="{{data-object}}" data-qualifiers="{{data-qualifiers}}" data-sources="{{data-sources}}">' +
-  '<span class="wb-icon">' +
-  '</span>' +
-  'edit claim' +
-  '</a>' +
-  '</span>' +
-  '</span>' +
-  '<span class="wikibase-toolbar-item wikibase-toolbar wikibase-toolbar-container">' +
-  '<span class="wikibase-toolbarbutton wikibase-toolbar-item wikibase-toolbar-button wikibase-toolbar-button-remove">' +
-  '<a class="f2w-button f2w-property f2w-reject" href="#" data-statement-id="{{statement-id}}" data-property="{{data-property}}" data-object="{{data-object}}" data-qualifiers="{{data-qualifiers}}" data-sources="{{data-sources}}">' +
-  '<span class="wb-icon">' +
-  '</span>' +
-  'reject claim' +
-  '</a>' +
-  '</span>' +
-  '</span>' +
-  '</span>' +
-  '<div class="wikibase-statementview-references-container">' +
-  '<div class="wikibase-statementview-references-heading">' +
-  '<a class="ui-toggler ui-toggler-toggle ui-state-default">' +
-  '<span class="ui-toggler-icon ui-icon ui-icon-triangle-1-s">' +
-  '</span>' +
-  '<span class="ui-toggler-label">' +
-  '{{references}}' +
-  '</span>' +
-  '</a>' +
-  '</div>' + 
-  '<div class="wikibase-statementview-references wikibase-toolbar-item">' +
-  '<div class="wikibase-listview">' +
-  '{{sources}}' +
-  '</div>' +
-  '<div class="wikibase-addtoolbar wikibase-toolbar-item wikibase-toolbar wikibase-addtoolbar-container wikibase-toolbar-container">' +
-  '<span class="wikibase-toolbarbutton wikibase-toolbar-item wikibase-toolbar-button wikibase-toolbar-button-add">' +
-  '<a href="#" title="">' +
-  '<span class="wb-icon">' +
-  '</span>' +
-  'add reference' +
-  '</a>' +
-  '</span>' +
-  '</div>' +
-  '</div>' +
-  '</div>' +
+    '<div class="wikibase-statementview-rankselector">' +
+      '<div class="wikibase-rankselector ui-state-disabled">' +
+        '<span class="ui-icon ui-icon-rankselector wikibase-rankselector-normal" title="Normal rank">' +
+        '</span>' +
+      '</div>' + 
+    '</div>' +
+    '<div class="wikibase-statementview-mainsnak-container">' +
+      '<div class="wikibase-statementview-mainsnak" dir="auto">' +
+        '<div class="wikibase-snakview">' +
+          '<div class="wikibase-snakview-property-container">' +
+            '<div class="wikibase-snakview-property" dir="auto">' +
+              '{{property-html}}' +
+            '</div>' +
+          '</div>' +
+          '<div class="wikibase-snakview-value-container" dir="auto">' +
+            '<div class="wikibase-snakview-typeselector">' +
+            '</div>' +
+              '<div class="wikibase-snakview-value wikibase-snakview-variation-valuesnak">' +
+              '{{object}}' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +    
+      '<div class="wikibase-statementview-qualifiers">' +
+        '{{qualifiers}}' +
+      '</div>' +
+    '</div>' +
+    '<span class="wikibase-toolbar-container wikibase-edittoolbar-container">' +
+      '<span class="wikibase-toolbar-item wikibase-toolbar wikibase-toolbar-container">' +
+        '<span class="wikibase-toolbarbutton wikibase-toolbar-item wikibase-toolbar-button wikibase-toolbar-button-add">' +
+          '<a class="f2w-button f2w-property f2w-approve" href="#" data-statement-id="{{statement-id}}" data-property="{{data-property}}" data-object="{{data-object}}" data-sources="{{data-sources}}" data-qualifiers="{{data-qualifiers}}">' +
+            '<span class="wb-icon">' +
+            '</span>' +
+            'approve claim' +
+          '</a>' +
+        '</span>' +
+      '</span>' +
+      '<span class="wikibase-toolbar-item wikibase-toolbar wikibase-toolbar-container">' +
+        '<span class="wikibase-toolbarbutton wikibase-toolbar-item wikibase-toolbar-button wikibase-toolbar-button-edit">' +
+          '<a class="f2w-button f2w-property f2w-edit" href="#" data-statement-id="{{statement-id}}" data-property="{{data-property}}" data-object="{{data-object}}" data-sources="{{data-sources}}" data-qualifiers="{{data-qualifiers}}">' +
+            '<span class="wb-icon">' +
+            '</span>' +
+            'edit claim' +
+          '</a>' +
+        '</span>' +
+      '</span>' +
+      '<span class="wikibase-toolbar-item wikibase-toolbar wikibase-toolbar-container">' +
+        '<span class="wikibase-toolbarbutton wikibase-toolbar-item wikibase-toolbar-button wikibase-toolbar-button-remove">' +
+          '<a class="f2w-button f2w-property f2w-reject" href="#" data-statement-id="{{statement-id}}" data-property="{{data-property}}" data-object="{{data-object}}" data-sources="{{data-sources}}" data-qualifiers="{{data-qualifiers}}">' +
+            '<span class="wb-icon">' +
+            '</span>' +
+            'reject claim' +
+          '</a>' +
+        '</span>' +
+      '</span>' +
+    '</span>' +
+    '<div class="wikibase-statementview-references-container">' +
+      '<div class="wikibase-statementview-references-heading">' +
+        '<a class="ui-toggler ui-toggler-toggle ui-state-default">' +
+          '<span class="ui-toggler-icon ui-icon ui-icon-triangle-1-s">' +
+          '</span>' +
+          '<span class="ui-toggler-label">' +
+            '{{references}}' +
+          '</span>' +
+        '</a>' +
+      '</div>' + 
+      '<div class="wikibase-statementview-references wikibase-toolbar-item">' +
+        '<div class="wikibase-listview">' +
+          '{{sources}}' +
+        '</div>' +
+        '<span class="wikibase-toolbar-container wikibase-addtoolbar wikibase-toolbar-item wikibase-toolbar wikibase-addtoolbar-container">' +
+          '<span class="wikibase-toolbar-item wikibase-toolbar-button wikibase-toolbarbutton wikibase-toolbar-button-add">' +
+            '<a href="#" title="">' +
+              '<span class="wb-icon">' +
+              '</span>' +
+              'add reference' +
+            '</a>' +
+          '</span>' +
+        '</span>' +
+      '</div>' +
+    '</div>' +
   '</div>',
   mainHtml:
   '<div class="wikibase-statementgroupview listview-item" id="{{property}}">' +
