@@ -213,7 +213,7 @@ HTML_TEMPLATES = {
         '{{source-object}}' +
       '</div>' +
     '</div>' +
-  '</div>'        ,
+  '</div>',
   statementViewHtml:
   '<div class="wikibase-statementview wb-normal listview-item wikibase-toolbar-item new-object">' +
   '<div class="wikibase-statementview-rankselector">' +
@@ -300,18 +300,18 @@ HTML_TEMPLATES = {
   '</div>',
   mainHtml:
   '<div class="wikibase-statementgroupview listview-item" id="{{property}}">' +
-  '<div class="wikibase-statementgroupview-property new-property">' +
-  '<div class="wikibase-statementgroupview-property-label" dir="auto">' +
-  '{{property-html}}' +
-  '</div>' +
-  '</div>' +
-  '<div class="wikibase-statementlistview wikibase-toolbar-item">' +
-  '<div class="wikibase-statementlistview-listview">' +
-  '{{statement-views}}' +
-  '</div>' +
-  '<span class="wikibase-toolbar-container">' +
-  '</span>' +
-  '</div>' +
+    '<div class="wikibase-statementgroupview-property new-property">' +
+      '<div class="wikibase-statementgroupview-property-label" dir="auto">' +
+        '{{property-html}}' +
+      '</div>' +
+    '</div>' +
+    '<div class="wikibase-statementlistview wikibase-toolbar-item">' +
+      '<div class="wikibase-statementlistview-listview">' +
+        '{{statement-views}}' +
+      '</div>' +
+      '<span class="wikibase-toolbar-container">' +
+      '</span>' +
+    '</div>' +
   '</div>'
 };
 
@@ -351,7 +351,7 @@ HTML_TEMPLATES = {
   });*/
 
   QUnit.test("ps_statementViewHtml", function( assert ){
-    assert.equal(mw.PrimarySources.template.ps_statementViewHtml, HTML_TEMPLATES.statementViewHtml, "Test statementViewHtml for PrimarySources");    
+    assert.equal(mw.PrimarySources.template.statementViewHtml, HTML_TEMPLATES.statementViewHtml, "Test statementViewHtml for PrimarySources");    
   });
 
   /*QUnit.test("wb_mainHtml", function( assert ){
@@ -359,7 +359,7 @@ HTML_TEMPLATES = {
   });*/
 
   QUnit.test("ps_mainHtml", function( assert ){
-    assert.equal(mw.PrimarySources.template.ps_mainHtml, HTML_TEMPLATES.mainHtml, "Test mainHtml for PrimarySources");
+    assert.equal(mw.PrimarySources.template.mainHtml, HTML_TEMPLATES.mainHtml, "Test mainHtml for PrimarySources");
   });
 
 }( jQuery, mediaWiki ) );

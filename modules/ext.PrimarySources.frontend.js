@@ -4,6 +4,8 @@
     (function extendWbTemplates (){
         mw.wbTemplates.store.values["primarysources-referenceview"] = "<div class=\"wikibase-referenceview $1\">\n<div class=\"wikibase-referenceview-heading $4\">$3</div>\n<div class=\"wikibase-referenceview-listview\">$2</div>\n</div>";
         mw.wbTemplates.store.values["primarysources-toolbar-button"] = "<span class=\"$3 wikibase-toolbar-item wikibase-toolbar-button $1\"><a class=\"$4\" href=\"#\" data-statement-id=\"$5\" data-property=\"$6\" data-object=\"$7\" data-source=\"$8\" data-qualifiers=\"$9\"><span class=\"wb-icon\"></span>$2</a></span>";
+        mw.wbTemplates.store.values["primarysources-statementgroupview"] = "<div class=\"wikibase-statementgroupview listview-item\" id=\"$3\">\n<div class=\"wikibase-statementgroupview-property new-property\">\n<div class=\"wikibase-statementgroupview-property-label\" dir=\"auto\">$1</div>\n</div>\n$2\n</div>"
+        mw.wbTemplates.store.values["primarysources-statementlistview"] = "<div class=\"wikibase-statementlistview wikibase-toolbar-item\">\n<div class=\"wikibase-statementlistview-listview\">\n$1\n</div>\n$2\n</div>"
     })();
 
     var PrimarySources = {};
@@ -109,16 +111,16 @@
                             .replace('$2', "wikibase-snakview-variation-valuesnak")
                             .replace('$3', "{{source-object}}"))
                             .replace(/(?:\r\n|\r|\n)/g, ""),*/
-        sourceItemHtml:    /*(mw.wbTemplates.store.values["wikibase-snakview"]
+        sourceItemHtml:     /*(mw.wbTemplates.store.values["wikibase-snakview"]
                             .replace('$1', "{{source-property-html}}")
                             .replace('$2', "wikibase-snakview-variation-valuesnak")
                             .replace('$3', '<div class="valueview valueview-instaticmode" aria-disabled="false">{{source-object}}</div>'))
                             .replace(/(?:\r\n|\r|\n)/g, ""),*/
-                            mw.wbTemplate("wikibase-snakview",
-                                "{{source-property-html}}",
-                                "wikibase-snakview-variation-valuesnak",
-                                "{{source-object}}")
-                            [0].outerHTML.replace(/(?:\r\n|\r|\n)/g, ""),  
+                        mw.wbTemplate("wikibase-snakview",
+                            "{{source-property-html}}",
+                            "wikibase-snakview-variation-valuesnak",
+                            "{{source-object}}")
+                        [0].outerHTML.replace(/(?:\r\n|\r|\n)/g, ""),  
         /*wb_statementViewHtml:  (mw.wbTemplates.store.values["wikibase-statementview"]
                             .replace('$1', "")
                             .replace('$2', "normal wikibase-toolbar-item")
@@ -157,7 +159,7 @@
                             .replace('$9', ""))
                             .replace(/(?:\r\n|\r|\n)/g, "")
                             .replace(' wikibase-statement-', ""),*/
-        ps_statementViewHtml: "",
+        statementViewHtml: "",
         /*wb_mainHtml: (mw.wbTemplates.store.values["wikibase-statementgroupview"]
                     .replace('$1', "{{property-html}}")
                     .replace('$2', mw.wbTemplates.store.values["wikibase-statementlistview"]
@@ -174,27 +176,15 @@
                         .replace('$2', ""))
                     .replace('$3', ""))
                     .replace(/(?:\r\n|\r|\n)/g, ""),*/
-        ps_mainHtml: ""
-        
+        mainHtml: mw.wbTemplate("primarysources-statementgroupview",
+                        "{{property-html}}",
+                        mw.wbTemplate("primarysources-statementlistview", 
+                            "{{statement-views}}",
+                            mw.wbTemplate("wikibase-toolbar-container", "")),
+                        "{{property}}")
+                    [0].outerHTML.replace(/(?:\r\n|\r|\n)/g, "")        
     },
     
-    PrimarySources.addNewClass = function (DOMitem, itemType){
-        
-        if(itemType === "property"){
-            $(DOMitem).children().first().addClass('new-property');
-        }
-        else
-            if(itemType === "source"){
-                DOMitem.addClass('new-source');
-                DOMitem.children().first().addClass('new-source');        
-            }
-            else
-                if (itemType === "statementView"){
-                    DOMitem.addClass('new-object');
-                }
-        return DOMitem;
-    }
-
     mw.PrimarySources = PrimarySources;
     
 }( mediaWiki, jQuery ) );
