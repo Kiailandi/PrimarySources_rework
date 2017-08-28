@@ -201,18 +201,18 @@ HTML_TEMPLATES = {
   '</div>' ,
   sourceItemHtml:
   '<div class="wikibase-snakview">' +
-  '<div class="wikibase-snakview-property-container">' +
-  '<div class="wikibase-snakview-property" dir="auto">' +
-  '{{source-property-html}}' +
-  '</div>' +
-  '</div>' +
-  '<div class="wikibase-snakview-value-container" dir="auto">' +
-  '<div class="wikibase-snakview-typeselector">' +
-  '</div>' +
-  '<div class="wikibase-snakview-value wikibase-snakview-variation-valuesnak">' +
-  '{{source-object}}' +
-  '</div>' +
-  '</div>' +
+    '<div class="wikibase-snakview-property-container">' +
+      '<div class="wikibase-snakview-property" dir="auto">' +
+        '{{source-property-html}}' +
+      '</div>' +
+    '</div>' +
+    '<div class="wikibase-snakview-value-container" dir="auto">' +
+      '<div class="wikibase-snakview-typeselector">' +
+      '</div>' +
+      '<div class="wikibase-snakview-value wikibase-snakview-variation-valuesnak">' +
+        '{{source-object}}' +
+      '</div>' +
+    '</div>' +
   '</div>'        ,
   statementViewHtml:
   '<div class="wikibase-statementview wb-normal listview-item wikibase-toolbar-item new-object">' +

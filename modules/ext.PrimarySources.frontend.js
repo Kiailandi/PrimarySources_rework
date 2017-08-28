@@ -109,11 +109,16 @@
                             .replace('$2', "wikibase-snakview-variation-valuesnak")
                             .replace('$3', "{{source-object}}"))
                             .replace(/(?:\r\n|\r|\n)/g, ""),*/
-        sourceItemHtml:    (mw.wbTemplates.store.values["wikibase-snakview"]
+        sourceItemHtml:    /*(mw.wbTemplates.store.values["wikibase-snakview"]
                             .replace('$1', "{{source-property-html}}")
                             .replace('$2', "wikibase-snakview-variation-valuesnak")
                             .replace('$3', '<div class="valueview valueview-instaticmode" aria-disabled="false">{{source-object}}</div>'))
-                            .replace(/(?:\r\n|\r|\n)/g, ""),
+                            .replace(/(?:\r\n|\r|\n)/g, ""),*/
+                            mw.wbTemplate("wikibase-snakview",
+                                "{{source-property-html}}",
+                                "wikibase-snakview-variation-valuesnak",
+                                "{{source-object}}")
+                            [0].outerHTML.replace(/(?:\r\n|\r|\n)/g, ""),  
         /*wb_statementViewHtml:  (mw.wbTemplates.store.values["wikibase-statementview"]
                             .replace('$1', "")
                             .replace('$2', "normal wikibase-toolbar-item")
