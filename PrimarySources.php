@@ -86,7 +86,9 @@ $wgAPIListModules['PrimarySources'] = 'ApiQueryPrimarySources';
 $wgHooks['BeforePageDisplay'][] = 'PrimarySourcesHooks::onBeforePageDisplay';
 $wgHooks['ResourceLoaderGetConfigVars'][] = 'PrimarySourcesHooks::onResourceLoaderGetConfigVars';
 $wgHooks['ParserFirstCallInit'][] = 'PrimarySourcesHooks::onParserFirstCallInit';
-$wgHooks['MagicWordwgVariableIDs'][] = 'PrimarySourcesHooks::onRegisterMagicWords';
+# --- #
+#$wgHooks['MagicWordwgVariableIDs'][] = 'PrimarySourcesHooks::onRegisterMagicWords';
+# --- #
 $wgHooks['ParserGetVariableValueSwitch'][] = 'PrimarySourcesHooks::onParserGetVariableValueSwitch';
 $wgHooks['LoadExtensionSchemaUpdates'][] = 'PrimarySourcesHooks::onLoadExtensionSchemaUpdates';
 $wgHooks['OutputPageParserOutput'] [] = 'PrimarySourcesHooks::onOutputPageParserOutput';
@@ -102,21 +104,21 @@ $wgSpecialPages['HelloWorld'] = 'SpecialPrimarySources';
 // load JavaScript and CSS files to the client.
 $wgResourceModules['ext.PrimarySources.frontend'] = array(
     'scripts' => array(
-        '/modules/ext.PrimarySources.frontend.js',
+        '/modules/ext.PrimarySources.frontend.js'
     ),
     'styles' => array(
-        '/modules/ext.PrimarySources.frontend.css',
+        '/modules/ext.PrimarySources.frontend.css'
     ),
     'messages' => array(
     ),
     'dependencies' => array(
         //'oojs-ui',
         //'wikibase.dataTypeStore',
-        'jquery.wikibase',
+        'jquery.wikibase'
         //'wikibase.datamodel'
     ),
     'localBasePath' => $dir,
-    'remoteExtPath' => $dirbasename,
+    'remoteExtPath' => $dirbasename
 );
 
 /* Configuration */
