@@ -31,6 +31,79 @@
         listDialog(listButton);
     });
 
+
+    function parsePrimarySourcesStatement(statement, isBlacklisted) {
+        var id = statement.id;
+        var line = statement.statement.split(/\t/);
+        var subject = line[0];
+        var predicate = line[1];
+        var object = line[2];
+        var qualifiers = [];
+        var source = [];
+        var key = object;
+        // Handle any qualifiers and/or sources
+        var qualifierKeyParts = [];
+        var lineLength = line.length;
+        for (var i = 3; i < lineLength; i += 2) {
+            if (i === lineLength - 1) {
+                ps.util.debug.log('Malformed qualifier/source pieces');
+                break;
+            }
+            if (/^P\d+$/.exec(line[i])) {
+                var qualifierKey = line[i] + '\t' + line[i + 1];
+                qualifiers.push({
+                    qualifierProperty: line[i],
+                    qualifierObject: line[i + 1],
+                    key: qualifierKey
+                });
+                qualifierKeyParts.push(qualifierKey);
+            } else if (/^S\d+$/.exec(line[i])) {
+                source.push({
+                    sourceProperty: line[i].replace(/^S/, 'P'),
+                    sourceObject: line[i + 1],
+                    sourceType: (ps.util.tsvValueToJson(line[i + 1])).type,
+                    sourceId: id,
+                    key: line[i] + '\t' + line[i + 1]
+                });
+            }
+
+            qualifierKeyParts.sort();
+            key += '\t' + qualifierKeyParts.join('\t');
+
+            // Filter out blacklisted source URLs
+            source = source.filter(function(source) {
+                if (source.sourceType === 'url') {
+                    var url = source.sourceObject.replace(/^"/, '').replace(/"$/, '');
+                    var blacklisted = isBlacklisted(url);
+                    if (blacklisted) {
+                        ps.util.debug.log('Encountered blacklisted source url ' + url);
+                        (function(currentId, currentUrl) {
+                            setStatementState(currentId, STATEMENT_STATES.blacklisted)
+                                .done(function() {
+                                    ps.util.debug.log('Automatically blacklisted statement ' +
+                                        currentId + ' with blacklisted source url ' +
+                                        currentUrl);
+                                });
+                        })(id, url);
+                    }
+                    // Return the opposite, i.e., the whitelisted URLs
+                    return !blacklisted;
+                }
+                return true;
+            });
+        }
+
+        return {
+            id: id,
+            subject: subject,
+            predicate: predicate,
+            object: object,
+            qualifiers: qualifiers,
+            source: source,
+            key: key
+        };
+    }
+
     /**
      * (Used only by ListDialog)
      * @param parameters
@@ -45,18 +118,13 @@
             ps.util.getBlacklistedSourceUrls()
         ).then(
             function (data, blacklistedSourceUrls) {
-                console.log("DATA");
-                console.log(data);
+                var isBlacklisted = ps.util.isBlackListedBuilder(blacklistedSourceUrls);
+                var statements = data.map(function(statement) {
+                    return parsePrimarySourcesStatement(statement, isBlacklisted);
+                });
+                ps.util.preloadEntityLabels(statements);
+                return statements;
             }
-            //TODO import parsePrimarySourcesStatement
-            // function(data, blacklistedSourceUrls) {
-            // var isBlacklisted = util.isBlackListedBuilder(blacklistedSourceUrls);
-            // var statements = data.map(function(statement) {
-            //     return parsePrimarySourcesStatement(statement, isBlacklisted);
-            // });
-            // preloadEntityLabels(statements);
-            // return statements;
-            // }
         );
     }
 
@@ -152,7 +220,7 @@
                                 if (widget.statement.source.length === 0) {
                                     setStatementState(widget.statement.id,
                                         STATEMENT_STATES.duplicate).done(function() {
-                                        debug.log(widget.statement.id + ' tagged as duplicate');
+                                        ps.util.debug.log(widget.statement.id + ' tagged as duplicate');
                                     });
                                 }
                             }
@@ -317,7 +385,6 @@
             var progressBar = new OO.ui.ProgressBarWidget();
             progressBar.$element.css('max-width', '100%');
             widget.mainPanel.$element.append(progressBar.$element);
-
             // do research
             searchStatements(this.parameters)
                 .fail(function() {
@@ -336,7 +403,7 @@
                     // We may assume that more statements remains
                     if (statements.length > 0) {
                         widget.nextStatementsButton = new OO.ui.ButtonWidget({
-                            label: 'Load more statements',
+                            label: 'Load more statements'
                         });
                         widget.nextStatementsButton.connect(
                             widget,
@@ -361,6 +428,10 @@
                 this.initTable();
             }
 
+            //todo vedere la funzione map
+            console.log("prima");
+            console.log(statements);
+
             statements.map(function(statement) {
                 statement.key = statement.subject + '\t' +
                     statement.predicate + '\t' +
@@ -379,6 +450,9 @@
                 });
                 widget.table.append(row.$element);
             });
+
+            console.log("dopo");
+            console.log(statements);
         };
 
         ListDialog.prototype.initTable = function() {
