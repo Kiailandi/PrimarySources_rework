@@ -9,9 +9,6 @@
     // accessible object
     var commons = {};
     
-    var DEBUG = JSON.parse(localStorage.getItem('f2w_debug')) || false;
-    localStorage.setItem('f2w_debug', true);
-
     var API_ENDPOINTS = {
       WIKIDATA_ENTITY_DATA_URL: 'https://www.wikidata.org/wiki/Special:EntityData/{{qid}}.json',
       FREEBASE_ENTITY_DATA_URL: 'http://it.dbpedia.org/pst/suggest?qid={{qid}}',
@@ -21,18 +18,21 @@
       FREEBASE_SOURCE_URL_BLACKLIST: 'https://www.wikidata.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_blacklist',
       FREEBASE_SOURCE_URL_WHITELIST: 'https://www.wikidata.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_whitelist'
     };
-
-    var CACHE_EXPIRY = 60 * 60 * 1000;
-
     commons.API_ENDPOINTS = API_ENDPOINTS;
 
-    var dataset = null;
-    mw.loader.using(['mediawiki.cookie']).then(function() {
-        dataset = mw.cookie.get('ps-dataset', null, '');
-    });
+    commons.WIKIDATA_API_COMMENT = 'Added via [[Wikidata:Primary sources tool]]';
 
-    commons.dataset = dataset;
+    commons.STATEMENT_STATES = {
+      unapproved: 'new',
+      approved: 'approved',
+      rejected: 'rejected',
+      duplicate: 'duplicate',
+      blacklisted: 'blacklisted'
+    };
+    commons.STATEMENT_FORMAT = 'QuickStatement';
 
+    commons.DEBUG = JSON.parse(localStorage.getItem('f2w_debug')) || false;
+    localStorage.setItem('f2w_debug', true);
     commons.debug = {
         log: function(message) {
             if (DEBUG) {
@@ -40,6 +40,16 @@
             }
         }
     };
+    
+    commons.FAKE_OR_RANDOM_DATA = JSON.parse(localStorage.getItem('f2w_fakeOrRandomData')) || false;
+    
+    var CACHE_EXPIRY = 60 * 60 * 1000;
+
+    var dataset = null;
+    mw.loader.using(['mediawiki.cookie']).then(function() {
+        dataset = mw.cookie.get('ps-dataset', null, '');
+    });
+    commons.dataset = dataset;
 
     /**
    * Return a list of black listed source urls from
@@ -471,6 +481,160 @@
           };
         }
       }
+    }
+    commons.parsePrimarySourcesStatement = function parsePrimarySourcesStatement(statement, isBlacklisted) {
+      // The full QuickStatement acts as the ID
+      var id = statement.statement;
+      var dataset = statement.dataset
+      var line = statement.statement.split(/\t/);
+      var subject = line[0];
+      var predicate = line[1];
+      var object = line[2];
+      var qualifiers = [];
+      var source = [];
+      var key = object;
+      // Handle any qualifiers and/or sources
+      var qualifierKeyParts = [];
+      var lineLength = line.length;
+      for (var i = 3; i < lineLength; i += 2) {
+        if (i === lineLength - 1) {
+          ps.commons.debug.log('Malformed qualifier/source pieces');
+          break;
+        }
+        if (/^P\d+$/.exec(line[i])) {
+          var qualifierKey = line[i] + '\t' + line[i + 1];
+          qualifiers.push({
+            qualifierProperty: line[i],
+            qualifierObject: line[i + 1],
+            key: qualifierKey
+          });
+          qualifierKeyParts.push(qualifierKey);
+        } else if (/^S\d+$/.exec(line[i])) {
+          source.push({
+            sourceProperty: line[i].replace(/^S/, 'P'),
+            sourceObject: line[i + 1],
+            sourceType: (ps.commons.tsvValueToJson(line[i + 1])).type,
+            sourceId: id,
+            key: line[i] + '\t' + line[i + 1]
+          });
+        }
+
+        qualifierKeyParts.sort();
+        key += '\t' + qualifierKeyParts.join('\t');
+
+        // Filter out blacklisted source URLs
+        source = source.filter(function(source) {
+          if (source.sourceType === 'url') {
+            var url = source.sourceObject.replace(/^"/, '').replace(/"$/, '');
+            var blacklisted = isBlacklisted(url);
+            if (blacklisted) {
+              ps.commons.debug.log('Encountered blacklisted reference URL ' + url);
+              var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.key;
+              (function(currentId, currentUrl) {
+                setStatementState(currentId, ps.commons.STATEMENT_STATES.blacklisted, statementDataset, 'reference')
+                  .done(function() {
+                    ps.commons.debug.log('Automatically blacklisted statement ' +
+                      currentId + ' with blacklisted reference URL ' +
+                      currentUrl);
+                  });
+              })(sourceQuickStatement, url);
+            }
+            // Return the opposite, i.e., the whitelisted URLs
+            return !blacklisted;
+          }
+          return true;
+        });
+      }
+
+      return {
+        id: id,
+        dataset: dataset,
+        subject: subject,
+        predicate: predicate,
+        object: object,
+        qualifiers: qualifiers,
+        source: source,
+        key: key
+      };
+    }
+    commons.preloadEntityLabels = function preloadEntityLabels(statements) {
+      var entityIds = [];
+      statements.forEach(function(statement) {
+        entityIds = entityIds.concat(extractEntityIdsFromStatement(statement));
+      });
+      loadEntityLabels(entityIds);
+    }
+    var entityLabelCache = {};
+    // Only called by getValueHtml
+    function getEntityLabel(entityId) {
+      if(!(entityId in entityLabelCache)) {
+        loadEntityLabels([entityId]);
+      }
+
+      return entityLabelCache[entityId];
+    }
+    // Only called by preloadEntityLabels
+    function loadEntityLabels(entityIds) {
+      entityIds = entityIds.filter(function(entityId) {
+        return !(entityId in entityLabelCache);
+      });
+      if(entityIds.length === 0) {
+        return;
+      }
+
+      var promise = getEntityLabels(entityIds);
+      entityIds.forEach(function(entityId) {
+        entityLabelCache[entityId] = promise.then(function(labels) {
+          return labels[entityId];
+        });
+      });
+    }
+    function getEntityLabels(entityIds) {
+      //Split entityIds per bucket in order to match limits
+      var buckets = [];
+      var currentBucket = [];
+
+      entityIds.forEach(function(entityId) {
+        currentBucket.push(entityId);
+        if(currentBucket.length > 40) {
+          buckets.push(currentBucket);
+          currentBucket = [];
+        }
+      });
+      buckets.push(currentBucket);
+
+      var promises = buckets.map(function(bucket) {
+        return getFewEntityLabels(bucket);
+      });
+
+      return $.when.apply(this, promises).then(function() {
+        return $.extend.apply(this, arguments);
+      });
+    }
+    function getFewEntityLabels(entityIds) {
+      if (entityIds.length === 0) {
+        return $.Deferred().resolve({});
+      }
+      var api = new mw.Api();
+      var language = mw.config.get('wgUserLanguage');
+      return api.get({
+        action: 'wbgetentities',
+        ids: entityIds.join('|'),
+        props: 'labels',
+        languages: language,
+        languagefallback: true
+      }).then(function(data) {
+        var labels = {};
+        for (var id in data.entities) {
+          var entity = data.entities[id];
+          if (entity.labels && entity.labels[language]) {
+            labels[id] = entity.labels[language].value;
+          } else {
+            labels[id] = entity.id;
+          }
+        }
+        return labels;
+      });
     }
     // END: utilities
 

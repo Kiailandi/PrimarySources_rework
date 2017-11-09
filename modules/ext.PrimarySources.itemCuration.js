@@ -18,153 +18,78 @@
   itemCuration.getFreebaseEntityData = function getFreebaseEntityData(qid, callback) {
     $.ajax({
       url: FAKE_OR_RANDOM_DATA ?
-        ps.util.API_ENDPOINT.FREEBASE_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, 'any') : ps.util.API_ENDPOINT.FREEBASE_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, qid) + '&dataset=' +
+        ps.commons.API_ENDPOINTS.FREEBASE_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, 'any') : ps.commons.API_ENDPOINTS.FREEBASE_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, qid) + '&dataset=' +
         dataset
     }).done(function(data) {
       return callback(null, data);
     });
   }
-  itemCuration.parsePrimarySourcesStatement = function parsePrimarySourcesStatement(statement, isBlacklisted) {
-    // The full QuickStatement acts as the ID
-    var id = statement.statement;
-    var statementDataset = statement.dataset
-    var line = statement.statement.split(/\t/);
-    var subject = line[0];
-    var predicate = line[1];
-    var object = line[2];
-    var qualifiers = [];
-    var source = [];
-    var key = object;
-    // Handle any qualifiers and/or sources
-    var qualifierKeyParts = [];
-    var lineLength = line.length;
-    for (var i = 3; i < lineLength; i += 2) {
-      if (i === lineLength - 1) {
-        debug.log('Malformed qualifier/source pieces');
-        break;
-      }
-      if (/^P\d+$/.exec(line[i])) {
-        var qualifierKey = line[i] + '\t' + line[i + 1];
-        qualifiers.push({
-          qualifierProperty: line[i],
-          qualifierObject: line[i + 1],
-          key: qualifierKey
-        });
-        qualifierKeyParts.push(qualifierKey);
-      } else if (/^S\d+$/.exec(line[i])) {
-        source.push({
-          sourceProperty: line[i].replace(/^S/, 'P'),
-          sourceObject: line[i + 1],
-          sourceType: (tsvValueToJson(line[i + 1])).type,
-          sourceId: id,
-          key: line[i] + '\t' + line[i + 1]
-        });
-      }
-
-      qualifierKeyParts.sort();
-      key += '\t' + qualifierKeyParts.join('\t');
-
-      // Filter out blacklisted source URLs
-      source = source.filter(function(source) {
-        if (source.sourceType === 'url') {
-          var url = source.sourceObject.replace(/^"/, '').replace(/"$/, '');
-          var blacklisted = isBlacklisted(url);
-          if (blacklisted) {
-            debug.log('Encountered blacklisted reference URL ' + url);
-            var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.key;
-            (function(currentId, currentUrl) {
-              setStatementState(currentId, STATEMENT_STATES.blacklisted, statementDataset, 'reference')
-                .done(function() {
-                  debug.log('Automatically blacklisted statement ' +
-                    currentId + ' with blacklisted reference URL ' +
-                    currentUrl);
-                });
-            })(sourceQuickStatement, url);
-          }
-          // Return the opposite, i.e., the whitelisted URLs
-          return !blacklisted;
-        }
-        return true;
-      });
-    }
-
-    return {
-      id: id,
-      dataset: statementDataset,
-      subject: subject,
-      predicate: predicate,
-      object: object,
-      qualifiers: qualifiers,
-      source: source,
-      key: key
-    };
-  }
   itemCuration.parseFreebaseClaims = function parseFreebaseClaims(freebaseEntityData, blacklistedSourceUrls) {
-    var isBlacklisted = isBlackListedBuilder(blacklistedSourceUrls);
+    var isBlacklisted = ps.commons.isBlackListedBuilder(blacklistedSourceUrls);
 
     var freebaseClaims = {};
     /* jshint ignore:start */
     /* jscs: disable */
-    if (DEBUG) {
+    if (ps.commons.DEBUG) {
       if (qid === 'Q4115189') {
         // The sandbox item can be written to
         document.getElementById('content').style.backgroundColor = 'lime';
       }
     }
-    if (FAKE_OR_RANDOM_DATA) {
+    if (ps.commons.FAKE_OR_RANDOM_DATA) {
       freebaseEntityData.push({
         statement: qid + '\tP31\tQ1\tP580\t+1840-01-01T00:00:00Z/9\tS143\tQ48183',
-        state: STATEMENT_STATES.unapproved,
+        state: ps.commons.STATEMENT_STATES.unapproved,
         id: 0,
-        format: STATEMENT_FORMAT
+        format: ps.commons.STATEMENT_FORMAT
       });
       freebaseEntityData.push({
         statement: qid + '\tP108\tQ95\tS854\t"http://research.google.com/pubs/vrandecic.html"',
-        state: STATEMENT_STATES.unapproved,
+        state: ps.commons.STATEMENT_STATES.unapproved,
         id: 0,
-        format: STATEMENT_FORMAT
+        format: ps.commons.STATEMENT_FORMAT
       });
       freebaseEntityData.push({
         statement: qid + '\tP108\tQ8288\tP582\t+2013-09-30T00:00:00Z/10\tS854\t"http://simia.net/wiki/Denny"\tS813\t+2015-02-14T00:00:00Z/11',
-        state: STATEMENT_STATES.unapproved,
+        state: ps.commons.STATEMENT_STATES.unapproved,
         id: 0,
-        format: STATEMENT_FORMAT
+        format: ps.commons.STATEMENT_FORMAT
       });
       freebaseEntityData.push({
         statement: qid + '\tP1451\ten:"foo bar"\tP582\t+2013-09-30T00:00:00Z/10\tS854\t"http://www.ebay.com/itm/GNC-Mens-Saw-Palmetto-Formula-60-Tablets/301466378726?pt=LH_DefaultDomain_0&hash=item4630cbe1e6"',
-        state: STATEMENT_STATES.unapproved,
+        state: ps.commons.STATEMENT_STATES.unapproved,
         id: 0,
-        format: STATEMENT_FORMAT
+        format: ps.commons.STATEMENT_FORMAT
       });
       freebaseEntityData.push({
         statement: qid + '\tP108\tQ8288\tP582\t+2013-09-30T00:00:00Z/10\tS854\t"https://lists.wikimedia.org/pipermail/wikidata-l/2013-July/002518.html"',
-        state: STATEMENT_STATES.unapproved,
+        state: ps.commons.STATEMENT_STATES.unapproved,
         id: 0,
-        format: STATEMENT_FORMAT
+        format: ps.commons.STATEMENT_FORMAT
       });
       freebaseEntityData.push({
         statement: qid + '\tP1082\t-1234',
-        state: STATEMENT_STATES.unapproved,
+        state: ps.commons.STATEMENT_STATES.unapproved,
         id: 0,
-        format: STATEMENT_FORMAT
+        format: ps.commons.STATEMENT_FORMAT
       });
       freebaseEntityData.push({
         statement: qid + '\tP625\t@-12.12334556/23.1234',
-        state: STATEMENT_STATES.unapproved,
+        state: ps.commons.STATEMENT_STATES.unapproved,
         id: 0,
-        format: STATEMENT_FORMAT
+        format: ps.commons.STATEMENT_FORMAT
       });
       freebaseEntityData.push({
         statement: qid + '\tP646\t"/m/05zhl_"',
-        state: STATEMENT_STATES.unapproved,
+        state: ps.commons.STATEMENT_STATES.unapproved,
         id: 0,
-        format: STATEMENT_FORMAT
+        format: ps.commons.STATEMENT_FORMAT
       });
       freebaseEntityData.push({
         statement: qid + '\tP569\t+1840-01-01T00:00:00Z/11\tS854\t"https://lists.wikimedia.org/pipermail/wikidata-l/2013-July/002518.html"',
-        state: STATEMENT_STATES.unapproved,
+        state: ps.commons.STATEMENT_STATES.unapproved,
         id: 0,
-        format: STATEMENT_FORMAT
+        format: ps.commons.STATEMENT_FORMAT
       });
     }
     /* jscs: enable */
@@ -183,14 +108,14 @@
     })
     // Only show v1 new statements
     .filter(function(freebaseEntity) {
-      return freebaseEntity.format === STATEMENT_FORMAT &&
-          freebaseEntity.state === STATEMENT_STATES.unapproved;
+      return freebaseEntity.format === ps.commons.STATEMENT_FORMAT &&
+          freebaseEntity.state === ps.commons.STATEMENT_STATES.unapproved;
     })
     .map(function(freebaseEntity) {
-      return parsePrimarySourcesStatement(freebaseEntity, isBlacklisted);
+      return ps.commons.parsePrimarySourcesStatement(freebaseEntity, isBlacklisted);
     });
 
-    preloadEntityLabels(statements);
+    ps.commons.preloadEntityLabels(statements);
 
     statements.forEach(function(statement) {
       var predicate = statement.predicate;
@@ -270,9 +195,9 @@
             // Existing object
             if (freebaseObject.sources.length === 0) {
               // No source, duplicate statement
-              setStatementState(freebaseObject.id, STATEMENT_STATES.duplicate, freebaseObject.dataset, 'claim')
+              setStatementState(freebaseObject.id, ps.commons.STATEMENT_STATES.duplicate, freebaseObject.dataset, 'claim')
               .done(function() {
-                debug.log('Automatically duplicate statement ' +
+                ps.commons.debug.log('Automatically duplicate statement ' +
                     freebaseObject.id);
               });
             } else {
@@ -292,7 +217,7 @@
               if (wikidataObject.mainsnak.snaktype === 'value' &&
                   jsonToTsvValue(wikidataObject.mainsnak.datavalue) === freebaseObject.object) {
                 isDuplicate = true;
-                debug.log('Duplicate found! ' + property + ':' + freebaseObject.object);
+                ps.commons.debug.log('Duplicate found! ' + property + ':' + freebaseObject.object);
 
                 // Add new sources to existing statement
                 prepareNewSources(
@@ -314,7 +239,7 @@
     }
     for (var property in newClaims) {
       var claims = newClaims[property];
-      debug.log('New claim ' + property);
+      ps.commons.debug.log('New claim ' + property);
       createNewClaim(property, claims);
     }
   }
@@ -419,9 +344,9 @@
                 See SPARQL queries in CurateServlet:
                 https://github.com/marfox/pst-backend
               */
-              setStatementState(quickStatement, STATEMENT_STATES.approved, currentDataset, 'claim')
+              setStatementState(quickStatement, ps.commons.STATEMENT_STATES.approved, currentDataset, 'claim')
                 .done(function() {
-                  debug.log('Approved claim [' + quickStatement + ']');
+                  ps.commons.debug.log('Approved claim [' + quickStatement + ']');
                   if (data.pageinfo && data.pageinfo.lastrevid) {
                     document.location.hash = 'revision=' +
                       data.pageinfo.lastrevid;
@@ -433,9 +358,9 @@
         // Claim rejection
         else if (classList.contains('f2w-reject')) {
           // The back end rejects everything (claim, qualifiers, references)
-          setStatementState(quickStatement, STATEMENT_STATES.rejected, currentDataset, 'claim')
+          setStatementState(quickStatement, ps.commons.STATEMENT_STATES.rejected, currentDataset, 'claim')
             .done(function() {
-              debug.log('Rejected claim [' + quickStatement + ']');
+              ps.commons.debug.log('Rejected claim [' + quickStatement + ']');
               return document.location.reload();
             });
         }
@@ -478,9 +403,9 @@
                     return reportError(error);
                   }
                   // The back end approves everything
-                  setStatementState(sourceQuickStatement, STATEMENT_STATES.approved, currentDataset, 'reference')
+                  setStatementState(sourceQuickStatement, ps.commons.STATEMENT_STATES.approved, currentDataset, 'reference')
                     .done(function() {
-                      debug.log('Approved referenced claim [' + sourceQuickStatement + ']');
+                      ps.commons.debug.log('Approved referenced claim [' + sourceQuickStatement + ']');
                       if (data.pageinfo && data.pageinfo.lastrevid) {
                         document.location.hash = 'revision=' +
                           data.pageinfo.lastrevid;
@@ -498,9 +423,9 @@
                 })
                 .done(function(data) {
                   // The back end approves everything
-                  setStatementState(sourceQuickStatement, STATEMENT_STATES.approved, currentDataset, 'reference')
+                  setStatementState(sourceQuickStatement, ps.commons.STATEMENT_STATES.approved, currentDataset, 'reference')
                     .done(function() {
-                      debug.log('Approved referenced claim [' + sourceQuickStatement + ']');
+                      ps.commons.debug.log('Approved referenced claim [' + sourceQuickStatement + ']');
                       if (data.pageinfo && data.pageinfo.lastrevid) {
                         document.location.hash = 'revision=' +
                           data.pageinfo.lastrevid;
@@ -513,8 +438,8 @@
         }
         // Reference rejection
         else if (classList.contains('f2w-reject')) {
-          setStatementState(sourceQuickStatement, STATEMENT_STATES.rejected, currentDataset, 'reference').done(function() {
-            debug.log('Rejected referenced claim [' + sourceQuickStatement + ']');
+          setStatementState(sourceQuickStatement, ps.commons.STATEMENT_STATES.rejected, currentDataset, 'reference').done(function() {
+            ps.commons.debug.log('Rejected referenced claim [' + sourceQuickStatement + ']');
             return document.location.reload();
           });
         }
@@ -619,7 +544,7 @@
 
   // BEGIN: 6. update the suggestions state
   itemCuration.setStatementState = function setStatementState(quickStatement, state, dataset, type) {
-    if (!STATEMENT_STATES[state]) {
+    if (!ps.commons.STATEMENT_STATES[state]) {
       reportError('Invalid statement state');
     }
     var data = {
@@ -629,7 +554,7 @@
       type: type,
       user: mw.user.getName()
     }
-    return $.post(FREEBASE_STATEMENT_APPROVAL_URL, JSON.stringify(data))
+    return $.post(FREEBASE_ps.commons.STATEMENT_APPROVAL_URL, JSON.stringify(data))
     .fail(function() {
       reportError('Set statement state to ' + state + ' failed.');
     });
