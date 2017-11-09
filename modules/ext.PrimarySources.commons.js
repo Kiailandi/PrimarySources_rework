@@ -1,38 +1,39 @@
 /**
- * Common module.
+ * Commons module.
  * Contains functions used by both the main components:
  * item-based curation and filter.
  */
 (function(mw, ps) {
-    console.log("Primary sources tool - common module");
+    console.log("Primary sources tool - commons module");
     
     // accessible object
-    var common = {};
+    var commons = {};
     
     var DEBUG = JSON.parse(localStorage.getItem('f2w_debug')) || false;
     localStorage.setItem('f2w_debug', true);
 
-    var API_ENDPOINT = {};
-    API_ENDPOINT.WIKIDATA_ENTITY_DATA_URL = 'https://www.wikidata.org/wiki/Special:EntityData/{{qid}}.json';
-    API_ENDPOINT.FREEBASE_ENTITY_DATA_URL = 'http://it.dbpedia.org/pst/suggest?qid={{qid}}';
-    API_ENDPOINT.FREEBASE_STATEMENT_APPROVAL_URL = 'http://it.dbpedia.org/pst/curate';
-    API_ENDPOINT.FREEBASE_STATEMENT_SEARCH_URL = 'https://tools.wmflabs.org/wikidata-primary-sources/statements/all';
-    API_ENDPOINT.FREEBASE_DATASETS = 'https://tools.wmflabs.org/wikidata-primary-sources/datasets/all';
-    API_ENDPOINT.FREEBASE_SOURCE_URL_BLACKLIST = 'https://www.wikidata.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_blacklist';
-    API_ENDPOINT.FREEBASE_SOURCE_URL_WHITELIST = 'https://www.wikidata.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_whitelist';
+    var API_ENDPOINTS = {
+      WIKIDATA_ENTITY_DATA_URL: 'https://www.wikidata.org/wiki/Special:EntityData/{{qid}}.json',
+      FREEBASE_ENTITY_DATA_URL: 'http://it.dbpedia.org/pst/suggest?qid={{qid}}',
+      FREEBASE_STATEMENT_APPROVAL_URL: 'http://it.dbpedia.org/pst/curate',
+      FREEBASE_STATEMENT_SEARCH_URL: 'https://tools.wmflabs.org/wikidata-primary-sources/statements/all',
+      FREEBASE_DATASETS: 'https://tools.wmflabs.org/wikidata-primary-sources/datasets/all',
+      FREEBASE_SOURCE_URL_BLACKLIST: 'https://www.wikidata.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_blacklist',
+      FREEBASE_SOURCE_URL_WHITELIST: 'https://www.wikidata.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_whitelist'
+    };
 
     var CACHE_EXPIRY = 60 * 60 * 1000;
 
-    common.API_ENDPOINT = API_ENDPOINT;
+    commons.API_ENDPOINTS = API_ENDPOINTS;
 
     var dataset = null;
     mw.loader.using(['mediawiki.cookie']).then(function() {
         dataset = mw.cookie.get('ps-dataset', null, '');
     });
 
-    common.dataset = dataset;
+    commons.dataset = dataset;
 
-    common.debug = {
+    commons.debug = {
         log: function(message) {
             if (DEBUG) {
                 console.log('PST: ' + message);
@@ -46,7 +47,7 @@
    * saved in localStorage
    * @returns {*}
    */
-    common.getBlacklistedSourceUrls = function getBlacklistedSourceUrls() {
+    commons.getBlacklistedSourceUrls = function getBlacklistedSourceUrls() {
         var now = Date.now();
         if (localStorage.getItem('f2w_blacklist')) {
             var blacklist = JSON.parse(localStorage.getItem('f2w_blacklist'));
@@ -59,7 +60,7 @@
             }
         }
         return $.ajax({
-            url: util.API_ENDPOINT.FREEBASE_SOURCE_URL_BLACKLIST,
+            url: util.API_ENDPOINTS.FREEBASE_SOURCE_URL_BLACKLIST,
             data: {
                 origin: '*'
             }
@@ -107,7 +108,7 @@
    * @param blacklistedSourceUrls
    * @returns {Function}
    */
-    common.isBlackListedBuilder = function isBlackListedBuilder(blacklistedSourceUrls) {
+    commons.isBlackListedBuilder = function isBlackListedBuilder(blacklistedSourceUrls) {
         return function(url) {
             try {
                 var url = new URL(url);
@@ -130,7 +131,7 @@
    * @param callback
    * @returns {*}
    */
-    common.getPossibleDatasets = function getPossibleDatasets(callback) {
+    commons.getPossibleDatasets = function getPossibleDatasets(callback) {
         var now = Date.now();
         if (localStorage.getItem('f2w_dataset')) {
             var blacklist = JSON.parse(localStorage.getItem('f2w_dataset'));
@@ -142,7 +143,7 @@
             }
         }
         $.ajax({
-            url: util.API_ENDPOINT.FREEBASE_DATASETS,
+            url: util.API_ENDPOINTS.FREEBASE_DATASETS,
             data: {
                 origin: '*'
             }
@@ -159,7 +160,7 @@
 
     // BEGIN: format data
     var valueHtmlCache = {};
-    common.getValueHtml = function getValueHtml(value, property) {
+    commons.getValueHtml = function getValueHtml(value, property) {
         var cacheKey = property + '\t' + value;
         if (cacheKey in valueHtmlCache) {
             return valueHtmlCache[cacheKey];
@@ -216,7 +217,7 @@
     /* BEGIN: Wikibase API calls */
     // BEGIN: post approved claims to Wikidata
     // https://www.wikidata.org/w/api.php?action=help&modules=wbcreateclaim
-    common.createClaim = function createClaim(subject, predicate, object, qualifiers) {
+    commons.createClaim = function createClaim(subject, predicate, object, qualifiers) {
         var value = (tsvValueToJson(object)).value;
         var api = new mw.Api();
         return api.postWithToken('csrf', {
@@ -249,7 +250,7 @@
         });
     }
     // https://www.wikidata.org/w/api.php?action=help&modules=wbsetreference
-    common.createReference = function createReference(subject, predicate, object, sourceSnaks, callback) {
+    commons.createReference = function createReference(subject, predicate, object, sourceSnaks, callback) {
         var api = new mw.Api();
         api.get({
             action: 'wbgetclaims',
@@ -278,7 +279,7 @@
         });
     }
     // combines the 2 functions above
-    common.createClaimWithReference = function createClaimWithReference(subject, predicate, object, qualifiers, sourceSnaks) {
+    commons.createClaimWithReference = function createClaimWithReference(subject, predicate, object, qualifiers, sourceSnaks) {
         var api = new mw.Api();
         return createClaim(subject, predicate, object, qualifiers).then(function(data) {
             return api.postWithToken('csrf', {
@@ -293,7 +294,7 @@
 
     // BEGIN: get existing claims from Wikidata
     // https://www.wikidata.org/w/api.php?action=help&modules=wbgetclaims
-    common.getClaims = function getClaims(subject, predicate, callback) {
+    commons.getClaims = function getClaims(subject, predicate, callback) {
         var api = new mw.Api();
         api.get({
             action: 'wbgetclaims',
@@ -309,7 +310,7 @@
     /* END: Wikibase API calls */
 
     // BEGIN: utilities
-    common.isUrl = function isUrl(url) {
+    commons.isUrl = function isUrl(url) {
         if (typeof URL !== 'function') {
             return url.indexOf('http') === 0;
             // TODO: very bad fallback hack
@@ -322,13 +323,13 @@
             return false;
         }
     }
-    common.reportError = function reportError(error) {
+    commons.reportError = function reportError(error) {
         mw.notify(error, {
             autoHide: false,
             tag: 'ps-error'
         });
     }
-    common.jsonToTsvValue = function jsonToTsvValue(dataValue, dataType) {
+    commons.jsonToTsvValue = function jsonToTsvValue(dataValue, dataType) {
       if (!dataValue.type) {
         debug.log('No data value type given');
         return dataValue.value;
@@ -369,6 +370,6 @@
     }
     // END: utilities
 
-    ps.common = common;
+    ps.commons = commons;
 
 }(mediaWiki, primarySources));
