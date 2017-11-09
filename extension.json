@@ -28,7 +28,11 @@
   },
   "ResourceModules": {
     "ext.PrimarySources.frontend": {
-      "scripts": "/modules/ext.PrimarySources.frontend.js",
+      "scripts": [
+        "/modules/ext.PrimarySources.init.js",
+        "/modules/ext.PrimarySources.util.js",
+        "/modules/ext.PrimarySources.PSFilterComponent.js"
+      ],
       "styles": [
         "/modules/ext.PrimarySources.frontend.css"
       ],
