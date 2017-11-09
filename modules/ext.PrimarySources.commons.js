@@ -317,6 +317,31 @@
         });
     }
     // END:  get existing claims from Wikidata
+    function getFewEntityLabels(entityIds) {
+      if (entityIds.length === 0) {
+        return $.Deferred().resolve({});
+      }
+      var api = new mw.Api();
+      var language = mw.config.get('wgUserLanguage');
+      return api.get({
+        action: 'wbgetentities',
+        ids: entityIds.join('|'),
+        props: 'labels',
+        languages: language,
+        languagefallback: true
+      }).then(function(data) {
+        var labels = {};
+        for (var id in data.entities) {
+          var entity = data.entities[id];
+          if (entity.labels && entity.labels[language]) {
+            labels[id] = entity.labels[language].value;
+          } else {
+            labels[id] = entity.id;
+          }
+        }
+        return labels;
+      });
+    }
     /* END: Wikibase API calls */
 
     // BEGIN: utilities
@@ -573,7 +598,7 @@
 
       return entityLabelCache[entityId];
     }
-    // Only called by preloadEntityLabels
+    // The 2 functions below are only called by preloadEntityLabels
     function loadEntityLabels(entityIds) {
       entityIds = entityIds.filter(function(entityId) {
         return !(entityId in entityLabelCache);
@@ -609,31 +634,6 @@
 
       return $.when.apply(this, promises).then(function() {
         return $.extend.apply(this, arguments);
-      });
-    }
-    function getFewEntityLabels(entityIds) {
-      if (entityIds.length === 0) {
-        return $.Deferred().resolve({});
-      }
-      var api = new mw.Api();
-      var language = mw.config.get('wgUserLanguage');
-      return api.get({
-        action: 'wbgetentities',
-        ids: entityIds.join('|'),
-        props: 'labels',
-        languages: language,
-        languagefallback: true
-      }).then(function(data) {
-        var labels = {};
-        for (var id in data.entities) {
-          var entity = data.entities[id];
-          if (entity.labels && entity.labels[language]) {
-            labels[id] = entity.labels[language].value;
-          } else {
-            labels[id] = entity.id;
-          }
-        }
-        return labels;
       });
     }
     // END: utilities
