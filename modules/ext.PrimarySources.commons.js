@@ -368,6 +368,110 @@
       debug.log('Unknown data value type ' + dataValue.type);
       return dataValue.value;
     }
+    commons.tsvValueToJson = function tsvValueToJson(value) {
+      // From https://www.wikidata.org/wiki/Special:ListDatatypes and
+      // https://de.wikipedia.org/wiki/Wikipedia:Wikidata/Wikidata_Spielwiese
+      // https://www.wikidata.org/wiki/Special:EntityData/Q90.json
+
+      // Q1
+      var itemRegEx = /^Q\d+$/;
+
+      // P1
+      var propertyRegEx = /^P\d+$/;
+
+      // @43.3111/-16.6655
+      var coordinatesRegEx = /^@([+\-]?\d+(?:.\d+)?)\/([+\-]?\d+(?:.\d+))?$/;
+
+      // fr:"Les Misérables"
+      var languageStringRegEx = /^(\w+):("[^"\\]*(?:\\.[^"\\]*)*")$/;
+
+      // +2013-01-01T00:00:00Z/10
+      /* jshint maxlen: false */
+      var timeRegEx = /^[+-]\d+-\d\d-\d\dT\d\d:\d\d:\d\dZ\/\d+$/;
+      /* jshint maxlen: 80 */
+
+      // +/-1234.4567
+      var quantityRegEx = /^[+-]\d+(\.\d+)?$/;
+
+      if (itemRegEx.test(value)) {
+        return {
+          type: 'wikibase-item',
+          value: {
+            'entity-type': 'item',
+            'numeric-id': parseInt(value.replace(/^Q/, ''))
+          }
+        };
+      } else if (propertyRegEx.test(value)) {
+        return {
+          type: 'wikibase-property',
+          value: {
+            'entity-type': 'property',
+            'numeric-id': parseInt(value.replace(/^P/, ''))
+          }
+        };
+      } else if (coordinatesRegEx.test(value)) {
+        var latitude = value.replace(coordinatesRegEx, '$1');
+        var longitude = value.replace(coordinatesRegEx, '$2');
+        return {
+          type: 'globe-coordinate',
+          value: {
+            latitude: parseFloat(latitude),
+            longitude: parseFloat(longitude),
+            altitude: null,
+            precision: computeCoordinatesPrecision(latitude, longitude),
+            globe: 'http://www.wikidata.org/entity/Q2'
+          }
+        };
+      } else if (languageStringRegEx.test(value)) {
+        return {
+          type: 'monolingualtext',
+          value: {
+            language: value.replace(languageStringRegEx, '$1'),
+            text: JSON.parse(value.replace(languageStringRegEx, '$2'))
+          }
+        };
+      } else if (timeRegEx.test(value)) {
+        var parts = value.split('/');
+        return {
+          type: 'time',
+          value: {
+            time: parts[0],
+            timezone: 0,
+            before: 0,
+            after: 0,
+            precision: parseInt(parts[1]),
+            calendarmodel: 'http://www.wikidata.org/entity/Q1985727'
+          }
+        };
+      } else if (quantityRegEx.test(value)) {
+        return {
+          type: 'quantity',
+          value: {
+            amount: value,
+            unit: '1'
+          }
+        };
+      } else {
+        try {
+          value = JSON.parse(value);
+        } catch(e) { //If it is an invalid JSON we assume it is the value
+          if (!(e instanceof SyntaxError)) {
+            throw e;
+          }
+        }
+        if (isUrl(value)) {
+          return {
+            type: 'url',
+            value: normalizeUrl(value)
+          };
+        } else {
+          return {
+            type: 'string',
+            value: value
+          };
+        }
+      }
+    }
     // END: utilities
 
     ps.commons = commons;
