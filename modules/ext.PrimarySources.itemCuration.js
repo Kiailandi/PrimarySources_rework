@@ -217,6 +217,32 @@
   // END: 1. process suggestions
 
   // BEGIN: 2. match existing Wikidata statements
+  var qid = null;
+  itemCuration.getQid = function getQid() {
+    var qidRegEx = /^Q\d+$/;
+    var title = mw.config.get('wgTitle');
+    return qidRegEx.test(title) ? title : false;
+  }
+  itemCuration.getWikidataEntityData = function getWikidataEntityData(qid, callback) {
+    $.ajax({
+      url: WIKIDATA_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, qid) + '?revision=' +
+          mw.config.get('wgRevisionId')
+    }).done(function(data) {
+      return callback(null, data.entities[qid]);
+    }).fail(function() {
+      return callback('Invalid revision ID ' + mw.config.get('wgRevisionId'));
+    });
+  }
+  itemCuration.getFreebaseEntityData = function getFreebaseEntityData(qid, callback) {
+    $.ajax({
+      url: FAKE_OR_RANDOM_DATA ?
+          FREEBASE_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, 'any') :
+          FREEBASE_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, qid) + '&dataset=' +
+          dataset
+    }).done(function(data) {
+      return callback(null, data);
+    });
+  }
   itemCuration.matchClaims = function matchClaims(wikidataClaims, freebaseClaims) {
     var existingClaims = {};
     var newClaims = {};
@@ -325,65 +351,6 @@
     return $.when.apply($, sourcePromises).then(function() {
       return Array.prototype.slice.call(arguments).join('');
     });
-  }
-  var valueHtmlCache = {};
-  itemCuration.getValueHtml = function getValueHtml(value, property) {
-    var cacheKey = property + '\t' + value;
-    if (cacheKey in valueHtmlCache) {
-      return valueHtmlCache[cacheKey];
-    }
-    var parsed = tsvValueToJson(value);
-    var dataValue = {
-        type: getValueTypeFromDataValueType(parsed.type),
-        value: parsed.value
-      };
-    var options = {
-        'lang': mw.language.getFallbackLanguageChain()[0] || 'en'
-      };
-
-    if (parsed.type === 'string') { // Link to external database
-      valueHtmlCache[cacheKey] = getUrlFormatter(property)
-      .then(function(urlFormatter) {
-        if (urlFormatter === '') {
-          return parsed.value;
-        } else {
-          var url = urlFormatter.replace('$1', parsed.value);
-          return '<a rel="nofollow" class="external free" href="' + url + '">' +
-                 parsed.value + '</a>';
-        }
-      });
-    } else if (parsed.type === 'url') {
-      valueHtmlCache[cacheKey] = $.Deferred().resolve(
-          '<a rel="nofollow" class="external free" href="' + parsed.value + '">' + parsed.value + '</a>'
-      );
-    } else if(parsed.type === 'wikibase-item' || parsed.type === 'wikibase-property') {
-      return getEntityLabel(value).then(function(label) {
-        return '<a href="/entity/' + value + '">' + label + '</a>'; //TODO: better URL
-      });
-    } else {
-      var api = new mw.Api();
-      valueHtmlCache[cacheKey] = api.get({
-        action: 'wbformatvalue',
-        generate: 'text/html',
-        datavalue: JSON.stringify(dataValue),
-        datatype: parsed.type,
-        options: JSON.stringify(options)
-      }).then(function(result) {
-        // Create links for geocoordinates
-        if (parsed.type === 'globe-coordinate') {
-          var url = 'https://tools.wmflabs.org/geohack/geohack.php' +
-              '?language=' + mw.config.get('wgUserLanguage') + '&params=' +
-              dataValue.value.latitude + '_N_' +
-              dataValue.value.longitude + '_E_globe:earth';
-          return '<a rel="nofollow" class="external free" href="' + url + '">' +
-              result.result + '</a>';
-        }
-
-        return result.result;
-      });
-    }
-
-    return valueHtmlCache[cacheKey];
   }
   itemCuration.getStatementHtml = function getStatementHtml(property, object) {
     return $.when(
