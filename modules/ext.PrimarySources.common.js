@@ -14,8 +14,8 @@
 
     var API_ENDPOINT = {};
     API_ENDPOINT.WIKIDATA_ENTITY_DATA_URL = 'https://www.wikidata.org/wiki/Special:EntityData/{{qid}}.json';
-    API_ENDPOINT.FREEBASE_ENTITY_DATA_URL = 'https://tools.wmflabs.org/wikidata-primary-sources/entities/{{qid}}';
-    API_ENDPOINT.FREEBASE_STATEMENT_APPROVAL_URL = 'https://tools.wmflabs.org/wikidata-primary-sources/statements/{{id}}' + '?state={{state}}&user={{user}}';
+    API_ENDPOINT.FREEBASE_ENTITY_DATA_URL = 'http://it.dbpedia.org/pst/suggest?qid={{qid}}';
+    API_ENDPOINT.FREEBASE_STATEMENT_APPROVAL_URL = 'http://it.dbpedia.org/pst/curate';
     API_ENDPOINT.FREEBASE_STATEMENT_SEARCH_URL = 'https://tools.wmflabs.org/wikidata-primary-sources/statements/all';
     API_ENDPOINT.FREEBASE_DATASETS = 'https://tools.wmflabs.org/wikidata-primary-sources/datasets/all';
     API_ENDPOINT.FREEBASE_SOURCE_URL_BLACKLIST = 'https://www.wikidata.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_blacklist';
