@@ -1,15 +1,15 @@
 /**
  * Item curation.
- * This module implements the per-item workflow:
- * 1. process suggestions (back-end service /suggest), see parseFreebaseClaims;
- * 2. match existing Wikidata statements, see matchClaims;
- * 3. fill HTML templates (AKA blue boxes), see get*Html;
+ * This module implements the item-based workflow:
+ * 1. process suggestions (back-end service /suggest);
+ * 2. fill HTML templates (AKA blue boxes) with suggestions data;
+ * 3. match existing Wikidata statements to display blue boxes accordingly;
  * 4. handle curation actions, see addClickHandlers;
  * 5. add approved suggestions to Wikidata, see create*;
  * 6. update the suggestions state (back-end service /curate), see setStatementState.
  */
 (function(mw, ps) {
-  console.log("PrimarySources - Item curation");
+  console.log("Primary sources tool - Item curation");
 
   // accessible object
   var itemCuration = {};
@@ -18,7 +18,7 @@
   itemCuration.getFreebaseEntityData = function getFreebaseEntityData(qid, callback) {
     $.ajax({
       url: FAKE_OR_RANDOM_DATA ?
-        ps.commons.API_ENDPOINTS.FREEBASE_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, 'any') : ps.commons.API_ENDPOINTS.FREEBASE_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, qid) + '&dataset=' +
+        ps.globals.API_ENDPOINTS.FREEBASE_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, 'any') : ps.globals.API_ENDPOINTS.FREEBASE_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, qid) + '&dataset=' +
         dataset
     }).done(function(data) {
       return callback(null, data);
@@ -30,66 +30,66 @@
     var freebaseClaims = {};
     /* jshint ignore:start */
     /* jscs: disable */
-    if (ps.commons.DEBUG) {
+    if (ps.globals.DEBUG) {
       if (qid === 'Q4115189') {
         // The sandbox item can be written to
         document.getElementById('content').style.backgroundColor = 'lime';
       }
     }
-    if (ps.commons.FAKE_OR_RANDOM_DATA) {
+    if (ps.globals.FAKE_OR_RANDOM_DATA) {
       freebaseEntityData.push({
         statement: qid + '\tP31\tQ1\tP580\t+1840-01-01T00:00:00Z/9\tS143\tQ48183',
-        state: ps.commons.STATEMENT_STATES.unapproved,
+        state: ps.globals.STATEMENT_STATES.unapproved,
         id: 0,
-        format: ps.commons.STATEMENT_FORMAT
+        format: ps.globals.STATEMENT_FORMAT
       });
       freebaseEntityData.push({
         statement: qid + '\tP108\tQ95\tS854\t"http://research.google.com/pubs/vrandecic.html"',
-        state: ps.commons.STATEMENT_STATES.unapproved,
+        state: ps.globals.STATEMENT_STATES.unapproved,
         id: 0,
-        format: ps.commons.STATEMENT_FORMAT
+        format: ps.globals.STATEMENT_FORMAT
       });
       freebaseEntityData.push({
         statement: qid + '\tP108\tQ8288\tP582\t+2013-09-30T00:00:00Z/10\tS854\t"http://simia.net/wiki/Denny"\tS813\t+2015-02-14T00:00:00Z/11',
-        state: ps.commons.STATEMENT_STATES.unapproved,
+        state: ps.globals.STATEMENT_STATES.unapproved,
         id: 0,
-        format: ps.commons.STATEMENT_FORMAT
+        format: ps.globals.STATEMENT_FORMAT
       });
       freebaseEntityData.push({
         statement: qid + '\tP1451\ten:"foo bar"\tP582\t+2013-09-30T00:00:00Z/10\tS854\t"http://www.ebay.com/itm/GNC-Mens-Saw-Palmetto-Formula-60-Tablets/301466378726?pt=LH_DefaultDomain_0&hash=item4630cbe1e6"',
-        state: ps.commons.STATEMENT_STATES.unapproved,
+        state: ps.globals.STATEMENT_STATES.unapproved,
         id: 0,
-        format: ps.commons.STATEMENT_FORMAT
+        format: ps.globals.STATEMENT_FORMAT
       });
       freebaseEntityData.push({
         statement: qid + '\tP108\tQ8288\tP582\t+2013-09-30T00:00:00Z/10\tS854\t"https://lists.wikimedia.org/pipermail/wikidata-l/2013-July/002518.html"',
-        state: ps.commons.STATEMENT_STATES.unapproved,
+        state: ps.globals.STATEMENT_STATES.unapproved,
         id: 0,
-        format: ps.commons.STATEMENT_FORMAT
+        format: ps.globals.STATEMENT_FORMAT
       });
       freebaseEntityData.push({
         statement: qid + '\tP1082\t-1234',
-        state: ps.commons.STATEMENT_STATES.unapproved,
+        state: ps.globals.STATEMENT_STATES.unapproved,
         id: 0,
-        format: ps.commons.STATEMENT_FORMAT
+        format: ps.globals.STATEMENT_FORMAT
       });
       freebaseEntityData.push({
         statement: qid + '\tP625\t@-12.12334556/23.1234',
-        state: ps.commons.STATEMENT_STATES.unapproved,
+        state: ps.globals.STATEMENT_STATES.unapproved,
         id: 0,
-        format: ps.commons.STATEMENT_FORMAT
+        format: ps.globals.STATEMENT_FORMAT
       });
       freebaseEntityData.push({
         statement: qid + '\tP646\t"/m/05zhl_"',
-        state: ps.commons.STATEMENT_STATES.unapproved,
+        state: ps.globals.STATEMENT_STATES.unapproved,
         id: 0,
-        format: ps.commons.STATEMENT_FORMAT
+        format: ps.globals.STATEMENT_FORMAT
       });
       freebaseEntityData.push({
         statement: qid + '\tP569\t+1840-01-01T00:00:00Z/11\tS854\t"https://lists.wikimedia.org/pipermail/wikidata-l/2013-July/002518.html"',
-        state: ps.commons.STATEMENT_STATES.unapproved,
+        state: ps.globals.STATEMENT_STATES.unapproved,
         id: 0,
-        format: ps.commons.STATEMENT_FORMAT
+        format: ps.globals.STATEMENT_FORMAT
       });
     }
     /* jscs: enable */
@@ -108,8 +108,8 @@
     })
     // Only show v1 new statements
     .filter(function(freebaseEntity) {
-      return freebaseEntity.format === ps.commons.STATEMENT_FORMAT &&
-          freebaseEntity.state === ps.commons.STATEMENT_STATES.unapproved;
+      return freebaseEntity.format === ps.globals.STATEMENT_FORMAT &&
+          freebaseEntity.state === ps.globals.STATEMENT_STATES.unapproved;
     })
     .map(function(freebaseEntity) {
       return ps.commons.parsePrimarySourcesStatement(freebaseEntity, isBlacklisted);
@@ -141,7 +141,88 @@
   }
   // END: 1. process suggestions
 
-  // BEGIN: 2. match existing Wikidata statements
+  // BEGIN: 2. fill HTML templates
+  itemCuration.getQualifiersHtml = function getQualifiersHtml(qualifiers) {
+    var qualifierPromises = qualifiers.map(function(qualifier) {
+      return $.when(
+        getValueHtml(qualifier.qualifierProperty),
+        getValueHtml(qualifier.qualifierObject, qualifier.qualifierProperty)
+      ).then(function(formattedProperty, formattedValue) {
+        return HTML_TEMPLATES.qualifierHtml
+          .replace(/\{\{qualifier-property-html\}\}/g, formattedProperty)
+          .replace(/\{\{qualifier-object\}\}/g, formattedValue);
+      });
+    });
+
+    return $.when.apply($, qualifierPromises).then(function() {
+      return Array.prototype.slice.call(arguments).join('');
+    });
+  }
+  itemCuration.getSourcesHtml = function getSourcesHtml(sources, property, object) {
+    var sourcePromises = sources.map(function(source) {
+      var sourceItemsPromises = source.map(function(snak) {
+        return $.when(
+            ps.commons.getValueHtml(snak.sourceProperty),
+            ps.commons.getValueHtml(snak.sourceObject, snak.sourceProperty)
+        ).then(function(formattedProperty, formattedValue) {
+          return ps.template.HTML_TEMPLATES.sourceItemHtml
+            .replace(/\{\{source-property-html\}\}/g, formattedProperty)
+            .replace(/\{\{source-object\}\}/g, formattedValue);
+        });
+      });
+
+      return $.when.apply($, sourceItemsPromises).then(function() {
+        return ps.template.HTML_TEMPLATES.sourceHtml
+          .replace(/\{\{data-source\}\}/g, escapeHtml(JSON.stringify(source)))
+          .replace(/\{\{data-property\}\}/g, property)
+          .replace(/\{\{data-object\}\}/g, escapeHtml(object.object))
+          .replace(/\{\{data-dataset\}\}/g, object.dataset)
+          .replace(/\{\{statement-id\}\}/g, source[0].sourceId)
+          .replace(/\{\{source-html\}\}/g,
+              Array.prototype.slice.call(arguments).join(''))
+          .replace(/\{\{data-qualifiers\}\}/g, escapeHtml(JSON.stringify(
+              object.qualifiers)));
+      });
+    });
+
+    return $.when.apply($, sourcePromises).then(function() {
+      return Array.prototype.slice.call(arguments).join('');
+    });
+  }
+  itemCuration.escapeHtml = function escapeHtml(html) {
+    return html
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;');
+  }
+  itemCuration.getStatementHtml = function getStatementHtml(property, object) {
+    return $.when(
+        itemCuration.getQualifiersHtml(object.qualifiers),
+        itemCuration.getSourcesHtml(object.sources, property, object),
+        ps.commons.getValueHtml(object.object, property)
+    ).then(function(qualifiersHtml, sourcesHtml, formattedValue) {
+      return ps.template.HTML_TEMPLATES.statementViewHtml
+        .replace(/\{\{object\}\}/g, formattedValue)
+        .replace(/\{\{data-object\}\}/g, itemCuration.escapeHtml(object.object))
+        .replace(/\{\{data-property\}\}/g, property)
+        .replace(/\{\{references\}\}/g,
+          object.sources.length === 1 ?
+              object.sources.length + ' reference' :
+              object.sources.length + ' references')
+        .replace(/\{\{sources\}\}/g, sourcesHtml)
+        .replace(/\{\{qualifiers\}\}/g, qualifiersHtml)
+        .replace(/\{\{statement-id\}\}/g, object.id)
+        .replace(/\{\{data-dataset\}\}/g, object.dataset)
+        .replace(/\{\{data-qualifiers\}\}/g, itemCuration.escapeHtml(JSON.stringify(
+            object.qualifiers)))
+        .replace(/\{\{data-sources\}\}/g, itemCuration.escapeHtml(JSON.stringify(
+            object.sources)));
+    });
+  }
+  // END: 2. fill HTML templates
+
+  // BEGIN: 3. match existing Wikidata statements
   var qid = null;
   itemCuration.getQid = function getQid() {
     var qidRegEx = /^Q\d+$/;
@@ -149,9 +230,10 @@
     return qidRegEx.test(title) ? title : false;
   }
   itemCuration.getWikidataEntityData = function getWikidataEntityData(qid, callback) {
+    var revisionId = mw.config.get('wgRevisionId')
     $.ajax({
-      url: WIKIDATA_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, qid) + '?revision=' +
-          mw.config.get('wgRevisionId')
+      url: ps.globals.API_ENDPOINTS.WIKIDATA_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, qid) + '?revision=' +
+          
     }).done(function(data) {
       return callback(null, data.entities[qid]);
     }).fail(function() {
@@ -160,12 +242,152 @@
   }
   itemCuration.getFreebaseEntityData = function getFreebaseEntityData(qid, callback) {
     $.ajax({
-      url: FAKE_OR_RANDOM_DATA ?
-          FREEBASE_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, 'any') :
-          FREEBASE_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, qid) + '&dataset=' +
-          dataset
+      url: ps.globals.FAKE_OR_RANDOM_DATA ?
+          ps.globals.FREEBASE_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, 'any') :
+          ps.globals.FREEBASE_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, qid) + '&dataset=' +
+          ps.globals.DATASET
     }).done(function(data) {
       return callback(null, data);
+    });
+  }
+  itemCuration.createNewSources = function createNewSources(sources, property, object, statementId) {
+    itemCuration.getSourcesHtml(sources, property, object).then(function(html) {
+      var fragment = document.createDocumentFragment();
+      var child = document.createElement('div');
+      child.innerHTML = html;
+      fragment.appendChild(child);
+      // Need to find the correct reference
+      var container = document
+          .getElementsByClassName('wikibase-statement-' + statementId)[0];
+      // Open the references toggle
+      var toggler = container.querySelector('a.ui-toggler');
+      if (toggler.classList.contains('ui-toggler-toggle-collapsed')) {
+        toggler.click();
+      }
+      var label = toggler.querySelector('.ui-toggler-label');
+      var oldLabel =
+          parseInt(label.textContent.replace(/.*?(\d+).*?/, '$1'), 10);
+      // Update the label
+      var newLabel = oldLabel += sources.length;
+      newLabel = newLabel === 1 ? '1 reference' : newLabel + ' references';
+      label.textContent = newLabel;
+      // Append the references
+      container = container
+          .querySelector('.wikibase-statementview-references');
+      // Create wikibase-listview if not found
+      if (!container.querySelector('.wikibase-listview')) {
+        var sourcesListView = document.createElement('div');
+        sourcesListView.className = 'wikibase-listview';
+        container.insertBefore(sourcesListView, container.firstChild);
+      }
+      container = container.querySelector('.wikibase-listview');
+      container.appendChild(fragment);
+    });
+  }
+  itemCuration.prepareNewSources = function prepareNewSources(property, object, wikidataStatement) {
+    var wikidataSources = ('references' in wikidataStatement) ? wikidataStatement.references : [];
+    var existingSources = {};
+    for (var i in wikidataSources) {
+      var snakBag = wikidataSources[i].snaks;
+      for (var prop in snakBag) {
+        if (!(prop in existingSources)) {
+          existingSources[prop] = {};
+        }
+        for (var j in snakBag[prop]) {
+          var snak = snakBag[prop][j];
+          if (snak.snaktype === 'value') {
+            existingSources[prop]
+                [ps.commons.jsonToTsvValue(snak.datavalue, snak.datatype)] = true;
+          }
+        }
+      }
+    }
+    // Filter already present sources
+    object.sources = object.sources.filter(function(source) {
+      return source.filter(function(snak) {
+        return !existingSources[snak.sourceProperty] ||
+        !existingSources[snak.sourceProperty][snak.sourceObject];
+      }).length > 0;
+    });
+
+    return itemCuration.createNewSources(
+      object.sources,
+      property,
+      object,
+      wikidataStatement.id
+    );
+  }
+  itemCuration.createNewStatement = function createNewStatement(property, object) {
+    itemCuration.getStatementHtml(property, object).then(function(html) {
+      var fragment = document.createDocumentFragment();
+      var child = document.createElement('div');
+      child.innerHTML = html;
+      fragment.appendChild(child.firstChild);
+      var container = document.getElementById(property)
+          .querySelector('.wikibase-statementlistview-listview');
+      container.appendChild(fragment);
+      ps.sidebar.appendToNav(document.getElementById(property));
+    });
+  }
+  itemCuration.createNewClaim = function createNewClaim(property, claims) {
+    var newClaim = {
+      property: property,
+      objects: []
+    };
+    var objectsLength = Object.keys(claims).length;
+    var i = 0;
+    for (var key in claims) {
+      var object = claims[key].object;
+      var id = claims[key].id;
+      var claimDataset = claims[key].dataset;
+      var sources = claims[key].sources;
+      var qualifiers = claims[key].qualifiers;
+      newClaim.objects.push({
+        object: object,
+        id: id,
+        dataset: claimDataset,
+        qualifiers: qualifiers,
+        sources: sources,
+        key: key
+      });
+      (function(currentNewClaim, currentKey) {
+        currentNewClaim.objects.forEach(function(object) {
+          if (object.key !== currentKey) {
+            return;
+          }
+          i++;
+          if (i === objectsLength) {
+            return itemCuration.createNewClaimList(currentNewClaim);
+          }
+        });
+      })(newClaim, key);
+    }
+  }
+  itemCuration.createNewClaimList = function createNewClaimList(newClaim) {
+    var container = document
+        .querySelector('.wikibase-statementgrouplistview')
+        .querySelector('.wikibase-listview');
+    var statementPromises = newClaim.objects.map(function(object) {
+      return itemCuration.getStatementHtml(newClaim.property, object);
+    });
+
+    ps.commons.getValueHtml(newClaim.property).done(function(propertyHtml) {
+      $.when.apply($, statementPromises).then(function() {
+        var statementViewsHtml = Array.prototype.slice.call(arguments).join('');
+        var mainHtml = ps.template.HTML_TEMPLATES.mainHtml
+            .replace(/\{\{statement-views\}\}/g, statementViewsHtml)
+            .replace(/\{\{property\}\}/g, newClaim.property)
+            .replace(/\{\{data-property\}\}/g, newClaim.property)
+            .replace(/\{\{data-dataset\}\}/g, newClaim.dataset)
+            .replace(/\{\{property-html\}\}/g, propertyHtml);
+
+        var fragment = document.createDocumentFragment();
+        var child = document.createElement('div');
+        child.innerHTML = mainHtml;
+        fragment.appendChild(child.firstChild);
+        container.appendChild(fragment);
+        ps.sidebar.appendToNav(container.lastChild);
+      });
     });
   }
   itemCuration.matchClaims = function matchClaims(wikidataClaims, freebaseClaims) {
@@ -186,7 +408,7 @@
           var lenI = wikidataClaims[property].length;
           for (var i = 0; i < lenI; i++) {
             var wikidataObject = wikidataClaims[property][i];
-            buildValueKeysFromWikidataStatement(wikidataObject)
+            ps.commons.buildValueKeysFromWikidataStatement(wikidataObject)
               .forEach(function(key) {
                 existingWikidataObjects[key] = wikidataObject;
               });
@@ -195,14 +417,14 @@
             // Existing object
             if (freebaseObject.sources.length === 0) {
               // No source, duplicate statement
-              setStatementState(freebaseObject.id, ps.commons.STATEMENT_STATES.duplicate, freebaseObject.dataset, 'claim')
+              ps.commons.setStatementState(freebaseObject.id, ps.globals.STATEMENT_STATES.duplicate, freebaseObject.dataset, 'claim')
               .done(function() {
-                ps.commons.debug.log('Automatically duplicate statement ' +
+                ps.globals.debug.log('Automatically duplicate statement ' +
                     freebaseObject.id);
               });
             } else {
               // maybe new sources
-              prepareNewSources(
+              itemCuration.prepareNewSources(
                   property,
                   freebaseObject,
                   existingWikidataObjects[freebaseKey]
@@ -215,12 +437,12 @@
               var wikidataObject = wikidataClaims[property][c];
 
               if (wikidataObject.mainsnak.snaktype === 'value' &&
-                  jsonToTsvValue(wikidataObject.mainsnak.datavalue) === freebaseObject.object) {
+                  ps.commons.jsonToTsvValue(wikidataObject.mainsnak.datavalue) === freebaseObject.object) {
                 isDuplicate = true;
-                ps.commons.debug.log('Duplicate found! ' + property + ':' + freebaseObject.object);
+                ps.globals.debug.log('Duplicate found! ' + property + ':' + freebaseObject.object);
 
                 // Add new sources to existing statement
-                prepareNewSources(
+                itemCuration.prepareNewSources(
                     property,
                     freebaseObject,
                     wikidataObject
@@ -229,7 +451,7 @@
             }
 
             if (!isDuplicate) {
-              createNewStatement(property, freebaseObject);
+              itemCuration.createNewStatement(property, freebaseObject);
             }
           }
         }
@@ -239,69 +461,11 @@
     }
     for (var property in newClaims) {
       var claims = newClaims[property];
-      ps.commons.debug.log('New claim ' + property);
-      createNewClaim(property, claims);
+      ps.globals.debug.log('New claim ' + property);
+      itemCuration.createNewClaim(property, claims);
     }
   }
-  // END 2. match existing Wikidata statements
-
-  // BEGIN: 3. fill HTML templates
-  itemCuration.getSourcesHtml = function getSourcesHtml(sources, property, object) {
-    var sourcePromises = sources.map(function(source) {
-      var sourceItemsPromises = source.map(function(snak) {
-        return $.when(
-            getValueHtml(snak.sourceProperty),
-            getValueHtml(snak.sourceObject, snak.sourceProperty)
-        ).then(function(formattedProperty, formattedValue) {
-          return HTML_TEMPLATES.sourceItemHtml
-            .replace(/\{\{source-property-html\}\}/g, formattedProperty)
-            .replace(/\{\{source-object\}\}/g, formattedValue);
-        });
-      });
-
-      return $.when.apply($, sourceItemsPromises).then(function() {
-        return HTML_TEMPLATES.sourceHtml
-          .replace(/\{\{data-source\}\}/g, escapeHtml(JSON.stringify(source)))
-          .replace(/\{\{data-property\}\}/g, property)
-          .replace(/\{\{data-object\}\}/g, escapeHtml(object.object))
-          .replace(/\{\{data-dataset\}\}/g, object.dataset)
-          .replace(/\{\{statement-id\}\}/g, source[0].sourceId)
-          .replace(/\{\{source-html\}\}/g,
-              Array.prototype.slice.call(arguments).join(''))
-          .replace(/\{\{data-qualifiers\}\}/g, escapeHtml(JSON.stringify(
-              object.qualifiers)));
-      });
-    });
-
-    return $.when.apply($, sourcePromises).then(function() {
-      return Array.prototype.slice.call(arguments).join('');
-    });
-  }
-  itemCuration.getStatementHtml = function getStatementHtml(property, object) {
-    return $.when(
-        getQualifiersHtml(object.qualifiers),
-        getSourcesHtml(object.sources, property, object),
-        getValueHtml(object.object, property)
-    ).then(function(qualifiersHtml, sourcesHtml, formattedValue) {
-      return HTML_TEMPLATES.statementViewHtml
-        .replace(/\{\{object\}\}/g, formattedValue)
-        .replace(/\{\{data-object\}\}/g, escapeHtml(object.object))
-        .replace(/\{\{data-property\}\}/g, property)
-        .replace(/\{\{references\}\}/g,
-          object.sources.length === 1 ?
-              object.sources.length + ' reference' :
-              object.sources.length + ' references')
-        .replace(/\{\{sources\}\}/g, sourcesHtml)
-        .replace(/\{\{qualifiers\}\}/g, qualifiersHtml)
-        .replace(/\{\{statement-id\}\}/g, object.id)
-        .replace(/\{\{data-dataset\}\}/g, object.dataset)
-        .replace(/\{\{data-qualifiers\}\}/g, escapeHtml(JSON.stringify(
-            object.qualifiers)))
-        .replace(/\{\{data-sources\}\}/g, escapeHtml(JSON.stringify(
-            object.sources)));
-    });
-  }
-  // END: 3. fill HTML templates
+  // END 3. match existing Wikidata statements
 
   /**
    * 4. Handle curation actions:
@@ -344,9 +508,9 @@
                 See SPARQL queries in CurateServlet:
                 https://github.com/marfox/pst-backend
               */
-              setStatementState(quickStatement, ps.commons.STATEMENT_STATES.approved, currentDataset, 'claim')
+              ps.commons.setStatementState(quickStatement, ps.globals.STATEMENT_STATES.approved, currentDataset, 'claim')
                 .done(function() {
-                  ps.commons.debug.log('Approved claim [' + quickStatement + ']');
+                  ps.globals.debug.log('Approved claim [' + quickStatement + ']');
                   if (data.pageinfo && data.pageinfo.lastrevid) {
                     document.location.hash = 'revision=' +
                       data.pageinfo.lastrevid;
@@ -358,9 +522,9 @@
         // Claim rejection
         else if (classList.contains('f2w-reject')) {
           // The back end rejects everything (claim, qualifiers, references)
-          setStatementState(quickStatement, ps.commons.STATEMENT_STATES.rejected, currentDataset, 'claim')
+          ps.commons.setStatementState(quickStatement, ps.globals.STATEMENT_STATES.rejected, currentDataset, 'claim')
             .done(function() {
-              ps.commons.debug.log('Rejected claim [' + quickStatement + ']');
+              ps.globals.debug.log('Rejected claim [' + quickStatement + ']');
               return document.location.reload();
             });
         }
@@ -403,9 +567,9 @@
                     return reportError(error);
                   }
                   // The back end approves everything
-                  setStatementState(sourceQuickStatement, ps.commons.STATEMENT_STATES.approved, currentDataset, 'reference')
+                  ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, currentDataset, 'reference')
                     .done(function() {
-                      ps.commons.debug.log('Approved referenced claim [' + sourceQuickStatement + ']');
+                      ps.globals.debug.log('Approved referenced claim [' + sourceQuickStatement + ']');
                       if (data.pageinfo && data.pageinfo.lastrevid) {
                         document.location.hash = 'revision=' +
                           data.pageinfo.lastrevid;
@@ -423,9 +587,9 @@
                 })
                 .done(function(data) {
                   // The back end approves everything
-                  setStatementState(sourceQuickStatement, ps.commons.STATEMENT_STATES.approved, currentDataset, 'reference')
+                  ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, currentDataset, 'reference')
                     .done(function() {
-                      ps.commons.debug.log('Approved referenced claim [' + sourceQuickStatement + ']');
+                      ps.globals.debug.log('Approved referenced claim [' + sourceQuickStatement + ']');
                       if (data.pageinfo && data.pageinfo.lastrevid) {
                         document.location.hash = 'revision=' +
                           data.pageinfo.lastrevid;
@@ -438,8 +602,8 @@
         }
         // Reference rejection
         else if (classList.contains('f2w-reject')) {
-          setStatementState(sourceQuickStatement, ps.commons.STATEMENT_STATES.rejected, currentDataset, 'reference').done(function() {
-            ps.commons.debug.log('Rejected referenced claim [' + sourceQuickStatement + ']');
+          ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.rejected, currentDataset, 'reference').done(function() {
+            ps.globals.debug.log('Rejected referenced claim [' + sourceQuickStatement + ']');
             return document.location.reload();
           });
         }
@@ -479,87 +643,7 @@
   })();
 
   // BEGIN: 5. add approved suggestions to Wikidata
-  itemCuration.createNewClaim = function createNewClaim(property, claims) {
-    var newClaim = {
-      property: property,
-      objects: []
-    };
-    var objectsLength = Object.keys(claims).length;
-    var i = 0;
-    for (var key in claims) {
-      var object = claims[key].object;
-      var id = claims[key].id;
-      var claimDataset = claims[key].dataset;
-      var sources = claims[key].sources;
-      var qualifiers = claims[key].qualifiers;
-      newClaim.objects.push({
-        object: object,
-        id: id,
-        dataset: claimDataset,
-        qualifiers: qualifiers,
-        sources: sources,
-        key: key
-      });
-      (function(currentNewClaim, currentKey) {
-        currentNewClaim.objects.forEach(function(object) {
-          if (object.key !== currentKey) {
-            return;
-          }
-          i++;
-          if (i === objectsLength) {
-            return createNewClaimList(currentNewClaim);
-          }
-        });
-      })(newClaim, key);
-    }
-  }
-  itemCuration.createNewClaimList = function createNewClaimList(newClaim) {
-    var container = document
-        .querySelector('.wikibase-statementgrouplistview')
-        .querySelector('.wikibase-listview');
-    var statementPromises = newClaim.objects.map(function(object) {
-      return getStatementHtml(newClaim.property, object);
-    });
-
-    getValueHtml(newClaim.property).done(function(propertyHtml) {
-      $.when.apply($, statementPromises).then(function() {
-        var statementViewsHtml = Array.prototype.slice.call(arguments).join('');
-        var mainHtml = HTML_TEMPLATES.mainHtml
-            .replace(/\{\{statement-views\}\}/g, statementViewsHtml)
-            .replace(/\{\{property\}\}/g, newClaim.property)
-            .replace(/\{\{data-property\}\}/g, newClaim.property)
-            .replace(/\{\{data-dataset\}\}/g, newClaim.dataset)
-            .replace(/\{\{property-html\}\}/g, propertyHtml);
-
-        var fragment = document.createDocumentFragment();
-        var child = document.createElement('div');
-        child.innerHTML = mainHtml;
-        fragment.appendChild(child.firstChild);
-        container.appendChild(fragment);
-        appendToNav(container.lastChild);
-      });
-    });
-  }
   // END: 5. add approved suggestions to Wikidata
-
-  // BEGIN: 6. update the suggestions state
-  itemCuration.setStatementState = function setStatementState(quickStatement, state, dataset, type) {
-    if (!ps.commons.STATEMENT_STATES[state]) {
-      reportError('Invalid statement state');
-    }
-    var data = {
-      qs: quickStatement,
-      state: state,
-      dataset: dataset,
-      type: type,
-      user: mw.user.getName()
-    }
-    return $.post(FREEBASE_ps.commons.STATEMENT_APPROVAL_URL, JSON.stringify(data))
-    .fail(function() {
-      reportError('Set statement state to ' + state + ' failed.');
-    });
-  }
-  // END: 6. update the suggestions state
 
   ps.itemCuration = itemCuration;
 
