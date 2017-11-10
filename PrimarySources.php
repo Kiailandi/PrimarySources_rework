@@ -102,20 +102,19 @@ $wgSpecialPages['HelloWorld'] = 'SpecialPrimarySources';
 // See also http://www.mediawiki.org/wiki/Manual:$wgResourceModules
 // ResourceLoader modules are the de facto standard way to easily
 // load JavaScript and CSS files to the client.
-$wgResourceModules['ext.PrimarySources.frontend'] = array(
+$wgResourceModules['ext.PrimarySources.itemCuration'] = array(
     'scripts' => array(
-        '/modules/ext.PrimarySources.frontend.js'
+        '/modules/ext.PrimarySources.itemCuration.js'
     ),
     'styles' => array(
-        '/modules/ext.PrimarySources.frontend.css'
+        '/modules/ext.PrimarySources.itemCuration.css'
     ),
     'messages' => array(
     ),
     'dependencies' => array(
-        //'oojs-ui',
-        //'wikibase.dataTypeStore',
-        'jquery.wikibase'
-        //'wikibase.datamodel'
+        'ext.PrimarySources.globals',
+        'ext.PrimarySources.commons',
+        'ext.PrimarySources.templates'
     ),
     'localBasePath' => $dir,
     'remoteExtPath' => $dirbasename

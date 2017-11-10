@@ -27,18 +27,19 @@
     "myact": "Example"
   },
   "ResourceModules": {
-    "ext.PrimarySources.frontend": {
+    "ext.PrimarySources.itemCuration": {
       "scripts": [
-        "/modules/ext.PrimarySources.init.js",
-        "/modules/ext.PrimarySources.util.js",
-        "/modules/ext.PrimarySources.PSFilterComponent.js"
+        "/modules/ext.PrimarySources.itemCuration.js"
       ],
       "styles": [
-        "/modules/ext.PrimarySources.frontend.css"
+        "/modules/ext.PrimarySources.itemCuration.css"
       ],
       "messages": [
       ],
       "dependencies": [
+        "ext.PrimarySources.globals",
+        "ext.PrimarySources.commons",
+        "ext.PrimarySources.templates"
       ]
     }
   },
