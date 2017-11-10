@@ -3,16 +3,19 @@
  * This module implements the item-based workflow:
  * 1. process suggestions (back-end service /suggest);
  * 2. fill HTML templates (AKA blue boxes) with suggestions data;
- * 3. match existing Wikidata statements to display blue boxes accordingly;
- * 4. handle curation actions, see addClickHandlers;
- * 5. add approved suggestions to Wikidata, see create*;
- * 6. update the suggestions state (back-end service /curate), see setStatementState.
+ * 3. match existing Wikidata statements and display blue boxes accordingly;
+ * 4. handle curation actions (AKA approve/reject buttons);
+ *   4.1. add approved suggestions to Wikidata;
+ *   4.2. update the suggestions state (back-end service /curate).
  */
 (function(mw, ps) {
   console.log("Primary sources tool - Item curation");
 
   // accessible object
   var itemCuration = {};
+  
+  // The current item
+  var qid = null;
 
   // BEGIN: 1. process suggestions
   itemCuration.getFreebaseEntityData = function getFreebaseEntityData(qid, callback) {
@@ -223,7 +226,6 @@
   // END: 2. fill HTML templates
 
   // BEGIN: 3. match existing Wikidata statements
-  var qid = null;
   itemCuration.getQid = function getQid() {
     var qidRegEx = /^Q\d+$/;
     var title = mw.config.get('wgTitle');
@@ -475,6 +477,7 @@
    * -reject claim;
    * -approve reference;
    * -reject reference.
+   * TODO there is some code for reference editing, which doesn't seem to work
    */
   itemCuration.addClickHandlers = (function addClickHandlers() {
 
@@ -492,23 +495,23 @@
       var object = statement.object;
       var quickStatement = qid + '\t' + predicate + '\t' + object;
 
-      // BEGIN: claim curation
+      /* BEGIN: claim curation */
       if (classList.contains('f2w-property')) {
-        var currentDataset = statement.dataset;
+        var dataset = statement.dataset;
         var qualifiers = JSON.parse(statement.qualifiers);
         var sources = JSON.parse(statement.sources);
         // Claim approval
         if (classList.contains('f2w-approve')) {
-          createClaim(qid, predicate, object, qualifiers)
+          ps.commons.createClaim(qid, predicate, object, qualifiers)
             .fail(function(error) {
-              return reportError(error);
+              return ps.commons.reportError(error);
             }).done(function(data) {
               /*
                 The back end approves the claim and eventual qualifiers.
                 See SPARQL queries in CurateServlet:
                 https://github.com/marfox/pst-backend
               */
-              ps.commons.setStatementState(quickStatement, ps.globals.STATEMENT_STATES.approved, currentDataset, 'claim')
+              ps.commons.setStatementState(quickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'claim')
                 .done(function() {
                   ps.globals.debug.log('Approved claim [' + quickStatement + ']');
                   if (data.pageinfo && data.pageinfo.lastrevid) {
@@ -522,24 +525,24 @@
         // Claim rejection
         else if (classList.contains('f2w-reject')) {
           // The back end rejects everything (claim, qualifiers, references)
-          ps.commons.setStatementState(quickStatement, ps.globals.STATEMENT_STATES.rejected, currentDataset, 'claim')
+          ps.commons.setStatementState(quickStatement, ps.globals.STATEMENT_STATES.rejected, dataset, 'claim')
             .done(function() {
               ps.globals.debug.log('Rejected claim [' + quickStatement + ']');
               return document.location.reload();
             });
         }
       }
-      // END: claim curation
+      /* END: claim curation */
 
-      // BEGIN: reference curation
+      /* BEGIN: reference curation */
       else if (classList.contains('f2w-source')) {
         /*
-          The reference key is the property/value pair, see parsePrimarySourcesStatment.
+          The reference key is the property/value pair, see ps.commons.parsePrimarySourcesStatment.
           Use it to build the QuickStatement needed to change the state in the back end.
           See CurateServlet#parseQuickStatement:
           https://github.com/marfox/pst-backend
         */
-        var currentDataset = statement.dataset;
+        var dataset = statement.dataset;
         var predicate = statement.property;
         var object = statement.object;
         var source = JSON.parse(statement.source);
@@ -547,13 +550,13 @@
         var sourceQuickStatement = quickStatement + '\t' + source[0].key
           // Reference approval
         if (classList.contains('f2w-approve')) {
-          getClaims(qid, predicate, function(err, claims) {
+          ps.commons.getClaims(qid, predicate, function(err, claims) {
             var objectExists = false;
             for (var i = 0, lenI = claims.length; i < lenI; i++) {
               var claim = claims[i];
               if (
                 claim.mainsnak.snaktype === 'value' &&
-                jsonToTsvValue(claim.mainsnak.datavalue) === object
+                ps.commons.jsonToTsvValue(claim.mainsnak.datavalue) === object
               ) {
                 objectExists = true;
                 break;
@@ -561,13 +564,13 @@
             }
             // The claim is already in Wikidata: only create the reference
             if (objectExists) {
-              createReference(qid, predicate, object, source,
+              ps.commons.createReference(qid, predicate, object, source,
                 function(error, data) {
                   if (error) {
-                    return reportError(error);
+                    return ps.commons.reportError(error);
                   }
                   // The back end approves everything
-                  ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, currentDataset, 'reference')
+                  ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'reference')
                     .done(function() {
                       ps.globals.debug.log('Approved referenced claim [' + sourceQuickStatement + ']');
                       if (data.pageinfo && data.pageinfo.lastrevid) {
@@ -580,14 +583,14 @@
             }
             // New referenced claim: entirely create it
             else {
-              createClaimWithReference(qid, predicate, object, qualifiers,
+              ps.commons.createClaimWithReference(qid, predicate, object, qualifiers,
                   source)
                 .fail(function(error) {
-                  return reportError(error);
+                  return ps.commons.reportError(error);
                 })
                 .done(function(data) {
                   // The back end approves everything
-                  ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, currentDataset, 'reference')
+                  ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'reference')
                     .done(function() {
                       ps.globals.debug.log('Approved referenced claim [' + sourceQuickStatement + ']');
                       if (data.pageinfo && data.pageinfo.lastrevid) {
@@ -602,17 +605,18 @@
         }
         // Reference rejection
         else if (classList.contains('f2w-reject')) {
-          ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.rejected, currentDataset, 'reference').done(function() {
+          ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.rejected, dataset, 'reference').done(function() {
             ps.globals.debug.log('Rejected referenced claim [' + sourceQuickStatement + ']');
             return document.location.reload();
           });
         }
         // Reference edit
+        // TODO doesn't seem to work
         else if (classList.contains('f2w-edit')) {
           var a = document.getElementById('f2w-' + sourceQuickStatement);
 
           var onClick = function(e) {
-            if (isUrl(e.target.textContent)) {
+            if (ps.commons.isUrl(e.target.textContent)) {
               a.style.textDecoration = 'none';
               a.href = e.target.textContent;
             } else {
@@ -638,12 +642,9 @@
           a.contentEditable = true;
         }
       }
-      // END: reference curation
+      /* END: reference curation */
     });
   })();
-
-  // BEGIN: 5. add approved suggestions to Wikidata
-  // END: 5. add approved suggestions to Wikidata
 
   ps.itemCuration = itemCuration;
 
