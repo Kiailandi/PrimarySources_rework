@@ -102,6 +102,47 @@ $wgSpecialPages['HelloWorld'] = 'SpecialPrimarySources';
 // See also http://www.mediawiki.org/wiki/Manual:$wgResourceModules
 // ResourceLoader modules are the de facto standard way to easily
 // load JavaScript and CSS files to the client.
+$wgResourceModules['ext.PrimarySources.globals'] = array(
+    'scripts' => array(
+        '/modules/ext.PrimarySources.globals.js'
+    ),
+    'styles' => array(
+    ),
+    'messages' => array(
+    ),
+    'dependencies' => array(
+    ),
+    'localBasePath' => $dir,
+    'remoteExtPath' => $dirbasename
+);
+$wgResourceModules['ext.PrimarySources.commons'] = array(
+    'scripts' => array(
+        '/modules/ext.PrimarySources.commons.js'
+    ),
+    'styles' => array(
+    ),
+    'messages' => array(
+    ),
+    'dependencies' => array(
+        'ext.PrimarySources.globals'
+    ),
+    'localBasePath' => $dir,
+    'remoteExtPath' => $dirbasename
+);
+$wgResourceModules['ext.PrimarySources.templates'] = array(
+    'scripts' => array(
+        '/modules/ext.PrimarySources.templates.js'
+    ),
+    'styles' => array(
+        '/modules/ext.PrimarySources.itemCuration.css'
+    ),
+    'messages' => array(
+    ),
+    'dependencies' => array(
+    ),
+    'localBasePath' => $dir,
+    'remoteExtPath' => $dirbasename
+);
 $wgResourceModules['ext.PrimarySources.itemCuration'] = array(
     'scripts' => array(
         '/modules/ext.PrimarySources.itemCuration.js'
@@ -119,7 +160,6 @@ $wgResourceModules['ext.PrimarySources.itemCuration'] = array(
     'localBasePath' => $dir,
     'remoteExtPath' => $dirbasename
 );
-
 /* Configuration */
 
 
