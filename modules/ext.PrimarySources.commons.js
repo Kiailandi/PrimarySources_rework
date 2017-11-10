@@ -4,53 +4,11 @@
  * item-based curation and filter.
  */
 (function(mw, ps) {
-    console.log("Primary sources tool - commons module");
+    console.log("Primary sources tool - common functions");
     
     // accessible object
     var commons = {};
     
-    var API_ENDPOINTS = {
-      WIKIDATA_ENTITY_DATA_URL: 'https://www.wikidata.org/wiki/Special:EntityData/{{qid}}.json',
-      FREEBASE_ENTITY_DATA_URL: 'http://it.dbpedia.org/pst/suggest?qid={{qid}}',
-      FREEBASE_STATEMENT_APPROVAL_URL: 'http://it.dbpedia.org/pst/curate',
-      FREEBASE_STATEMENT_SEARCH_URL: 'https://tools.wmflabs.org/wikidata-primary-sources/statements/all',
-      FREEBASE_DATASETS: 'https://tools.wmflabs.org/wikidata-primary-sources/datasets/all',
-      FREEBASE_SOURCE_URL_BLACKLIST: 'https://www.wikidata.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_blacklist',
-      FREEBASE_SOURCE_URL_WHITELIST: 'https://www.wikidata.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_whitelist'
-    };
-    commons.API_ENDPOINTS = API_ENDPOINTS;
-
-    commons.WIKIDATA_API_COMMENT = 'Added via [[Wikidata:Primary sources tool]]';
-
-    commons.STATEMENT_STATES = {
-      unapproved: 'new',
-      approved: 'approved',
-      rejected: 'rejected',
-      duplicate: 'duplicate',
-      blacklisted: 'blacklisted'
-    };
-    commons.STATEMENT_FORMAT = 'QuickStatement';
-
-    commons.DEBUG = JSON.parse(localStorage.getItem('f2w_debug')) || false;
-    localStorage.setItem('f2w_debug', true);
-    commons.debug = {
-        log: function(message) {
-            if (DEBUG) {
-                console.log('PST: ' + message);
-            }
-        }
-    };
-    
-    commons.FAKE_OR_RANDOM_DATA = JSON.parse(localStorage.getItem('f2w_fakeOrRandomData')) || false;
-    
-    var CACHE_EXPIRY = 60 * 60 * 1000;
-
-    var dataset = null;
-    mw.loader.using(['mediawiki.cookie']).then(function() {
-        dataset = mw.cookie.get('ps-dataset', null, '');
-    });
-    commons.dataset = dataset;
-
     /**
    * Return a list of black listed source urls from
    * https://www.wikidata.org/wiki/Wikidata:Primary_sources_tool/URL_blacklist
@@ -223,7 +181,27 @@
         return valueHtmlCache[cacheKey];
     }
     // END: format data
-
+    
+    // BEGIN: Primary sources tool API calls
+    // Update the suggestions state
+    commons.setStatementState = function setStatementState(quickStatement, state, dataset, type) {
+      if (!ps.globals.STATEMENT_STATES[state]) {
+        reportError('Invalid statement state');
+      }
+      var data = {
+        qs: quickStatement,
+        state: state,
+        dataset: dataset,
+        type: type,
+        user: mw.user.getName()
+      }
+      return $.post(FREEBASE_ps.globals.STATEMENT_APPROVAL_URL, JSON.stringify(data))
+      .fail(function() {
+        reportError('Set statement state to ' + state + ' failed.');
+      });
+    }
+    // END: Primary sources tool API calls
+    
     /* BEGIN: Wikibase API calls */
     // BEGIN: post approved claims to Wikidata
     // https://www.wikidata.org/w/api.php?action=help&modules=wbcreateclaim
@@ -345,6 +323,19 @@
     /* END: Wikibase API calls */
 
     // BEGIN: utilities
+    commons.debug = {
+        log: function(message) {
+            if (ps.globals.DEBUG) {
+                console.log('PST: ' + message);
+            }
+        }
+    }
+    commons.reportError = function reportError(error) {
+        mw.notify(error, {
+            autoHide: false,
+            tag: 'ps-error'
+        });
+    }
     commons.isUrl = function isUrl(url) {
         if (typeof URL !== 'function') {
             return url.indexOf('http') === 0;
@@ -358,11 +349,29 @@
             return false;
         }
     }
-    commons.reportError = function reportError(error) {
-        mw.notify(error, {
-            autoHide: false,
-            tag: 'ps-error'
+    commons.buildValueKeysFromWikidataStatement = function buildValueKeysFromWikidataStatement(statement) {
+      var mainSnak = statement.mainsnak;
+      if (mainSnak.snaktype !== 'value') {
+        return [mainSnak.snaktype];
+      }
+
+      var keys = [jsonToTsvValue(mainSnak.datavalue, mainSnak.datatype)];
+
+      if (statement.qualifiers) {
+        var qualifierKeyParts = [];
+        $.each(statement.qualifiers, function(_, qualifiers) {
+          qualifiers.forEach(function(qualifier) {
+            qualifierKeyParts.push(
+                qualifier.property + '\t' +
+                    jsonToTsvValue(qualifier.datavalue, qualifier.datatype)
+            );
+          });
         });
+        qualifierKeyParts.sort();
+        keys.push(keys[0] + '\t' + qualifierKeyParts.join('\t'));
+      }
+
+      return keys;
     }
     commons.jsonToTsvValue = function jsonToTsvValue(dataValue, dataType) {
       if (!dataValue.type) {
