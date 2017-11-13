@@ -1,5 +1,8 @@
-(function(mw, ps) {
+(function(mw) {
   console.log("Primary sources tool - globals module");
+
+    // Attach to window and globally
+    window.primarySources = window.ps = {};
   
   // accessible object
   var globals = {};
@@ -41,4 +44,4 @@
   
   ps.globals = globals;
   
-}(mediaWiki, primarySources));
+}(mediaWiki));

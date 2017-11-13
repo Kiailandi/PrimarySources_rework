@@ -160,6 +160,21 @@ $wgResourceModules['ext.PrimarySources.itemCuration'] = array(
     'localBasePath' => $dir,
     'remoteExtPath' => $dirbasename
 );
+$wgResourceModules['ext.PrimarySources.filter'] = array(
+    'scripts' => array(
+        '/modules/ext.PrimarySources.filter.js'
+    ),
+    'styles' => array(
+    ),
+    'messages' => array(
+    ),
+    'dependencies' => array(
+        'ext.PrimarySources.globals',
+        'ext.PrimarySources.commons',
+    ),
+    'localBasePath' => $dir,
+    'remoteExtPath' => $dirbasename
+);
 /* Configuration */
 
 

@@ -76,6 +76,19 @@
         "ext.PrimarySources.commons",
         "ext.PrimarySources.templates"
       ]
+    },
+    "ext.PrimarySources.filter": {
+      "scripts": [
+        "/modules/ext.PrimarySources.filter.js"
+      ],
+      "styles": [
+      ],
+      "messages": [
+      ],
+      "dependencies": [
+        "ext.PrimarySources.globals",
+        "ext.PrimarySources.commons",
+      ]
     }
   },
   "ResourceFileModulePaths": {

@@ -40,7 +40,14 @@ class PrimarySourcesHooks {
         if ( $wgExampleEnableWelcome ) {
             $out->addModules( 'ext.Example.welcome.init' );
         }*/
-        $out->addModules( 'ext.PrimarySources.frontend');
+
+        $out->addModules( 'ext.PrimarySources.globals' );
+        $out->addModules( 'ext.PrimarySources.commons' );
+//        $out->addModules( 'ext.PrimarySources.templates' );
+//        $out->addModules( 'ext.PrimarySources.sidebar' );
+//        $out->addModules( 'ext.PrimarySources.itemCuration' );
+        $out->addModules( 'ext.PrimarySources.filter' );
+
         // Always return true, indicating that parser initialization should
         // continue normally.
         return true;
