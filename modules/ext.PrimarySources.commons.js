@@ -69,7 +69,7 @@
                 return [];
             }
         });
-    }
+    };
 
     /**
    *
@@ -92,7 +92,7 @@
             return false;
         }
         ;
-    }
+    };
 
     /**
    *
@@ -124,7 +124,7 @@
         }).fail(function() {
             util.debug.log('Could not obtain datasets');
         });
-    }
+    };
 
     // BEGIN: format data
     var valueHtmlCache = {};
@@ -179,7 +179,7 @@
         }
 
         return valueHtmlCache[cacheKey];
-    }
+    };
     // END: format data
     
     // BEGIN: Primary sources tool API calls
@@ -194,12 +194,12 @@
         dataset: dataset,
         type: type,
         user: mw.user.getName()
-      }
+      };
       return $.post(FREEBASE_ps.globals.STATEMENT_APPROVAL_URL, JSON.stringify(data))
       .fail(function() {
         reportError('Set statement state to ' + state + ' failed.');
       });
-    }
+    };
     // END: Primary sources tool API calls
     
     /* BEGIN: Wikibase API calls */
@@ -236,7 +236,7 @@
 
             return saveQualifiers();
         });
-    }
+    };
     // https://www.wikidata.org/w/api.php?action=help&modules=wbsetreference
     commons.createReference = function createReference(subject, predicate, object, sourceSnaks, callback) {
         var api = new mw.Api();
@@ -265,7 +265,7 @@
         }).fail(function(error) {
             return callback(error);
         });
-    }
+    };
     // combines the 2 functions above
     commons.createClaimWithReference = function createClaimWithReference(subject, predicate, object, qualifiers, sourceSnaks) {
         var api = new mw.Api();
@@ -277,7 +277,7 @@
                 summary: WIKIDATA_API_COMMENT
             });
         });
-    }
+    };
     // END: post approved claims to Wikidata
 
     // BEGIN: get existing claims from Wikidata
@@ -293,7 +293,7 @@
         }).fail(function(error) {
             return callback(error);
         });
-    }
+    };
     // END:  get existing claims from Wikidata
     function getFewEntityLabels(entityIds) {
       if (entityIds.length === 0) {
@@ -329,13 +329,15 @@
                 console.log('PST: ' + message);
             }
         }
-    }
+    };
+
     commons.reportError = function reportError(error) {
         mw.notify(error, {
             autoHide: false,
             tag: 'ps-error'
         });
-    }
+    };
+
     commons.isUrl = function isUrl(url) {
         if (typeof URL !== 'function') {
             return url.indexOf('http') === 0;
@@ -348,7 +350,8 @@
         } catch (e) {
             return false;
         }
-    }
+    };
+
     commons.buildValueKeysFromWikidataStatement = function buildValueKeysFromWikidataStatement(statement) {
       var mainSnak = statement.mainsnak;
       if (mainSnak.snaktype !== 'value') {
@@ -372,7 +375,8 @@
       }
 
       return keys;
-    }
+    };
+
     commons.jsonToTsvValue = function jsonToTsvValue(dataValue, dataType) {
       if (!dataValue.type) {
         debug.log('No data value type given');
@@ -411,7 +415,8 @@
       }
       debug.log('Unknown data value type ' + dataValue.type);
       return dataValue.value;
-    }
+    };
+
     commons.tsvValueToJson = function tsvValueToJson(value) {
       // From https://www.wikidata.org/wiki/Special:ListDatatypes and
       // https://de.wikipedia.org/wiki/Wikipedia:Wikidata/Wikidata_Spielwiese
@@ -515,7 +520,8 @@
           };
         }
       }
-    }
+    };
+
     commons.parsePrimarySourcesStatement = function parsePrimarySourcesStatement(statement, isBlacklisted) {
       // The full QuickStatement acts as the ID
       var id = statement.statement;
@@ -590,14 +596,16 @@
         source: source,
         key: key
       };
-    }
+    };
+
     commons.preloadEntityLabels = function preloadEntityLabels(statements) {
       var entityIds = [];
       statements.forEach(function(statement) {
         entityIds = entityIds.concat(extractEntityIdsFromStatement(statement));
       });
       loadEntityLabels(entityIds);
-    }
+    };
+
     var entityLabelCache = {};
     // Only called by getValueHtml
     function getEntityLabel(entityId) {
@@ -623,6 +631,7 @@
         });
       });
     }
+
     function getEntityLabels(entityIds) {
       //Split entityIds per bucket in order to match limits
       var buckets = [];

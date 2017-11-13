@@ -31,78 +31,7 @@
         listDialog(listButton);
     });
 
-
-    function parsePrimarySourcesStatement(statement, isBlacklisted) {
-        var id = statement.id;
-        var line = statement.statement.split(/\t/);
-        var subject = line[0];
-        var predicate = line[1];
-        var object = line[2];
-        var qualifiers = [];
-        var source = [];
-        var key = object;
-        // Handle any qualifiers and/or sources
-        var qualifierKeyParts = [];
-        var lineLength = line.length;
-        for (var i = 3; i < lineLength; i += 2) {
-            if (i === lineLength - 1) {
-                ps.util.debug.log('Malformed qualifier/source pieces');
-                break;
-            }
-            if (/^P\d+$/.exec(line[i])) {
-                var qualifierKey = line[i] + '\t' + line[i + 1];
-                qualifiers.push({
-                    qualifierProperty: line[i],
-                    qualifierObject: line[i + 1],
-                    key: qualifierKey
-                });
-                qualifierKeyParts.push(qualifierKey);
-            } else if (/^S\d+$/.exec(line[i])) {
-                source.push({
-                    sourceProperty: line[i].replace(/^S/, 'P'),
-                    sourceObject: line[i + 1],
-                    sourceType: (ps.util.tsvValueToJson(line[i + 1])).type,
-                    sourceId: id,
-                    key: line[i] + '\t' + line[i + 1]
-                });
-            }
-
-            qualifierKeyParts.sort();
-            key += '\t' + qualifierKeyParts.join('\t');
-
-            // Filter out blacklisted source URLs
-            source = source.filter(function(source) {
-                if (source.sourceType === 'url') {
-                    var url = source.sourceObject.replace(/^"/, '').replace(/"$/, '');
-                    var blacklisted = isBlacklisted(url);
-                    if (blacklisted) {
-                        ps.util.debug.log('Encountered blacklisted source url ' + url);
-                        (function(currentId, currentUrl) {
-                            setStatementState(currentId, STATEMENT_STATES.blacklisted)
-                                .done(function() {
-                                    ps.util.debug.log('Automatically blacklisted statement ' +
-                                        currentId + ' with blacklisted source url ' +
-                                        currentUrl);
-                                });
-                        })(id, url);
-                    }
-                    // Return the opposite, i.e., the whitelisted URLs
-                    return !blacklisted;
-                }
-                return true;
-            });
-        }
-
-        return {
-            id: id,
-            subject: subject,
-            predicate: predicate,
-            object: object,
-            qualifiers: qualifiers,
-            source: source,
-            key: key
-        };
-    }
+    // parsePrimarySourcesStatement moved to commons
 
     /**
      * (Used only by ListDialog)
@@ -112,17 +41,17 @@
     function searchStatements(parameters) {
         return $.when(
             $.ajax({
-                url: ps.util.API_ENDPOINT.FREEBASE_STATEMENT_SEARCH_URL,
+                url: ps.globals.API_ENDPOINTS.FREEBASE_STATEMENT_SEARCH_URL,
                 data: parameters
             }).then(function(data) { return data; }),
-            ps.util.getBlacklistedSourceUrls()
+            ps.commons.getBlacklistedSourceUrls()
         ).then(
             function (data, blacklistedSourceUrls) {
-                var isBlacklisted = ps.util.isBlackListedBuilder(blacklistedSourceUrls);
+                var isBlacklisted = ps.commons.isBlackListedBuilder(blacklistedSourceUrls);
                 var statements = data.map(function(statement) {
-                    return parsePrimarySourcesStatement(statement, isBlacklisted);
+                    return ps.commons.parsePrimarySourcesStatement(statement, isBlacklisted);
                 });
-                ps.util.preloadEntityLabels(statements);
+                ps.commons.preloadEntityLabels(statements);
                 return statements;
             }
         );
@@ -146,23 +75,23 @@
 
 
             var htmlCallbacks = [
-                ps.util.getValueHtml(this.statement.subject), //0
-                ps.util.getValueHtml(this.statement.predicate), //1
-                ps.util.getValueHtml(this.statement.object, this.statement.predicate) //2
+                ps.commons.getValueHtml(this.statement.subject), //0
+                ps.commons.getValueHtml(this.statement.predicate), //1
+                ps.commons.getValueHtml(this.statement.object, this.statement.predicate) //2
             ];
 
             this.statement.qualifiers.forEach(function(qualifier) {
-                htmlCallbacks.push(ps.util.getValueHtml(qualifier.qualifierProperty));
+                htmlCallbacks.push(ps.commons.getValueHtml(qualifier.qualifierProperty));
                 htmlCallbacks.push(
-                    ps.util.getValueHtml(qualifier.qualifierObject, qualifier.qualifierProperty)
+                    ps.commons.getValueHtml(qualifier.qualifierObject, qualifier.qualifierProperty)
                 );
             });
 
             // Add reference to table
             this.statement.source.forEach(function(source){
-                htmlCallbacks.push(ps.util.getValueHtml(source.sourceProperty));
+                htmlCallbacks.push(ps.commons.getValueHtml(source.sourceProperty));
                 htmlCallbacks.push(
-                    ps.util.getValueHtml(source.sourceObject, source.sourceProperty)
+                    ps.commons.getValueHtml(source.sourceObject, source.sourceProperty)
                 );
             });
 
@@ -272,7 +201,7 @@
                                 if (widget.statement.source.length === 0) {
                                     setStatementState(widget.statement.id,
                                         STATEMENT_STATES.duplicate).done(function() {
-                                        ps.util.debug.log(widget.statement.id + ' tagged as duplicate');
+                                        ps.commons.debug.log(widget.statement.id + ' tagged as duplicate');
                                     });
                                 }
                             }
@@ -357,13 +286,13 @@
 
             // Selection form
             this.datasetInput = new OO.ui.DropdownInputWidget();
-            ps.util.getPossibleDatasets(function(datasets) {
+            ps.commons.getPossibleDatasets(function(datasets) {
                 var options = [{data: '', label: 'All sources'}];
                 for (var datasetId in datasets) {
                     options.push({data: datasetId, label: datasetId});
                 }
                 widget.datasetInput.setOptions(options)
-                    .setValue(ps.util.dataset);
+                    .setValue(ps.commons.dataset);
             });
 
             this.propertyInput = new OO.ui.TextInputWidget({
