@@ -237,6 +237,7 @@
             return saveQualifiers();
         });
     };
+
     // https://www.wikidata.org/w/api.php?action=help&modules=wbsetreference
     commons.createReference = function createReference(subject, predicate, object, sourceSnaks, callback) {
         var api = new mw.Api();
@@ -266,6 +267,7 @@
             return callback(error);
         });
     };
+
     // combines the 2 functions above
     commons.createClaimWithReference = function createClaimWithReference(subject, predicate, object, qualifiers, sourceSnaks) {
         var api = new mw.Api();
@@ -525,7 +527,7 @@
     commons.parsePrimarySourcesStatement = function parsePrimarySourcesStatement(statement, isBlacklisted) {
       // The full QuickStatement acts as the ID
       var id = statement.statement;
-      var dataset = statement.dataset
+      var dataset = statement.dataset;
       var line = statement.statement.split(/\t/);
       var subject = line[0];
       var predicate = line[1];
@@ -571,7 +573,7 @@
               ps.commons.debug.log('Encountered blacklisted reference URL ' + url);
               var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.key;
               (function(currentId, currentUrl) {
-                setStatementState(currentId, ps.commons.STATEMENT_STATES.blacklisted, statementDataset, 'reference')
+                commons.setStatementState(currentId, ps.commons.STATEMENT_STATES.blacklisted, statementDataset, 'reference')
                   .done(function() {
                     ps.commons.debug.log('Automatically blacklisted statement ' +
                       currentId + ' with blacklisted reference URL ' +
@@ -598,6 +600,7 @@
       };
     };
 
+
     commons.preloadEntityLabels = function preloadEntityLabels(statements) {
       var entityIds = [];
       statements.forEach(function(statement) {
@@ -605,6 +608,35 @@
       });
       loadEntityLabels(entityIds);
     };
+
+    function extractEntityIdsFromStatement(statement) {
+        function isEntityId(str) {
+            return /^[PQ]\d+$/.test(str);
+        }
+
+        var entityIds = [statement.subject, statement.predicate];
+
+        if (isEntityId(statement.object)) {
+            entityIds.push(statement.object);
+        }
+
+        statement.qualifiers.forEach(function(qualifier) {
+            entityIds.push(qualifier.qualifierProperty);
+            if(isEntityId(qualifier.qualifierObject)) {
+                entityIds.push(qualifier.qualifierObject);
+            }
+        });
+
+        statement.source.forEach(function(snak) {
+            entityIds.push(snak.sourceProperty);
+            if(isEntityId(snak.sourceObject)) {
+                entityIds.push(snak.sourceObject);
+            }
+        });
+
+        return entityIds;
+    }
+
 
     var entityLabelCache = {};
     // Only called by getValueHtml
