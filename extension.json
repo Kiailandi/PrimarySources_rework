@@ -27,14 +27,54 @@
     "myact": "Example"
   },
   "ResourceModules": {
-    "ext.PrimarySources.frontend": {
-      "scripts": "/modules/ext.PrimarySources.frontend.js",
+    "ext.PrimarySources.globals": {
+      "scripts": [
+        "/modules/ext.PrimarySources.globals.js"
+      ],
       "styles": [
-        "/modules/ext.PrimarySources.frontend.css"
       ],
       "messages": [
       ],
       "dependencies": [
+      ]
+    },
+    "ext.PrimarySources.commons": {
+      "scripts": [
+        "/modules/ext.PrimarySources.commons.js"
+      ],
+      "styles": [
+      ],
+      "messages": [
+      ],
+      "dependencies": [
+        "ext.PrimarySources.globals"
+      ]
+    },
+    "ext.PrimarySources.templates": {
+      "scripts": [
+        "/modules/ext.PrimarySources.templates.js"
+      ],
+      "styles": [
+        "/modules/ext.PrimarySources.itemCuration.css"
+      ],
+      "messages": [
+      ],
+      "dependencies": [
+      ]
+    },
+    "ext.PrimarySources.itemCuration": {
+      "scripts": [
+        "/modules/ext.PrimarySources.itemCuration.js"
+      ],
+      "styles": [
+        "/modules/ext.PrimarySources.itemCuration.css"
+      ],
+      "messages": [
+      ],
+      "dependencies": [
+        "ext.PrimarySources.globals",
+        "ext.PrimarySources.commons",
+        "ext.PrimarySources.templates"
       ]
     }
   },

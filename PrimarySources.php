@@ -86,7 +86,9 @@ $wgAPIListModules['PrimarySources'] = 'ApiQueryPrimarySources';
 $wgHooks['BeforePageDisplay'][] = 'PrimarySourcesHooks::onBeforePageDisplay';
 $wgHooks['ResourceLoaderGetConfigVars'][] = 'PrimarySourcesHooks::onResourceLoaderGetConfigVars';
 $wgHooks['ParserFirstCallInit'][] = 'PrimarySourcesHooks::onParserFirstCallInit';
-$wgHooks['MagicWordwgVariableIDs'][] = 'PrimarySourcesHooks::onRegisterMagicWords';
+# --- #
+#$wgHooks['MagicWordwgVariableIDs'][] = 'PrimarySourcesHooks::onRegisterMagicWords';
+# --- #
 $wgHooks['ParserGetVariableValueSwitch'][] = 'PrimarySourcesHooks::onParserGetVariableValueSwitch';
 $wgHooks['LoadExtensionSchemaUpdates'][] = 'PrimarySourcesHooks::onLoadExtensionSchemaUpdates';
 $wgHooks['OutputPageParserOutput'] [] = 'PrimarySourcesHooks::onOutputPageParserOutput';
@@ -100,25 +102,64 @@ $wgSpecialPages['HelloWorld'] = 'SpecialPrimarySources';
 // See also http://www.mediawiki.org/wiki/Manual:$wgResourceModules
 // ResourceLoader modules are the de facto standard way to easily
 // load JavaScript and CSS files to the client.
-$wgResourceModules['ext.PrimarySources.frontend'] = array(
+$wgResourceModules['ext.PrimarySources.globals'] = array(
     'scripts' => array(
-        '/modules/ext.PrimarySources.frontend.js',
+        '/modules/ext.PrimarySources.globals.js'
     ),
     'styles' => array(
-        '/modules/ext.PrimarySources.frontend.css',
     ),
     'messages' => array(
     ),
     'dependencies' => array(
-        //'oojs-ui',
-        //'wikibase.dataTypeStore',
-        'jquery.wikibase',
-        //'wikibase.datamodel'
     ),
     'localBasePath' => $dir,
-    'remoteExtPath' => $dirbasename,
+    'remoteExtPath' => $dirbasename
 );
-
+$wgResourceModules['ext.PrimarySources.commons'] = array(
+    'scripts' => array(
+        '/modules/ext.PrimarySources.commons.js'
+    ),
+    'styles' => array(
+    ),
+    'messages' => array(
+    ),
+    'dependencies' => array(
+        'ext.PrimarySources.globals'
+    ),
+    'localBasePath' => $dir,
+    'remoteExtPath' => $dirbasename
+);
+$wgResourceModules['ext.PrimarySources.templates'] = array(
+    'scripts' => array(
+        '/modules/ext.PrimarySources.templates.js'
+    ),
+    'styles' => array(
+        '/modules/ext.PrimarySources.itemCuration.css'
+    ),
+    'messages' => array(
+    ),
+    'dependencies' => array(
+    ),
+    'localBasePath' => $dir,
+    'remoteExtPath' => $dirbasename
+);
+$wgResourceModules['ext.PrimarySources.itemCuration'] = array(
+    'scripts' => array(
+        '/modules/ext.PrimarySources.itemCuration.js'
+    ),
+    'styles' => array(
+        '/modules/ext.PrimarySources.itemCuration.css'
+    ),
+    'messages' => array(
+    ),
+    'dependencies' => array(
+        'ext.PrimarySources.globals',
+        'ext.PrimarySources.commons',
+        'ext.PrimarySources.templates'
+    ),
+    'localBasePath' => $dir,
+    'remoteExtPath' => $dirbasename
+);
 /* Configuration */
 
 
