@@ -22,13 +22,13 @@
             if (!blacklist.timestamp) {
                 blacklist.timestamp = 0;
             }
-            if (now - blacklist.timestamp < CACHE_EXPIRY) {
-                util.debug.log('Using cached source URL blacklist');
+            if (now - blacklist.timestamp < ps.globals.CACHE_EXPIRY) {
+                ps.commons.debug.log('Using cached source URL blacklist');
                 return $.Deferred().resolve(blacklist.data);
             }
         }
         return $.ajax({
-            url: util.API_ENDPOINTS.FREEBASE_SOURCE_URL_BLACKLIST,
+            url: ps.globals.API_ENDPOINTS.FREEBASE_SOURCE_URL_BLACKLIST,
             data: {
                 origin: '*'
             }
@@ -55,8 +55,8 @@
                         return false;
                     }
                 });
-                util.debug.log('Caching source URL blacklist');
-                util.debug.log(' -- -- -- ');
+                ps.commons.debug.log('Caching source URL blacklist');
+                ps.commons.debug.log(' -- -- -- ');
 
                 localStorage.setItem('f2w_blacklist', JSON.stringify({
                     timestamp: now,
@@ -65,7 +65,7 @@
                 return blacklist;
             } else {
                 // Fail silently
-                util.debug.log('Could not obtain blacklisted source URLs');
+                ps.commons.debug.log('Could not obtain blacklisted source URLs');
                 return [];
             }
         });
@@ -106,12 +106,12 @@
             if (!blacklist.timestamp) {
                 blacklist.timestamp = 0;
             }
-            if (now - blacklist.timestamp < CACHE_EXPIRY) {
+            if (now - blacklist.timestamp < ps.globals.CACHE_EXPIRY) {
                 return callback(blacklist.data);
             }
         }
         $.ajax({
-            url: util.API_ENDPOINTS.FREEBASE_DATASETS,
+            url: ps.globals.API_ENDPOINTS.FREEBASE_DATASETS,
             data: {
                 origin: '*'
             }
@@ -122,7 +122,7 @@
             }));
             return callback(data);
         }).fail(function() {
-            util.debug.log('Could not obtain datasets');
+            ps.commons.debug.log('Could not obtain datasets');
         });
     };
 
