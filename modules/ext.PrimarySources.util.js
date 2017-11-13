@@ -427,6 +427,94 @@
         loadEntityLabels(entityIds);
     };
 
+    function getValueTypeFromDataValueType(dataValueType) {
+        return wikibase.dataTypeStore.getDataType(dataValueType)
+            .getDataValueType();
+    }
+
+    var urlFormatterCache = {};
+    function getUrlFormatter(property) {
+        if (property in urlFormatterCache) {
+            return urlFormatterCache[property];
+        }
+
+        var api = new mw.Api();
+        urlFormatterCache[property] = api.get({
+            action: 'wbgetentities',
+            ids: property,
+            props: 'claims'
+        }).then(function(result) {
+            var urlFormatter = '';
+            $.each(result.entities, function(_, entity) {
+                if (entity.claims && 'P1630' in entity.claims) {
+                    urlFormatter = entity.claims.P1630[0].mainsnak.datavalue.value;
+                }
+            });
+            return urlFormatter;
+        });
+        return urlFormatterCache[property];
+    }
+
+    var valueHtmlCache = {};
+    util.getValueHtml = function (value, property) {
+        var cacheKey = property + '\t' + value;
+        if (cacheKey in valueHtmlCache) {
+            return valueHtmlCache[cacheKey];
+        }
+        var parsed = util.tsvValueToJson(value);
+        var dataValue = {
+            type: getValueTypeFromDataValueType(parsed.type),
+            value: parsed.value
+        };
+        var options = {
+            'lang': mw.language.getFallbackLanguageChain()[0] || 'en'
+        };
+
+        if (parsed.type === 'string') { // Link to external database
+            valueHtmlCache[cacheKey] = getUrlFormatter(property)
+                .then(function(urlFormatter) {
+                    if (urlFormatter === '') {
+                        return parsed.value;
+                    } else {
+                        var url = urlFormatter.replace('$1', parsed.value);
+                        return '<a rel="nofollow" class="external free" href="' + url + '">' +
+                            parsed.value + '</a>';
+                    }
+                });
+        } else if (parsed.type === 'url') {
+            valueHtmlCache[cacheKey] = $.Deferred().resolve(
+                '<a rel="nofollow" class="external free" href="' + parsed.value + '">' + parsed.value + '</a>'
+            );
+        } else if(parsed.type === 'wikibase-item' || parsed.type === 'wikibase-property') {
+            return getEntityLabel(value).then(function(label) {
+                return '<a href="/entity/' + value + '">' + label + '</a>'; //TODO: better URL
+            });
+        } else {
+            var api = new mw.Api();
+            valueHtmlCache[cacheKey] = api.get({
+                action: 'wbformatvalue',
+                generate: 'text/html',
+                datavalue: JSON.stringify(dataValue),
+                datatype: parsed.type,
+                options: JSON.stringify(options)
+            }).then(function(result) {
+                // Create links for geocoordinates
+                if (parsed.type === 'globe-coordinate') {
+                    var url = 'https://tools.wmflabs.org/geohack/geohack.php' +
+                        '?language=' + mw.config.get('wgUserLanguage') + '&params=' +
+                        dataValue.value.latitude + '_N_' +
+                        dataValue.value.longitude + '_E_globe:earth';
+                    return '<a rel="nofollow" class="external free" href="' + url + '">' +
+                        result.result + '</a>';
+                }
+
+                return result.result;
+            });
+        }
+
+        return valueHtmlCache[cacheKey];
+    };
+
     ps.util = util;
 
 }(mediaWiki, primarySources) );

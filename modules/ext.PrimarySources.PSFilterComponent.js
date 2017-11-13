@@ -14,7 +14,7 @@
     console.log("PrimarySources - filter");
 
     var windowManager;
-
+    
     // load libraries and add button
     mw.loader.using(
         ['jquery.tipsy', 'oojs-ui', 'wikibase.dataTypeStore']).done( function() {
@@ -144,22 +144,79 @@
             var widget = this;
             var numberOfSnaks = this.statement.qualifiers.length + 1;
 
+
             var htmlCallbacks = [
-                getValueHtml(this.statement.subject),
-                getValueHtml(this.statement.predicate),
-                getValueHtml(this.statement.object, this.statement.predicate)
+                ps.util.getValueHtml(this.statement.subject), //0
+                ps.util.getValueHtml(this.statement.predicate), //1
+                ps.util.getValueHtml(this.statement.object, this.statement.predicate) //2
             ];
+
             this.statement.qualifiers.forEach(function(qualifier) {
-                htmlCallbacks.push(getValueHtml(qualifier.qualifierProperty));
+                htmlCallbacks.push(ps.util.getValueHtml(qualifier.qualifierProperty));
                 htmlCallbacks.push(
-                    getValueHtml(qualifier.qualifierObject, qualifier.qualifierProperty)
+                    ps.util.getValueHtml(qualifier.qualifierObject, qualifier.qualifierProperty)
+                );
+            });
+
+            // Add reference to table
+            this.statement.source.forEach(function(source){
+                htmlCallbacks.push(ps.util.getValueHtml(source.sourceProperty));
+                htmlCallbacks.push(
+                    ps.util.getValueHtml(source.sourceObject, source.sourceProperty)
                 );
             });
 
             $.when.apply(this, htmlCallbacks).then(function() {
+
+                console.log(arguments);
+                console.log(" -- -- --");
+
+                var numberOfArguments = arguments.length;
+
                 var subjectHtml = arguments[0];
                 var propertyHtml = arguments[1];
                 var objectHtml = arguments[2];
+
+                var sourcePropertyHtml = arguments[numberOfArguments - 2];
+                var sourceValueHtml = arguments[numberOfArguments - 1];
+
+                var qualifiersHtml = [];
+                for (var c=3; c<numberOfArguments-2; c+=2) {
+                    qualifiersHtml.push([arguments[c], arguments[c+1]]);
+                }
+
+
+                // tabella qualif
+                var $tq = $('<table>');
+                $tq.addClass('qualifTable')
+                    .append(
+                        $('<tr>').append(
+                            $('<td>')
+                                .attr('colspan', 2)
+                                .html(objectHtml)
+                        )
+                    );
+
+                qualifiersHtml.forEach(function (row){
+                    $tq.append(
+                        $('<tr>').append(
+                            $('<td>').html(row[0]),
+                            $('<td>').html(row[1])
+                        )
+                    );
+                });
+
+                // tabella source
+                var $ts = $('<table>');
+                $ts.append(
+                        $('<tr>').append(
+                            $('<td>')
+                                .html(sourcePropertyHtml),
+                            $('<td>')
+                                .html(sourceValueHtml)
+                        )
+                    );
+
 
                 var approveButton = new OO.ui.ButtonWidget({
                     label: 'Approve',
@@ -177,6 +234,7 @@
                     items: [approveButton, rejectButton]
                 });
 
+
                 // Main row
                 widget.$element
                     .attr('data-id', widget.statement.id)
@@ -190,23 +248,17 @@
                                 .html(propertyHtml),
                             $('<td>')
                                 .attr('colspan', 2)
-                                .html(objectHtml),
+                                .html($tq), // Tabella qualificatori
+                            $('<td>')
+                                .attr('colspan', 2)
+                                .append($ts), // Tabella source
                             $('<td>')
                                 .attr('rowspan', numberOfSnaks)
                                 .append(buttonGroup.$element)
                         )
                     );
 
-                // Qualifiers
-                for (var i = 3; i < arguments.length; i += 2) {
-                    widget.$element.append(
-                        $('<tr>').append(
-                            $('<td>').html(arguments[i]),
-                            $('<td>').html(arguments[i + 1])
-                        )
-                    );
-                }
-
+                //TODO importare la getclaim
                 // Check that the statement don't already exist
                 getClaims(widget.statement.subject, widget.statement.predicate,
                     function(err, statements) {
@@ -231,6 +283,9 @@
         OO.inheritClass(StatementRow, OO.ui.Widget);
         StatementRow.static.tagName = 'tbody';
 
+        /**
+         * On button click
+         */
         StatementRow.prototype.approve = function() {
             var widget = this;
 
@@ -253,6 +308,9 @@
             });
         };
 
+        /**
+         * On button click
+         */
         StatementRow.prototype.reject = function() {
             var widget = this;
 
@@ -372,7 +430,7 @@
                 property: this.propertyInput.getValue(),
                 value: this.valueInput.getValue(),
                 offset: 0,
-                limit: 100
+                limit: 10 // number of loaded statements
             };
             this.alreadyDisplayedStatementKeys = {};
 
@@ -432,6 +490,7 @@
             console.log("prima");
             console.log(statements);
 
+            // Create row for the table
             statements.map(function(statement) {
                 statement.key = statement.subject + '\t' +
                     statement.predicate + '\t' +
@@ -450,9 +509,6 @@
                 });
                 widget.table.append(row.$element);
             });
-
-            console.log("dopo");
-            console.log(statements);
         };
 
         ListDialog.prototype.initTable = function() {
@@ -465,7 +521,7 @@
                             $('<th>').text('Subject'),
                             $('<th>').text('Property'),
                             $('<th>').attr('colspan', 2).text('Object'),
-                            $('<th>').text('Reference'),
+                            $('<th>').attr('colspan', 2).text('Reference'),
                             $('<th>').text('Action')
                         )
                     )
