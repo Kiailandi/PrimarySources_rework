@@ -11,11 +11,11 @@
 
 ( function ( mw, ps ) {
 
-    console.log("PrimarySources - filter");
+    console.log("Primary sources tool - filter");
 
     var windowManager;
     
-    // load libraries and add button
+    // load libraries and add button to sidebar menu
     mw.loader.using(
         ['jquery.tipsy', 'oojs-ui', 'wikibase.dataTypeStore']).done( function() {
         windowManager = new OO.ui.WindowManager();
@@ -51,7 +51,13 @@
                 var statements = data.map(function(statement) {
                     return ps.commons.parsePrimarySourcesStatement(statement, isBlacklisted);
                 });
+                console.log("CCC");
+
                 ps.commons.preloadEntityLabels(statements);
+
+                console.log("DDD");
+                console.log(statements);
+
                 return statements;
             }
         );
@@ -189,7 +195,7 @@
 
                 //TODO importare la getclaim
                 // Check that the statement don't already exist
-                getClaims(widget.statement.subject, widget.statement.predicate,
+                ps.commons.getClaims(widget.statement.subject, widget.statement.predicate,
                     function(err, statements) {
                         for (var i in statements) {
                             buildValueKeysFromWikidataStatement(statements[i]);
@@ -199,7 +205,7 @@
                                 ) !== -1) {
                                 widget.toggle(false).setDisabled(true);
                                 if (widget.statement.source.length === 0) {
-                                    setStatementState(widget.statement.id,
+                                    ps.commons.setStatementState(widget.statement.id,
                                         STATEMENT_STATES.duplicate).done(function() {
                                         ps.commons.debug.log(widget.statement.id + ' tagged as duplicate');
                                     });
@@ -219,18 +225,18 @@
             var widget = this;
 
             this.showProgressBar();
-            createClaim(
+            ps.commons.createClaim(
                 this.statement.subject,
                 this.statement.predicate,
                 this.statement.object,
                 this.statement.qualifiers
             ).fail(function(error) {
-                return reportError(error);
+                return ps.commons.reportError(error);
             }).done(function() {
-                if (this.statement.source.length > 0) {
-                    return; // TODO add support of source review
-                }
-                setStatementState(widget.statement.id, STATEMENT_STATES.approved)
+                // if (this.statement.source.length > 0) {
+                //     return; // TODO add support of source review
+                // }
+                ps.commons.setStatementState(widget.statement.id, STATEMENT_STATES.approved)
                     .done(function() {
                         widget.toggle(false).setDisabled(true);
                     });
@@ -244,7 +250,7 @@
             var widget = this;
 
             this.showProgressBar();
-            setStatementState(widget.statement.id, STATEMENT_STATES.wrong)
+            ps.commons.setStatementState(widget.statement.id, STATEMENT_STATES.wrong)
                 .done(function() {
                     widget.toggle(false).setDisabled(true);
                 });

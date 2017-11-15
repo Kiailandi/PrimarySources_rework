@@ -56,7 +56,6 @@
                     }
                 });
                 ps.commons.debug.log('Caching source URL blacklist');
-                ps.commons.debug.log(' -- -- -- ');
 
                 localStorage.setItem('f2w_blacklist', JSON.stringify({
                     timestamp: now,
@@ -95,7 +94,7 @@
     };
 
     /**
-   *
+   * Obtain dataset list
    * @param callback
    * @returns {*}
    */
@@ -133,7 +132,7 @@
         if (cacheKey in valueHtmlCache) {
             return valueHtmlCache[cacheKey];
         }
-        var parsed = tsvValueToJson(value);
+        var parsed = commons.tsvValueToJson(value);
         var dataValue = {
             type: getValueTypeFromDataValueType(parsed.type),
             value: parsed.value
@@ -186,7 +185,7 @@
     // Update the suggestions state
     commons.setStatementState = function setStatementState(quickStatement, state, dataset, type) {
       if (!ps.globals.STATEMENT_STATES[state]) {
-        reportError('Invalid statement state');
+        commons.reportError('Invalid statement state');
       }
       var data = {
         qs: quickStatement,
@@ -195,9 +194,9 @@
         type: type,
         user: mw.user.getName()
       };
-      return $.post(FREEBASE_ps.globals.STATEMENT_APPROVAL_URL, JSON.stringify(data))
+      return $.post(ps.globals.API_ENDPOINTS.FREEBASE_STATEMENT_APPROVAL_URL, JSON.stringify(data))
       .fail(function() {
-        reportError('Set statement state to ' + state + ' failed.');
+        commons.reportError('Set statement state to ' + state + ' failed.');
       });
     };
     // END: Primary sources tool API calls
@@ -206,7 +205,7 @@
     // BEGIN: post approved claims to Wikidata
     // https://www.wikidata.org/w/api.php?action=help&modules=wbcreateclaim
     commons.createClaim = function createClaim(subject, predicate, object, qualifiers) {
-        var value = (tsvValueToJson(object)).value;
+        var value = (commons.tsvValueToJson(object)).value;
         var api = new mw.Api();
         return api.postWithToken('csrf', {
             action: 'wbcreateclaim',
@@ -223,7 +222,7 @@
                     return data;
                 }
 
-                var value = (tsvValueToJson(qualifier.qualifierObject)).value;
+                var value = (commons.tsvValueToJson(qualifier.qualifierObject)).value;
                 return api.postWithToken('csrf', {
                     action: 'wbsetqualifier',
                     claim: data.claim.id,
@@ -368,7 +367,7 @@
           qualifiers.forEach(function(qualifier) {
             qualifierKeyParts.push(
                 qualifier.property + '\t' +
-                    jsonToTsvValue(qualifier.datavalue, qualifier.datatype)
+                    commons.jsonToTsvValue(qualifier.datavalue, qualifier.datatype)
             );
           });
         });
@@ -381,7 +380,7 @@
 
     commons.jsonToTsvValue = function jsonToTsvValue(dataValue, dataType) {
       if (!dataValue.type) {
-        debug.log('No data value type given');
+        commons.debug.log('No data value type given');
         return dataValue.value;
       }
       switch (dataValue.type) {
@@ -415,7 +414,7 @@
             return 'P' + dataValue.value['numeric-id'];
         }
       }
-      debug.log('Unknown data value type ' + dataValue.type);
+      commons.debug.log('Unknown data value type ' + dataValue.type);
       return dataValue.value;
     };
 
@@ -525,6 +524,7 @@
     };
 
     commons.parsePrimarySourcesStatement = function parsePrimarySourcesStatement(statement, isBlacklisted) {
+
       // The full QuickStatement acts as the ID
       var id = statement.statement;
       var dataset = statement.dataset;
@@ -538,9 +538,10 @@
       // Handle any qualifiers and/or sources
       var qualifierKeyParts = [];
       var lineLength = line.length;
+
       for (var i = 3; i < lineLength; i += 2) {
         if (i === lineLength - 1) {
-          ps.commons.debug.log('Malformed qualifier/source pieces');
+          commons.debug.log('Malformed qualifier/source pieces');
           break;
         }
         if (/^P\d+$/.exec(line[i])) {
@@ -555,7 +556,7 @@
           source.push({
             sourceProperty: line[i].replace(/^S/, 'P'),
             sourceObject: line[i + 1],
-            sourceType: (ps.commons.tsvValueToJson(line[i + 1])).type,
+            sourceType: (commons.tsvValueToJson(line[i + 1])).type,
             sourceId: id,
             key: line[i] + '\t' + line[i + 1]
           });
@@ -570,12 +571,12 @@
             var url = source.sourceObject.replace(/^"/, '').replace(/"$/, '');
             var blacklisted = isBlacklisted(url);
             if (blacklisted) {
-              ps.commons.debug.log('Encountered blacklisted reference URL ' + url);
+              commons.debug.log('Encountered blacklisted reference URL ' + url);
               var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.key;
               (function(currentId, currentUrl) {
-                commons.setStatementState(currentId, ps.commons.STATEMENT_STATES.blacklisted, statementDataset, 'reference')
+                commons.setStatementState(currentId, commons.STATEMENT_STATES.blacklisted, dataset, 'reference')
                   .done(function() {
-                    ps.commons.debug.log('Automatically blacklisted statement ' +
+                    commons.debug.log('Automatically blacklisted statement ' +
                       currentId + ' with blacklisted reference URL ' +
                       currentUrl);
                   });
@@ -686,6 +687,35 @@
         return $.extend.apply(this, arguments);
       });
     }
+
+    function formatSourceForSave(sourceSnaks) {
+        var result = {};
+        sourceSnaks.forEach(function(snak) {
+            result[snak.sourceProperty] = [];
+        });
+
+        sourceSnaks.forEach(function(snak) {
+            var dataValue = commons.tsvValueToJson(snak.sourceObject);
+            var type = getValueTypeFromDataValueType(dataValue.type);
+
+            result[snak.sourceProperty].push({
+                snaktype: 'value',
+                property: snak.sourceProperty,
+                datavalue: {
+                    type: type,
+                    value: dataValue.value
+                }
+            });
+        });
+
+        return result;
+    }
+
+    function getValueTypeFromDataValueType(dataValueType) {
+        return wikibase.dataTypeStore.getDataType(dataValueType)
+            .getDataValueType();
+    }
+
     // END: utilities
 
     ps.commons = commons;
