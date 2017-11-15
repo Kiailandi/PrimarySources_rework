@@ -403,7 +403,7 @@
       case 'monolingualtext':
         return dataValue.value.language + ':' + JSON.stringify(dataValue.value.text);
       case 'string':
-        var str = (dataType === 'url') ? normalizeUrl(dataValue.value)
+        var str = (dataType === 'url') ? commons.normalizeUrl(dataValue.value)
                                        : dataValue.value;
         return JSON.stringify(str);
       case 'wikibase-entityid':
@@ -416,6 +416,29 @@
       }
       commons.debug.log('Unknown data value type ' + dataValue.type);
       return dataValue.value;
+    };
+
+    function computeCoordinatesPrecision(latitude, longitude) {
+        return Math.min(
+            Math.pow(10, -numberOfDecimalDigits(latitude)),
+            Math.pow(10, -numberOfDecimalDigits(longitude))
+        );
+    }
+
+    function numberOfDecimalDigits(number) {
+        var parts = number.split('.');
+        if (parts.length < 2) {
+            return 0;
+        }
+        return parts[1].length;
+    }
+
+    commons.normalizeUrl = function normalizeUrl(url) {
+        try {
+            return (new URL(url.toString())).href;
+        } catch (e) {
+            return url;
+        }
     };
 
     commons.tsvValueToJson = function tsvValueToJson(value) {
@@ -509,10 +532,10 @@
             throw e;
           }
         }
-        if (isUrl(value)) {
+        if (commons.isUrl(value)) {
           return {
             type: 'url',
-            value: normalizeUrl(value)
+            value: commons.normalizeUrl(value)
           };
         } else {
           return {
