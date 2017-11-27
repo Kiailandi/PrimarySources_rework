@@ -51,13 +51,7 @@
                 var statements = data.map(function(statement) {
                     return ps.commons.parsePrimarySourcesStatement(statement, isBlacklisted);
                 });
-                console.log("CCC");
-
                 ps.commons.preloadEntityLabels(statements);
-
-                console.log("DDD");
-                console.log(statements);
-
                 return statements;
             }
         );
@@ -102,10 +96,8 @@
             });
 
             $.when.apply(this, htmlCallbacks).then(function() {
-
-                console.log(arguments);
-                console.log(" -- -- --");
-
+                // console.log(arguments);
+                // console.log(" -- -- --");
                 var numberOfArguments = arguments.length;
 
                 var subjectHtml = arguments[0];
@@ -122,8 +114,8 @@
 
 
                 // tabella qualif
-                var $tq = $('<table>');
-                $tq.addClass('qualifTable')
+                var $tableQualifiers = $('<table>');
+                $tableQualifiers.addClass('qualifTable')
                     .append(
                         $('<tr>').append(
                             $('<td>')
@@ -133,7 +125,7 @@
                     );
 
                 qualifiersHtml.forEach(function (row){
-                    $tq.append(
+                    $tableQualifiers.append(
                         $('<tr>').append(
                             $('<td>').html(row[0]),
                             $('<td>').html(row[1])
@@ -142,8 +134,8 @@
                 });
 
                 // tabella source
-                var $ts = $('<table>');
-                $ts.append(
+                var $tableSource = $('<table>');
+                $tableSource.append(
                         $('<tr>').append(
                             $('<td>')
                                 .html(sourcePropertyHtml),
@@ -176,19 +168,14 @@
                     .append(
                         $('<tr>').append(
                             $('<td>')
-                                .attr('rowspan', numberOfSnaks)
                                 .html(subjectHtml),
                             $('<td>')
-                                .attr('rowspan', numberOfSnaks)
                                 .html(propertyHtml),
                             $('<td>')
-                                .attr('colspan', 2)
-                                .html($tq), // Tabella qualificatori
+                                .html($tableQualifiers),
                             $('<td>')
-                                .attr('colspan', 2)
-                                .append($ts), // Tabella source
+                                .append($tableSource),
                             $('<td>')
-                                .attr('rowspan', numberOfSnaks)
                                 .append(buttonGroup.$element)
                         )
                     );
@@ -198,15 +185,15 @@
                 ps.commons.getClaims(widget.statement.subject, widget.statement.predicate,
                     function(err, statements) {
                         for (var i in statements) {
-                            buildValueKeysFromWikidataStatement(statements[i]);
+                            ps.commons.buildValueKeysFromWikidataStatement(statements[i]);
                             if ($.inArray(
                                     widget.statement.key,
-                                    buildValueKeysFromWikidataStatement(statements[i])
+                                    ps.commons.buildValueKeysFromWikidataStatement(statements[i])
                                 ) !== -1) {
                                 widget.toggle(false).setDisabled(true);
                                 if (widget.statement.source.length === 0) {
                                     ps.commons.setStatementState(widget.statement.id,
-                                        STATEMENT_STATES.duplicate).done(function() {
+                                        ps.globals.STATEMENT_STATES.duplicate).done(function() {
                                         ps.commons.debug.log(widget.statement.id + ' tagged as duplicate');
                                     });
                                 }
@@ -236,7 +223,7 @@
                 // if (this.statement.source.length > 0) {
                 //     return; // TODO add support of source review
                 // }
-                ps.commons.setStatementState(widget.statement.id, STATEMENT_STATES.approved)
+                ps.commons.setStatementState(widget.statement.id, ps.globals.STATEMENT_STATES.approved)
                     .done(function() {
                         widget.toggle(false).setDisabled(true);
                     });
@@ -250,7 +237,7 @@
             var widget = this;
 
             this.showProgressBar();
-            ps.commons.setStatementState(widget.statement.id, STATEMENT_STATES.wrong)
+            ps.commons.setStatementState(widget.statement.id, ps.globals.STATEMENT_STATES.wrong)
                 .done(function() {
                     widget.toggle(false).setDisabled(true);
                 });
@@ -455,8 +442,8 @@
                         $('<tr>').append(
                             $('<th>').text('Subject'),
                             $('<th>').text('Property'),
-                            $('<th>').attr('colspan', 2).text('Object'),
-                            $('<th>').attr('colspan', 2).text('Reference'),
+                            $('<th>').text('Object'),
+                            $('<th>').text('Reference'),
                             $('<th>').text('Action')
                         )
                     )
