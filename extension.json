@@ -55,7 +55,18 @@
         "/modules/ext.PrimarySources.templates.js"
       ],
       "styles": [
-        "/modules/ext.PrimarySources.itemCuration.css"
+      ],
+      "messages": [
+      ],
+      "dependencies": [
+      ]
+    },
+    "ext.PrimarySources.referencePreview": {
+      "scripts": [
+        "/modules/ext.PrimarySources.referencePreview.js"
+      ],
+      "styles": [
+        "/modules/ext.PrimarySources.referencePreview.css"
       ],
       "messages": [
       ],
@@ -74,7 +85,8 @@
       "dependencies": [
         "ext.PrimarySources.globals",
         "ext.PrimarySources.commons",
-        "ext.PrimarySources.templates"
+        "ext.PrimarySources.templates",
+        "ext.PrimarySources.referencePreview"
       ]
     },
     "ext.PrimarySources.filter": {
@@ -87,7 +99,7 @@
       ],
       "dependencies": [
         "ext.PrimarySources.globals",
-        "ext.PrimarySources.commons",
+        "ext.PrimarySources.commons"
       ]
     }
   },

@@ -142,7 +142,7 @@
           }
         });
         return freebaseClaims;
-    }
+    },
     // END: 1. process suggestions
 
     // BEGIN: 2. fill HTML templates
@@ -235,8 +235,7 @@
     getWikidataEntityData: function getWikidataEntityData(qid, callback) {
       var revisionId = mw.config.get('wgRevisionId')
       $.ajax({
-        url: ps.globals.API_ENDPOINTS.WIKIDATA_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, qid) + '?revision=' +
-
+        url: ps.globals.API_ENDPOINTS.WIKIDATA_ENTITY_DATA_URL.replace(/\{\{qid\}\}/, qid) + '?revision=' + mw.config.get('wgRevisionId')
       }).done(function(data) {
         return callback(null, data.entities[qid]);
       }).fail(function() {
@@ -284,6 +283,7 @@
         }
         container = container.querySelector('.wikibase-listview');
         container.appendChild(fragment);
+        ps.referencePreview.appendPreviewButton($(container).children().last());
       });
     },
     prepareNewSources: function prepareNewSources(property, object, wikidataStatement) {
@@ -329,6 +329,7 @@
           .querySelector('.wikibase-statementlistview-listview');
         container.appendChild(fragment);
         ps.sidebar.appendToNav(document.getElementById(property));
+        ps.referencePreview.appendPreviewButton($(container).children().last());
       });
     },
     createNewClaim: function createNewClaim(property, claims) {
@@ -389,6 +390,7 @@
           fragment.appendChild(child.firstChild);
           container.appendChild(fragment);
           ps.sidebar.appendToNav(container.lastChild);
+          ps.referencePreview.appendPreviewButton($(container).children().last());
         });
       });
     },
