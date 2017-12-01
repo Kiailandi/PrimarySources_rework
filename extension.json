@@ -99,7 +99,8 @@
       ],
       "dependencies": [
         "ext.PrimarySources.globals",
-        "ext.PrimarySources.commons"
+        "ext.PrimarySources.commons",
+        "ext.PrimarySources.referencePreview"
       ]
     }
   },

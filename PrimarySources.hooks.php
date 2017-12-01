@@ -46,6 +46,7 @@ class PrimarySourcesHooks {
 //        $out->addModules( 'ext.PrimarySources.templates' );
 //        $out->addModules( 'ext.PrimarySources.sidebar' );
 //        $out->addModules( 'ext.PrimarySources.itemCuration' );
+        $out->addModules( 'ext.PrimarySources.referencePreview' );
         $out->addModules( 'ext.PrimarySources.filter' );
 
         // Always return true, indicating that parser initialization should
