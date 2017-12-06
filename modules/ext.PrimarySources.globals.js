@@ -42,6 +42,16 @@
   });
   globals.DATASET = DATASET;
   
+  // SPARQL query to get the set of statement item values in the back end
+  globals.STATEMENT_VALUES =
+  'SELECT DISTINCT ?statement_value WHERE {' +
+  '  GRAPH ?dataset {' +
+  '  ?statement_node ?statement_property ?statement_value .' +
+  '  FILTER STRSTARTS(str(?statement_node), "http://www.wikidata.org/entity/statement/") .' +
+  '  FILTER STRSTARTS(str(?statement_value), "http://www.wikidata.org/entity/Q") .' +
+  '  FILTER STRENDS(str(?dataset), "new") .}' +
+  '}';
+  
   ps.globals = globals;
   
 }(mediaWiki));

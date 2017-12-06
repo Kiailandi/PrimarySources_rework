@@ -7,12 +7,15 @@
     ps.referencePreview = {
         openNav : function openNav(itemLabel, propertyLabel, propertyValue, referenceURL, buttons) {
 
+            console.log("Preview - button args");
+            console.log(arguments);
+
             $('#myNav').width('100%');
 
             var blackboard = $('#blackboard');
         
-            blackboard.append(buttons.eq(0).clone(true, true));
-            blackboard.append(buttons.eq(1).clone(true, true));
+            // blackboard.append($(buttons[0]).clone(true, true));
+            // blackboard.append($(buttons[1]).clone(true, true));
             blackboard.append('<div class="loader"></div>');
 
             $.ajax({

@@ -39,6 +39,11 @@
      * @returns {*}
      */
     function searchStatements(parameters) {
+
+        // TODO API SPARQL
+        // TODO DOMAIN OF INTEREST
+        // TODO convert to flexbox as https://codepen.io/afnecors/pen/wPRZRj
+
         return $.when(
             $.ajax({
                 url: ps.globals.API_ENDPOINTS.FREEBASE_STATEMENT_SEARCH_URL,
@@ -66,13 +71,18 @@
          * @extends OO.ui.Widget
          * @cfg {Object} [statement] the statement to display
          */
+
         function StatementRow(config) {
             StatementRow.super.call(this, config);
 
             this.statement = config.statement;
             var widget = this;
-            var numberOfSnaks = this.statement.qualifiers.length + 1;
 
+            var numberOfSource = 0;
+            var numberOfQualifier = 0;
+
+            numberOfSource = this.statement.source.length;
+            numberOfQualifier = this.statement.qualifiers.length;
 
             var htmlCallbacks = [
                 ps.commons.getValueHtml(this.statement.subject), //0
@@ -96,24 +106,50 @@
             });
 
             $.when.apply(this, htmlCallbacks).then(function() {
-                // console.log(arguments);
-                // console.log(" -- -- --");
                 var numberOfArguments = arguments.length;
 
-                var subjectHtml = arguments[0];
-                var propertyHtml = arguments[1];
-                var objectHtml = arguments[2];
+                // obj to array
+                var args = Object.values(arguments);
 
-                var sourcePropertyHtml = arguments[numberOfArguments - 2];
-                var sourceValueHtml = arguments[numberOfArguments - 1];
+                var subjectHtml = args[0];
+                var propertyHtml = args[1];
+                var objectHtml = args[2];
+
+                var sourcePropertyHtml = null;
+                var sourceValueHtml = null;
 
                 var qualifiersHtml = [];
-                for (var c=3; c<numberOfArguments-2; c+=2) {
-                    qualifiersHtml.push([arguments[c], arguments[c+1]]);
+                var q = [];
+
+                // Check presence of qualifiers and sources
+                if (numberOfQualifier > 0 && numberOfSource > 0) {
+                    // Qualif YES, Source YES
+                    q = args.slice(3, numberOfArguments - 2);
+                    for (var c = 0; c < q.length; c += 2) {
+                        qualifiersHtml.push([q[c], q[c + 1]]);
+                    }
+
+                    sourcePropertyHtml = args[numberOfArguments - 2];
+                    sourceValueHtml = args[numberOfArguments - 1];
+
+                } else if (numberOfQualifier > 0 && numberOfSource === 0) {
+                    // Qualif YES, Source NO
+                    q = args.slice(3, numberOfArguments);
+                    for (var k = 0; k < q.length; k += 2) {
+                        qualifiersHtml.push([q[k], q[k + 1]]);
+                    }
+
+                } else if (numberOfQualifier === 0 && numberOfSource > 0) {
+                    // Qualif NO, Source YES
+                    sourcePropertyHtml = args[numberOfArguments - 2];
+                    sourceValueHtml = args[numberOfArguments - 1];
+
+                } else if (numberOfQualifier === 0 && numberOfSource === 0) {
+                    // // Qualif NO, Source NO
                 }
 
 
-                // tabella qualif
+                //  Qualif table
                 var $tableQualifiers = $('<table>');
                 $tableQualifiers.addClass('qualifTable')
                     .append(
@@ -133,7 +169,7 @@
                     );
                 });
 
-                // tabella source
+                // Source table
                 var $tableSource = $('<table>');
                 $tableSource.append(
                         $('<tr>').append(
@@ -162,6 +198,24 @@
                 });
 
 
+                var previewButton = $('<button>').addClass('preview-button').text("Preview");
+
+                    previewButton.click( function() {
+                        mw.ps.referencePreview.openNav(
+                            $(subjectHtml).text(),
+                            $(propertyHtml).text(),
+                            $(objectHtml).text(),
+                            $(sourceValueHtml).text(),
+                            $([approveButton, rejectButton])
+                        )
+                    });
+
+                //  no preview button if no source
+                var previewHtml = "";
+                if (numberOfSource > 0) {
+                    previewHtml= previewButton;
+                }
+
                 // Main row
                 widget.$element
                     .attr('data-id', widget.statement.id)
@@ -176,11 +230,12 @@
                             $('<td>')
                                 .append($tableSource),
                             $('<td>')
+                                .append(previewHtml),
+                            $('<td>')
                                 .append(buttonGroup.$element)
                         )
                     );
 
-                //TODO importare la getclaim
                 // Check that the statement don't already exist
                 ps.commons.getClaims(widget.statement.subject, widget.statement.predicate,
                     function(err, statements) {
@@ -206,10 +261,19 @@
         StatementRow.static.tagName = 'tbody';
 
         /**
-         * On button click
+         * On button click "Approve"
          */
         StatementRow.prototype.approve = function() {
             var widget = this;
+
+            // TODO createclaim with reference
+
+
+            /*
+            - create claim (this is a new claim)
+            - create claim with reference (this is a new claim)
+            - create reference (thi is a claim already exists)
+             */
 
             this.showProgressBar();
             ps.commons.createClaim(
@@ -231,7 +295,7 @@
         };
 
         /**
-         * On button click
+         * On button click "Reject"
          */
         StatementRow.prototype.reject = function() {
             var widget = this;
@@ -277,7 +341,10 @@
 
             var widget = this;
 
-            // Selection form
+            /**
+             * Dataset dropdown
+             * @type {OO.ui.DropdownInputWidget}
+             */
             this.datasetInput = new OO.ui.DropdownInputWidget();
             ps.commons.getPossibleDatasets(function(datasets) {
                 var options = [{data: '', label: 'All sources'}];
@@ -288,14 +355,40 @@
                     .setValue(ps.commons.dataset);
             });
 
+            /**
+             * Property field
+             * @type {OO.ui.TextInputWidget}
+             */
             this.propertyInput = new OO.ui.TextInputWidget({
                 placeholder: 'PXX',
                 validate: /^[pP]\d+$/
             });
 
+            /**
+             * Value field
+             * @type {OO.ui.TextInputWidget}
+             */
             this.valueInput = new OO.ui.TextInputWidget({
-                placeholder: 'Filter by value like item id'
+                placeholder: 'Filter by value like item id',
+                id: 'test'
             });
+
+            /**
+             * Domain of interest field
+             * @type {OO.ui.TextInputWidget}
+             */
+            this.domainOfInterest = new OO.ui.TextInputWidget({
+                placeholder: 'Filter by domain of interest'
+            });
+
+            /**
+             * Sparql query field
+             * @type {OO.ui.TextInputWidget}
+             */
+            this.sparqlQuery = new OO.ui.TextInputWidget( {
+                placeholder: 'Write your SPARQL query',
+                multiline: true
+            } );
 
             var loadButton = new OO.ui.ButtonInputWidget({
                 label: 'Load',
@@ -312,6 +405,8 @@
                 new OO.ui.FieldLayout(this.datasetInput, {label: 'Dataset'}),
                 new OO.ui.FieldLayout(this.propertyInput, {label: 'Property'}),
                 new OO.ui.FieldLayout(this.valueInput, {label: 'Value'}),
+                new OO.ui.FieldLayout(this.domainOfInterest, {label: 'Domain of interest'}),
+                new OO.ui.FieldLayout(this.sparqlQuery, {label: 'SPARQL Query'}),
                 new OO.ui.FieldLayout(loadButton)
             ]);
             var formPanel = new OO.ui.PanelLayout({
@@ -359,6 +454,9 @@
             this.executeQuery();
         };
 
+        /**
+         * On submit
+         */
         ListDialog.prototype.executeQuery = function() {
             var widget = this;
 
@@ -401,6 +499,10 @@
             this.executeQuery();
         };
 
+        /**
+         * Display result
+         * @param statements
+         */
         ListDialog.prototype.displayStatements = function(statements) {
             var widget = this;
 
@@ -408,8 +510,7 @@
                 this.initTable();
             }
 
-            //todo vedere la funzione map
-            console.log("prima");
+            console.log("Statements");
             console.log(statements);
 
             // Create row for the table
@@ -444,6 +545,7 @@
                             $('<th>').text('Property'),
                             $('<th>').text('Object'),
                             $('<th>').text('Reference'),
+                            $('<th>').text('Preview'),
                             $('<th>').text('Action')
                         )
                     )
@@ -462,5 +564,21 @@
         });
     }
   /* LIST DIALOG END */
+
+
+    // $( '#test' ).autocomplete( {
+    //     source: function( request, response ) {
+    //         // Create a new Api object (see [[RL/DM#mediawiki.api]]
+    //         var api = new mw.Api();
+    //         // Start a "GET" request
+    //         api.get( {
+    //             action: 'opensearch',
+    //             search: request.term, // This is the current value of the user's input
+    //             suggest: ''
+    //         } ).done( function ( data ) {
+    //             response( data[1] ); // set the results as the autocomplete options
+    //         } );
+    //     }
+    // } );
 
 }( mediaWiki, primarySources ) );
