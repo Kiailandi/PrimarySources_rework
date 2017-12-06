@@ -21,7 +21,7 @@
     "SpecialPrimarySources":"/specials/SpecialPrimarySources.php"
   },
   "SpecialPages":{
-    "SpecialPrimarySources":"SpecialPrimarySources"
+    "PrimarySources":"SpecialPrimarySources"
   },
   "Actions": {
     "myact": "Example"
