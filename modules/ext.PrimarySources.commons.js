@@ -213,7 +213,7 @@
             property: predicate,
             snaktype: 'value',
             value: JSON.stringify(value),
-            summary: globals.WIKIDATA_API_COMMENT
+            summary: ps.globals.WIKIDATA_API_COMMENT
         }).then(function (data) {
             // We save the qualifiers sequentially in order to avoid edit conflict
             var saveQualifiers = function () {
@@ -229,7 +229,7 @@
                     property: qualifier.qualifierProperty,
                     snaktype: 'value',
                     value: JSON.stringify(value),
-                    summary: globals.WIKIDATA_API_COMMENT
+                    summary: ps.globals.WIKIDATA_API_COMMENT
                 }).then(saveQualifiers);
             };
 
@@ -258,7 +258,7 @@
                 action: 'wbsetreference',
                 statement: data.claims[predicate][index].id,
                 snaks: JSON.stringify(formatSourceForSave(sourceSnaks)),
-                summary: globals.WIKIDATA_API_COMMENT
+                summary: ps.globals.WIKIDATA_API_COMMENT
             });
         }).done(function (data) {
             return callback(null, data);
@@ -275,7 +275,7 @@
                 action: 'wbsetreference',
                 statement: data.claim.id,
                 snaks: JSON.stringify(formatSourceForSave(sourceSnaks)),
-                summary: globals.WIKIDATA_API_COMMENT
+                summary: ps.globals.WIKIDATA_API_COMMENT
             });
         });
     };

@@ -77,7 +77,6 @@
 
             this.statement = config.statement;
             var widget = this;
-            var numberOfSnaks = this.statement.qualifiers.length + 1;
 
             var numberOfSource = 0;
             var numberOfQualifier = 0;
@@ -110,11 +109,11 @@
                 var numberOfArguments = arguments.length;
 
                 // obj to array
-                arguments = Object.values(arguments);
+                var args = Object.values(arguments);
 
-                var subjectHtml = arguments[0];
-                var propertyHtml = arguments[1];
-                var objectHtml = arguments[2];
+                var subjectHtml = args[0];
+                var propertyHtml = args[1];
+                var objectHtml = args[2];
 
                 var sourcePropertyHtml = null;
                 var sourceValueHtml = null;
@@ -125,25 +124,25 @@
                 // Check presence of qualifiers and sources
                 if (numberOfQualifier > 0 && numberOfSource > 0) {
                     // Qualif YES, Source YES
-                    q = arguments.slice(3, numberOfArguments - 2);
+                    q = args.slice(3, numberOfArguments - 2);
                     for (var c = 0; c < q.length; c += 2) {
                         qualifiersHtml.push([q[c], q[c + 1]]);
                     }
 
-                    sourcePropertyHtml = arguments[numberOfArguments - 2];
-                    sourceValueHtml = arguments[numberOfArguments - 1];
+                    sourcePropertyHtml = args[numberOfArguments - 2];
+                    sourceValueHtml = args[numberOfArguments - 1];
 
                 } else if (numberOfQualifier > 0 && numberOfSource === 0) {
                     // Qualif YES, Source NO
-                    q = arguments.slice(3, numberOfArguments);
+                    q = args.slice(3, numberOfArguments);
                     for (var k = 0; k < q.length; k += 2) {
                         qualifiersHtml.push([q[k], q[k + 1]]);
                     }
 
                 } else if (numberOfQualifier === 0 && numberOfSource > 0) {
                     // Qualif NO, Source YES
-                    sourcePropertyHtml = arguments[numberOfArguments - 2];
-                    sourceValueHtml = arguments[numberOfArguments - 1];
+                    sourcePropertyHtml = args[numberOfArguments - 2];
+                    sourceValueHtml = args[numberOfArguments - 1];
 
                 } else if (numberOfQualifier === 0 && numberOfSource === 0) {
                     // // Qualif NO, Source NO
@@ -262,12 +261,19 @@
         StatementRow.static.tagName = 'tbody';
 
         /**
-         * On button click
+         * On button click "Approve"
          */
         StatementRow.prototype.approve = function() {
             var widget = this;
 
             // TODO createclaim with reference
+
+
+            /*
+            - create claim (this is a new claim)
+            - create claim with reference (this is a new claim)
+            - create reference (thi is a claim already exists)
+             */
 
             this.showProgressBar();
             ps.commons.createClaim(
@@ -289,7 +295,7 @@
         };
 
         /**
-         * On button click
+         * On button click "Reject"
          */
         StatementRow.prototype.reject = function() {
             var widget = this;
@@ -493,6 +499,10 @@
             this.executeQuery();
         };
 
+        /**
+         * Display result
+         * @param statements
+         */
         ListDialog.prototype.displayStatements = function(statements) {
             var widget = this;
 

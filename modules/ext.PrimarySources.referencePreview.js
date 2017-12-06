@@ -7,7 +7,7 @@
     ps.referencePreview = {
         openNav : function openNav(itemLabel, propertyLabel, propertyValue, referenceURL, buttons) {
 
-            console.log("CULO");
+            console.log("Preview - button args");
             console.log(arguments);
 
             $('#myNav').width('100%');
