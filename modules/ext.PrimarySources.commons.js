@@ -413,16 +413,14 @@
                 return dataValue.value.amount;
             case 'time':
                 var time = dataValue.value.time;
-
-                // Normalize the timestamp
-                if (dataValue.value.precision < 11) {
-                    time = time.replace('-01T', '-00T');
+                var precision = dataValue.value.precision;
+                if (precision < 11) {
+                    time = time.replace('-00T', '-01T');
                 }
-                if (dataValue.value.precision < 10) {
-                    time = time.replace('-01-', '-00-');
+                if (precision < 10) {
+                    time = time.replace('-00-', '-01-');
                 }
-
-                return time + '/' + dataValue.value.precision;
+                return time + '/' + precision;
             case 'globecoordinate':
                 return '@' + dataValue.value.latitude + '/' + dataValue.value.longitude;
             case 'monolingualtext':
