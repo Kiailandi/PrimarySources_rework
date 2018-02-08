@@ -46,7 +46,7 @@
 
         return $.when(
             $.ajax({
-                url: ps.globals.API_ENDPOINTS.FREEBASE_STATEMENT_SEARCH_URL,
+                url: ps.globals.API_ENDPOINTS.SEARCH_SERVICE,
                 data: parameters
             }).then(function(data) { return data; }),
             ps.commons.getBlacklistedSourceUrls()

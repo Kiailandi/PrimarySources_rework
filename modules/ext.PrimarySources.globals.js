@@ -7,14 +7,17 @@
   // accessible object
   var globals = {};
 
+  var API_BASE_URI = 'https://pst.wmflabs.org/pst/';
+  
   globals.API_ENDPOINTS = {
-      WIKIDATA_ENTITY_DATA_URL: 'https://www.wikidata.org/wiki/Special:EntityData/{{qid}}.json',
-      FREEBASE_ENTITY_DATA_URL: 'http://it.dbpedia.org/pst/suggest?qid={{qid}}',
-      FREEBASE_STATEMENT_APPROVAL_URL: 'https://pst.wmflabs.org/pst/curate', // https://pst.wmflabs.org/pst/curate
-      FREEBASE_STATEMENT_SEARCH_URL: 'https://tools.wmflabs.org/wikidata-primary-sources/statements/all', // https://pst.wmflabs.org/pst/search
-      FREEBASE_DATASETS: 'https://tools.wmflabs.org/wikidata-primary-sources/datasets/all',
-      FREEBASE_SOURCE_URL_BLACKLIST: 'https://www.wikidata.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_blacklist',
-      FREEBASE_SOURCE_URL_WHITELIST: 'https://www.wikidata.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_whitelist'
+      DATASETS_SERVICE: API_BASE_URI + 'datasets',
+      RANDOM_SERVICE: API_BASE_URI + 'random',
+      SUGGEST_SERVICE: API_BASE_URI + 'suggest?qid={{qid}}',
+      CURATE_SERVICE: API_BASE_URI + 'curate',
+      SEARCH_SERVICE: API_BASE_URI + 'search',
+      SOURCE_URL_BLACKLIST: 'https://www.wikidata.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_blacklist',
+      SOURCE_URL_WHITELIST: 'https://www.wikidata.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_whitelist',
+      WIKIDATA_ENTITY_DATA_URL: 'https://www.wikidata.org/wiki/Special:EntityData/{{qid}}.json'
   };
 
   globals.WIKIDATA_API_COMMENT = 'Added via [[Wikidata:Primary sources tool]]';
