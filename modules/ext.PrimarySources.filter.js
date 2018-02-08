@@ -7,65 +7,18 @@
  * references by building filters in several ways.
  *
  */
-
-
-( function ( mw, ps ) {
+( function ( mw, $ ) {
 
     console.log("Primary sources tool - filter");
 
-    var windowManager;
+    var ps = mw.ps || {};
     
-    // load libraries and add button to sidebar menu
-    mw.loader.using(
-        ['jquery.tipsy', 'oojs-ui', 'wikibase.dataTypeStore']).done( function() {
-        windowManager = new OO.ui.WindowManager();
-        $('body').append(windowManager.$element);
-
-        var listButton = $(mw.util.addPortletLink(
-            'p-tb',
-            '#',
-            'Primary Sources filter',
-            'n-ps-list',
-            'List statements from Primary Sources'
-        ));
-        listDialog(listButton);
-    });
-
     // parsePrimarySourcesStatement moved to commons
 
-    /**
-     * (Used only by ListDialog)
-     * @param parameters
-     * @returns {*}
-     */
-    function searchStatements(parameters) {
-
-        // TODO API SPARQL
-        // TODO DOMAIN OF INTEREST
-        // TODO convert to flexbox as https://codepen.io/afnecors/pen/wPRZRj
-
-        return $.when(
-            $.ajax({
-                url: ps.globals.API_ENDPOINTS.SEARCH_SERVICE,
-                data: parameters
-            }).then(function(data) { return data; }),
-            ps.commons.getBlacklistedSourceUrls()
-        ).then(
-            function (data, blacklistedSourceUrls) {
-                var isBlacklisted = ps.commons.isBlackListedBuilder(blacklistedSourceUrls);
-                var statements = data.map(function(statement) {
-                    return ps.commons.parsePrimarySourcesStatement(statement, isBlacklisted);
-                });
-                ps.commons.preloadEntityLabels(statements);
-                return statements;
-            }
-        );
-    }
-
-    // TODO ps.filter.lisDialog
-
-    /* LIST DIALOG START */
-    function listDialog(button) {
+    // accessible object
+    ps.filter = {
+      // BEGIN: filter modal window
+      listDialog: function listDialog(windowManager, button) {
         /**
          * A row displaying a statement
          *
@@ -73,7 +26,6 @@
          * @extends OO.ui.Widget
          * @cfg {Object} [statement] the statement to display
          */
-
         function StatementRow(config) {
             StatementRow.super.call(this, config);
 
@@ -407,7 +359,7 @@
 
         OO.inheritClass(ListDialog, OO.ui.ProcessDialog);
         ListDialog.static.name = 'ps-list';
-        ListDialog.static.title = 'Primary Sources statement filter (in development)';
+        ListDialog.static.title = 'Primary Sources statement filter';
         ListDialog.static.size = 'larger';
         ListDialog.static.actions = [
             {label: 'Close', flags: 'safe'}
@@ -722,10 +674,38 @@
         button.click(function() {
             windowManager.openWindow('ps-list');
         });
+      }
+      // END: filter modal window
     }
-  /* LIST DIALOG END */
 
+   /**
+    * (Used only by ListDialog)
+    * @param parameters
+    * @returns {*}
+    */
+  function searchStatements(parameters) {
 
+       // TODO API SPARQL
+       // TODO DOMAIN OF INTEREST
+       // TODO convert to flexbox as https://codepen.io/afnecors/pen/wPRZRj
+
+       return $.when(
+           $.ajax({
+               url: ps.globals.API_ENDPOINTS.SEARCH_SERVICE,
+               data: parameters
+           }).then(function(data) { return data; }),
+           ps.commons.getBlacklistedSourceUrls()
+       ).then(
+           function (data, blacklistedSourceUrls) {
+               var isBlacklisted = ps.commons.isBlackListedBuilder(blacklistedSourceUrls);
+               var statements = data.map(function(statement) {
+                   return ps.commons.parsePrimarySourcesStatement(statement, isBlacklisted);
+               });
+               ps.commons.preloadEntityLabels(statements);
+               return statements;
+           }
+       );
+   }
 
   function test() {
       // 1 oggetto
@@ -754,5 +734,6 @@
       console.log(ps.commons.jsonToTsvValue(oggData.claims["P570"][0].mainsnak.datavalue));
   }
 
-
-}( mediaWiki, primarySources ) );
+  mw.ps = ps;
+  
+}( mediaWiki, jQuery ) );
