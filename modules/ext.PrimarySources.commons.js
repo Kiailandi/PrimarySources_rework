@@ -28,7 +28,7 @@
             }
         }
         return $.ajax({
-            url: ps.globals.API_ENDPOINTS.FREEBASE_SOURCE_URL_BLACKLIST,
+            url: ps.globals.API_ENDPOINTS.SOURCE_URL_BLACKLIST,
             data: {
                 origin: '*'
             }
@@ -110,7 +110,7 @@
             }
         }
         $.ajax({
-            url: ps.globals.API_ENDPOINTS.FREEBASE_DATASETS,
+            url: ps.globals.API_ENDPOINTS.DATASETS_SERVICE,
             data: {
                 origin: '*'
             }
@@ -194,7 +194,7 @@
             type: type,
             user: mw.user.getName()
         };
-        return $.post(ps.globals.API_ENDPOINTS.FREEBASE_STATEMENT_APPROVAL_URL, JSON.stringify(data))
+        return $.post(ps.globals.API_ENDPOINTS.CURATE_SERVICE, JSON.stringify(data))
             .fail(function () {
                 commons.reportError('Set statement state to ' + state + ' failed.');
             });
