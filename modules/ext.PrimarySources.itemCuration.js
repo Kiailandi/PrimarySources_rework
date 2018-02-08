@@ -475,10 +475,8 @@
      * 4. Handle curation actions:
      * approval, rejection, and editing.
      * In other words, handle clicks on the following buttons:
-     * -approve claim;
-     * -reject claim;
-     * -approve reference;
-     * -reject reference.
+     * -approve;
+     * -reject.
      * TODO there is some code for reference editing, which doesn't seem to work
      */
     addClickHandlers: function addClickHandlers() {
@@ -496,47 +494,8 @@
         var object = statement.object;
         var quickStatement = qid + '\t' + predicate + '\t' + object;
 
-        /* BEGIN: claim curation */
-        if (classList.contains('f2w-property')) {
-          var dataset = statement.dataset;
-          var qualifiers = JSON.parse(statement.qualifiers);
-          var sources = JSON.parse(statement.sources);
-          // Claim approval
-          if (classList.contains('f2w-approve')) {
-            ps.commons.createClaim(qid, predicate, object, qualifiers)
-              .fail(function(error) {
-                return ps.commons.reportError(error);
-              }).done(function(data) {
-                /*
-                  The back end approves the claim and eventual qualifiers.
-                  See SPARQL queries in CurateServlet:
-                  https://github.com/marfox/pst-backend
-                */
-                ps.commons.setStatementState(quickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'claim')
-                  .done(function() {
-                    ps.globals.debug.log('Approved claim [' + quickStatement + ']');
-                    if (data.pageinfo && data.pageinfo.lastrevid) {
-                      document.location.hash = 'revision=' +
-                        data.pageinfo.lastrevid;
-                    }
-                    return document.location.reload();
-                  });
-              });
-          }
-          // Claim rejection
-          else if (classList.contains('f2w-reject')) {
-            // The back end rejects everything (claim, qualifiers, references)
-            ps.commons.setStatementState(quickStatement, ps.globals.STATEMENT_STATES.rejected, dataset, 'claim')
-              .done(function() {
-                ps.globals.debug.log('Rejected claim [' + quickStatement + ']');
-                return document.location.reload();
-              });
-          }
-        }
-        /* END: claim curation */
-
         /* BEGIN: reference curation */
-        else if (classList.contains('f2w-source')) {
+        if (classList.contains('f2w-source')) {
           /*
             The reference key is the property/value pair, see ps.commons.parsePrimarySourcesStatment.
             Use it to build the QuickStatement needed to change the state in the back end.
