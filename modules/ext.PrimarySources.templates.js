@@ -34,7 +34,7 @@
                         "wikibase-toolbar-container",
                         mw.wbTemplate("primarysources-toolbar-button",
                             "wikibase-toolbar-button-add",
-                            "approve reference",
+                            "approve",
                             "wikibase-toolbarbutton",
                             "f2w-button f2w-source f2w-approve",
                             "{{statement-id}}",
@@ -49,7 +49,7 @@
                         "wikibase-toolbar-container",
                         mw.wbTemplate("primarysources-toolbar-button",
                             "wikibase-toolbar-button-edit",
-                            "edit reference",
+                            "edit",
                             "wikibase-toolbarbutton",
                             "f2w-button f2w-source f2w-edit",
                             "{{statement-id}}",
@@ -63,7 +63,7 @@
                         "wikibase-toolbar-container",
                         mw.wbTemplate("primarysources-toolbar-button",
                             "wikibase-toolbar-button-remove",
-                            "reject reference",
+                            "reject",
                             "wikibase-toolbarbutton",
                             "f2w-button f2w-source f2w-reject",
                             "{{statement-id}}",
@@ -105,19 +105,7 @@
                 mw.wbTemplate("primarysources-toolbar-container",
                     "wikibase-edittoolbar-container",
                     mw.wbTemplate("wikibase-toolbar",
-                        "wikibase-toolbar-container",
-                        mw.wbTemplate("primarysources-toolbar-button",
-                            "wikibase-toolbar-button-add",
-                            "approve claim",
-                            "wikibase-toolbarbutton",
-                            "f2w-button f2w-property f2w-approve",
-                            "{{statement-id}}",
-                            "{{data-dataset}}",
-                            "{{data-property}}",
-                            "{{data-object}}",
-                            "{{data-sources}}",
-                            "{{data-qualifiers}}"
-                        )
+                        "wikibase-toolbar-container"
                     ).add(
                     mw.wbTemplate("wikibase-toolbar",
                         "wikibase-toolbar-container",
@@ -134,19 +122,7 @@
                         )
                     ).add(
                     mw.wbTemplate("wikibase-toolbar",
-                        "wikibase-toolbar-container",
-                        mw.wbTemplate("primarysources-toolbar-button",
-                            "wikibase-toolbar-button-remove",
-                            "reject claim",
-                            "wikibase-toolbarbutton",
-                            "f2w-button f2w-property f2w-reject",
-                            "{{statement-id}}",
-                            "{{data-dataset}}",
-                            "{{data-property}}",
-                            "{{data-object}}",
-                            "{{data-sources}}",
-                            "{{data-qualifiers}}"
-                        )
+                        "wikibase-toolbar-container"
                     )))
                 ),
                 mw.wbTemplate("primarysources-ui-toggler", "{{references}}"),
