@@ -93,38 +93,6 @@
             ;
     };
 
-    /**
-     * Obtain dataset list
-     * @param callback
-     * @returns {*}
-     */
-    commons.getPossibleDatasets = function getPossibleDatasets(callback) {
-        var now = Date.now();
-        if (localStorage.getItem('f2w_dataset')) {
-            var blacklist = JSON.parse(localStorage.getItem('f2w_dataset'));
-            if (!blacklist.timestamp) {
-                blacklist.timestamp = 0;
-            }
-            if (now - blacklist.timestamp < ps.globals.CACHE_EXPIRY) {
-                return callback(blacklist.data);
-            }
-        }
-        $.ajax({
-            url: ps.globals.API_ENDPOINTS.DATASETS_SERVICE,
-            data: {
-                origin: '*'
-            }
-        }).done(function (data) {
-            localStorage.setItem('f2w_dataset', JSON.stringify({
-                timestamp: now,
-                data: data
-            }));
-            return callback(data);
-        }).fail(function () {
-            ps.commons.debug.log('Could not obtain datasets');
-        });
-    };
-
     // BEGIN: format data
     var valueHtmlCache = {};
     commons.getValueHtml = function getValueHtml(value, property) {
