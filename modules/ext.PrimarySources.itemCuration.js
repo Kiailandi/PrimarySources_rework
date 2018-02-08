@@ -22,8 +22,9 @@
     getFreebaseEntityData: function getFreebaseEntityData(qid, callback) {
       $.ajax({
         url: FAKE_OR_RANDOM_DATA ?
-          ps.globals.API_ENDPOINTS.SUGGEST_SERVICE.replace(/\{\{qid\}\}/, 'any') : ps.globals.API_ENDPOINTS.SUGGEST_SERVICE.replace(/\{\{qid\}\}/, qid) + '&dataset=' +
-          dataset
+          ps.globals.API_ENDPOINTS.RANDOM_SERVICE :
+          ps.globals.API_ENDPOINTS.SUGGEST_SERVICE.replace(/\{\{qid\}\}/, qid) + '&dataset=' +
+          ps.globals.DATASET
       }).done(function(data) {
         return callback(null, data);
       });
