@@ -375,13 +375,14 @@
              * @type {OO.ui.DropdownInputWidget}
              */
             this.datasetInput = new OO.ui.DropdownInputWidget();
-            ps.commons.getPossibleDatasets(function(datasets) {
+            ps.commons.getDatasets(function(datasets) {
                 var options = [{data: '', label: 'All sources'}];
-                for (var datasetId in datasets) {
-                    options.push({data: datasetId, label: datasetId});
-                }
+                datasets.forEach(function(item) {
+                    var uri = item['dataset'];
+                    options.push({data: uri, label: ps.commons.datasetUriToLabel(uri)});
+                });
                 widget.datasetInput.setOptions(options)
-                    .setValue(ps.commons.dataset);
+                    .setValue(ps.globals.DATASET);
             });
 
             /**
