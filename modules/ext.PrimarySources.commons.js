@@ -320,6 +320,7 @@
         });
     };
     // END:  get existing claims from Wikidata
+
     function getFewEntityLabels(entityIds) {
         if (entityIds.length === 0) {
             return $.Deferred().resolve({});
@@ -378,31 +379,6 @@
         }
     };
 
-    commons.buildValueKeysFromWikidataStatement = function buildValueKeysFromWikidataStatement(statement) {
-        var mainSnak = statement.mainsnak;
-        if (mainSnak.snaktype !== 'value') {
-            return [mainSnak.snaktype];
-        }
-
-        var keys = [jsonToTsvValue(mainSnak.datavalue, mainSnak.datatype)];
-
-        if (statement.qualifiers) {
-            var qualifierKeyParts = [];
-            $.each(statement.qualifiers, function (_, qualifiers) {
-                qualifiers.forEach(function (qualifier) {
-                    qualifierKeyParts.push(
-                        qualifier.property + '\t' +
-                        commons.jsonToTsvValue(qualifier.datavalue, qualifier.datatype)
-                    );
-                });
-            });
-            qualifierKeyParts.sort();
-            keys.push(keys[0] + '\t' + qualifierKeyParts.join('\t'));
-        }
-
-        return keys;
-    };
-
     commons.jsonToTsvValue = function jsonToTsvValue(dataValue, dataType) {
         if (!dataValue.type) {
             commons.debug.log('No data value type given');
@@ -443,6 +419,31 @@
         return dataValue.value;
     };
 
+    commons.buildValueKeysFromWikidataStatement = function buildValueKeysFromWikidataStatement(statement) {
+        var mainSnak = statement.mainsnak;
+        if (mainSnak.snaktype !== 'value') {
+            return [mainSnak.snaktype];
+        }
+
+        var keys = [jsonToTsvValue(mainSnak.datavalue, mainSnak.datatype)];
+
+        if (statement.qualifiers) {
+            var qualifierKeyParts = [];
+            $.each(statement.qualifiers, function (_, qualifiers) {
+                qualifiers.forEach(function (qualifier) {
+                    qualifierKeyParts.push(
+                        qualifier.property + '\t' +
+                        commons.jsonToTsvValue(qualifier.datavalue, qualifier.datatype)
+                    );
+                });
+            });
+            qualifierKeyParts.sort();
+            keys.push(keys[0] + '\t' + qualifierKeyParts.join('\t'));
+        }
+
+        return keys;
+    };
+
     function computeCoordinatesPrecision(latitude, longitude) {
         return Math.min(
             Math.pow(10, -numberOfDecimalDigits(latitude)),
@@ -465,6 +466,8 @@
             return url;
         }
     };
+
+
 
     commons.tsvValueToJson = function tsvValueToJson(value) {
         // From https://www.wikidata.org/wiki/Special:ListDatatypes and

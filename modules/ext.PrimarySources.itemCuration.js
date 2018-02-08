@@ -548,7 +548,7 @@
           var object = statement.object;
           var source = JSON.parse(statement.source);
           var qualifiers = JSON.parse(statement.qualifiers);
-          var sourceQuickStatement = quickStatement + '\t' + source[0].key
+          var sourceQuickStatement = quickStatement + '\t' + source[0].key;
             // Reference approval
           if (classList.contains('f2w-approve')) {
             ps.commons.getClaims(qid, predicate, function(err, claims) {

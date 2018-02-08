@@ -8,7 +8,7 @@
   var globals = {};
 
   var API_BASE_URI = 'https://pst.wmflabs.org/pst/';
-
+  
   globals.API_ENDPOINTS = {
       DATASETS_SERVICE: API_BASE_URI + 'datasets',
       RANDOM_SERVICE: API_BASE_URI + 'random',

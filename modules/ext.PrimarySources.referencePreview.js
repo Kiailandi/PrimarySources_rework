@@ -14,8 +14,8 @@
 
             var blackboard = $('#blackboard');
         
-            // blackboard.append($(buttons[0]).clone(true, true));
-            // blackboard.append($(buttons[1]).clone(true, true));
+            blackboard.append($(buttons[0]).clone(true, true));
+            blackboard.append($(buttons[1]).clone(true, true));
             blackboard.append('<div class="loader"></div>');
 
             $.ajax({
@@ -81,20 +81,20 @@
             if(container.find(".external.free").length > 0){
             var refs = container.find(".wikibase-snakview-property");
                 refs.each(function(index, item) {
-                    $(item).append('<a class="preview-button" onclick="mw.ps.openNav(\'' + $(".wikibase-title-label").text() + '\',\'' +
+                    $(item).append('<a class="preview-button" onclick="mw.ps.referencePreview.openNav(\'' + $(".wikibase-title-label").text() + '\',\'' +
                                                                                        $(item).parents(".wikibase-statementgroupview.listview-item").find(".wikibase-statementgroupview-property-label").children().text() + '\',\'' +
                                                                                        $(item).parents(".wikibase-statementview.listview-item.wikibase-toolbar-item").find(".wikibase-statementview-mainsnak .wikibase-snakview-value.wikibase-snakview-variation-valuesnak").children().text() + '\',\'' +
                                                                                        container.find(item).closest(".wikibase-snakview.listview-item").find(".external.free").text() + '\'' + ',' + '$(this).closest(\'.wikibase-referenceview.listview-item.wikibase-toolbar-item.new-source\').children().find(\'.f2w-button.f2w-source\'))">Preview</a>');
                 });
             }
         }
-    }
+    };
 
     mw.ps = ps;
 
     (function appendOverlay (){
         $("#content").append('<div id="myNav" class="overlay">'+
-                             '<a href="javascript:void(0)" class="closebtn" onclick="mw.ps.closeNav()">&times;</a>'+
+                             '<a href="javascript:void(0)" class="closebtn" onclick="mw.ps.referencePreview.closeNav()">&times;</a>'+
                              '<div id="blackboard" class="overlay-content"></div>'+
                              '</div>');
     })();
