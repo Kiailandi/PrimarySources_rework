@@ -356,9 +356,6 @@
     };
 
     commons.jsonToTsvValue = function jsonToTsvValue(dataValue, dataType) {
-
-        console.log("HIHI");
-
         if (!dataValue.type) {
             commons.debug.log('No data value type given');
             return dataValue.value;

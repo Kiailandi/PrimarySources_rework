@@ -62,6 +62,8 @@
         );
     }
 
+    // TODO ps.filter.lisDialog
+
     /* LIST DIALOG START */
     function listDialog(button) {
         /**
@@ -197,18 +199,16 @@
                     items: [approveButton, rejectButton]
                 });
 
-
                 var previewButton = $('<button>').addClass('preview-button').text("Preview");
-
-                    previewButton.click( function() {
-                        mw.ps.referencePreview.openNav(
-                            $(subjectHtml).text(),
-                            $(propertyHtml).text(),
-                            $(objectHtml).text(),
-                            $(sourceValueHtml).text(),
-                            $([approveButton, rejectButton])
-                        )
-                    });
+                previewButton.click( function() {
+                    mw.ps.referencePreview.openNav(
+                        $(subjectHtml).text(),
+                        $(propertyHtml).text(),
+                        $(objectHtml).text(),
+                        $(sourceValueHtml).text(),
+                        $(buttonGroup.$element)
+                    )
+                });
 
                 //  no preview button if no source
                 var previewHtml = "";
@@ -268,6 +268,74 @@
 
             // TODO createclaim with reference
 
+            // Check if is a duplicate (equal predicate and object)
+            console.log("S P O: ");
+            console.log(widget.statement.subject + " - " + widget.statement.predicate + " - " + widget.statement.object);
+
+            console.log("API CALL");
+            $.ajax( {
+                url: 'https://www.wikidata.org/w/api.php',
+                data: {
+                    action: 'wbgetclaims',
+                    entity: widget.statement.subject,
+                    property: widget.statement.predicate,
+                    format: 'json',
+                    origin: '*'
+                },
+                xhrFields: {
+                    withCredentials: false
+                },
+                dataType: 'json'
+            } ).done(function(data){
+
+                var existingClaims = data['claims'];
+                if ( Object.keys(existingClaims).length > 0 ) {
+                    // there are already some claim with this property
+
+                    console.log("Existing claims");
+                    console.log(existingClaims);
+
+                    // array of values by widget.statement.predicate
+                    var existingValues = existingClaims[widget.statement.predicate];
+
+                    console.log(" --- ");
+                    for ( var c = 0; c < existingValues.length; c++ ) {
+                        var existingObj = ps.commons.jsonToTsvValue(existingValues[c].mainsnak.datavalue);
+
+                        if (existingObj === widget.statement.object) {
+                            console.log("Duplicato ma guarda i qualif e le ref");
+                            console.log(widget.statement.object + " -> Nuovo: " + existingObj);
+
+
+                            // se ha qualificatori aggiungilo come nuovo
+                            console.log(widget.statement.qualifiers);
+                            console.log(existingValues[c].qualifiers);
+
+
+                            for (var z = 0; z < widget.statement.qualifiers.length; z++) {
+                                // puo essere undefined se non esiste un qulif con quella prop
+                                // oppure un array
+
+                                var qualifP = widget.statement.qualifiers[z].qualifierProperty;
+                                existingValues[c].qualifiers[qualifP];
+
+                                console.log("valore del qualif");
+                                console.log(ps.commons.jsonToTsvValue(existingValues[c].qualifiers[qualifP][0].datavalue));
+                            }
+
+
+                        } else {
+                            // create new claim (same prop)
+                            console.log(widget.statement.object + " -> Nuovo: " + existingObj);
+                        }
+                    }
+                    console.log(" --- ");
+
+                } else {
+                    // in this item there are not claim with this property
+                    // create a new claim (new prop)
+                }
+            });
 
             /*
             - create claim (this is a new claim)
@@ -276,22 +344,22 @@
              */
 
             this.showProgressBar();
-            ps.commons.createClaim(
-                this.statement.subject,
-                this.statement.predicate,
-                this.statement.object,
-                this.statement.qualifiers
-            ).fail(function(error) {
-                return ps.commons.reportError(error);
-            }).done(function() {
-                // if (this.statement.source.length > 0) {
-                //     return; // TODO add support of source review
-                // }
-                ps.commons.setStatementState(widget.statement.id, ps.globals.STATEMENT_STATES.approved)
-                    .done(function() {
-                        widget.toggle(false).setDisabled(true);
-                    });
-            });
+            // ps.commons.createClaim(
+            //     this.statement.subject,
+            //     this.statement.predicate,
+            //     this.statement.object,
+            //     this.statement.qualifiers
+            // ).fail(function(error) {
+            //     return ps.commons.reportError(error);
+            // }).done(function() {
+            //     // if (this.statement.source.length > 0) {
+            //     //     return; // TODO add support of source review
+            //     // }
+            //     ps.commons.setStatementState(widget.statement.id, ps.globals.STATEMENT_STATES.approved)
+            //         .done(function() {
+            //             widget.toggle(false).setDisabled(true);
+            //         });
+            // });
         };
 
         /**
@@ -301,8 +369,17 @@
             var widget = this;
 
             this.showProgressBar();
-            ps.commons.setStatementState(widget.statement.id, ps.globals.STATEMENT_STATES.wrong)
-                .done(function() {
+
+            // setStatementState(quickStatement, state, dataset, type)
+
+            var type = ((widget.statement.source.length > 0) ? 'reference' : 'claim');;
+
+            ps.commons.setStatementState(
+                widget.statement.id,
+                ps.globals.STATEMENT_STATES.rejected,
+                widget.statement.dataset,
+                type
+            ).done(function() {
                     widget.toggle(false).setDisabled(true);
                 });
         };
