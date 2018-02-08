@@ -199,6 +199,30 @@
                 commons.reportError('Set statement state to ' + state + ' failed.');
             });
     };
+    // Get the available datasets
+    commons.getDatasets = function getDatasets(callback) {
+      var now = Date.now();
+      if (localStorage.getItem('f2w_dataset')) {
+        var blacklist = JSON.parse(localStorage.getItem('f2w_dataset'));
+        if (!blacklist.timestamp) {
+          blacklist.timestamp = 0;
+        }
+        if (now - blacklist.timestamp < CACHE_EXPIRY) {
+          return callback(blacklist.data);
+        }
+      }
+      $.ajax({
+        url: ps.globals.API_ENDPOINTS.DATASETS_SERVICE
+      }).done(function(data) {
+        localStorage.setItem('f2w_dataset', JSON.stringify({
+          timestamp: now,
+          data: data
+        }));
+        return callback(data);
+      }).fail(function() {
+        ps.commons.debug.log('Could not obtain datasets');
+      });
+    };
     // END: Primary sources tool API calls
 
     /* BEGIN: Wikibase API calls */
@@ -632,6 +656,16 @@
             entityIds = entityIds.concat(extractEntityIdsFromStatement(statement));
         });
         loadEntityLabels(entityIds);
+    };
+
+    commons.datasetUriToLabel = function datasetUriToLabel(uri) {
+      if (isUrl(uri)) {
+        // [ "http:", "", "DATASET-LABEL", "STATE" ]
+        return uri.split('/')[2];
+      } else {
+        commons.debug.log('The dataset has an invalid URI: "' + uri + '". Will appear as is (no human-readable conversion)')
+        return uri;
+      }
     };
 
     function extractEntityIdsFromStatement(statement) {
