@@ -102,6 +102,20 @@
         "ext.PrimarySources.commons",
         "ext.PrimarySources.referencePreview"
       ]
+    },
+    "ext.PrimarySources.sidebar": {
+      "scripts": [
+        "/modules/ext.PrimarySources.sidebar.js"
+      ],
+      "styles": [
+      ],
+      "messages": [
+      ],
+      "dependencies": [
+        "ext.PrimarySources.globals",
+        "ext.PrimarySources.commons",
+        "ext.PrimarySources.filter"
+      ]
     }
   },
   "ResourceFileModulePaths": {
