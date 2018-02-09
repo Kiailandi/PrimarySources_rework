@@ -1,5 +1,4 @@
 (function(mw, $) {
-  
   console.log("Primary sources tool - Sidebar facilities");
   
   var ps = mw.ps || {};
@@ -8,67 +7,10 @@
   var windowManager;
   // Used by the property browser
   var anchorList = [];
+  var dataset = ps.globals.DATASET;
 
   // accessible object
   ps.sidebar = {
-    // BEGIN: sidebar links
-    createSidebarLinks: (function createSidebarLinks() {
-
-      // Random item link
-      var datasetLabel = (dataset === '') ? 'primary sources' : ps.commons.datasetUriToLabel(dataset);
-      var portletLink = $(mw.util.addPortletLink(
-        'p-navigation',
-        '#',
-        'Random ' + datasetLabel + ' item',
-        'n-random-ps',
-        'Load a new random ' + datasetLabel + ' item',
-        '',
-        '#n-help'
-      ));
-      portletLink.children().click(function(e) {
-        e.preventDefault();
-        e.target.innerHTML = '<img src="https://upload.wikimedia.org/' +
-            'wikipedia/commons/f/f8/Ajax-loader%282%29.gif" class="ajax"/>';
-        $.ajax({
-          url: ps.globals.API_ENDPOINTS.RANDOM_SERVICE + '?dataset=' + dataset
-        }).done(function(data) {
-          var newQid = data[0].statement.split(/\t/)[0];
-          document.location.href = 'https://www.wikidata.org/wiki/' + newQid;
-        }).fail(function() {
-          return ps.commons.reportError('Could not obtain random primary sources item');
-        });
-      });
-
-      mw.loader.using(
-          ['jquery.tipsy', 'oojs-ui', 'wikibase.dataTypeStore'], function() {
-        windowManager = new OO.ui.WindowManager();
-        $('body').append(windowManager.$element);
-      
-        // Dataset selection gear icon
-        var configButton = $('<span>')
-          .attr({
-            id: 'ps-config-button',
-            title: 'Select primary sources datasets'
-          })
-          .tipsy()
-          .appendTo(portletLink);
-        // Bind gear icon to dataset selection modal window (function in this module)
-        ps.sidebar.configDialog(windowManager, configButton);
-
-        // Filter link
-        var listButton = $(mw.util.addPortletLink(
-            'p-tb',
-            '#',
-            'Primary sources filter',
-            'n-ps-list',
-            'List statements from primary sources'
-          ));
-        // Bind filter link to filter modal window (function in filter module: pass the window manager)
-        ps.filter.listDialog(windowManager, listButton);
-      });
-    })(),
-    // END: sidebar links
-    
     // BEGIN: dataset selection 
     configDialog: function configDialog(winMan, button) {
       function ConfigDialog(config) {
@@ -140,7 +82,65 @@
         winMan.openWindow('ps-config');
       });
     },
-    // END: dataset selection  
+    // END: dataset selection
+
+    // BEGIN: sidebar links
+    createSidebarLinks: (function createSidebarLinks() {
+
+      // Random item link
+      var datasetLabel = (dataset === '') ? 'primary sources' : ps.commons.datasetUriToLabel(dataset);
+      var portletLink = $(mw.util.addPortletLink(
+        'p-navigation',
+        '#',
+        'Random ' + datasetLabel + ' item',
+        'n-random-ps',
+        'Load a new random ' + datasetLabel + ' item',
+        '',
+        '#n-help'
+      ));
+      portletLink.children().click(function(e) {
+        e.preventDefault();
+        e.target.innerHTML = '<img src="https://upload.wikimedia.org/' +
+            'wikipedia/commons/f/f8/Ajax-loader%282%29.gif" class="ajax"/>';
+        $.ajax({
+          url: ps.globals.API_ENDPOINTS.RANDOM_SERVICE + '?dataset=' + dataset
+        }).done(function(data) {
+          var newQid = data[0].statement.split(/\t/)[0];
+          document.location.href = 'https://www.wikidata.org/wiki/' + newQid;
+        }).fail(function() {
+          return ps.commons.reportError('Could not obtain random primary sources item');
+        });
+      });
+
+      mw.loader.using(
+          ['jquery.tipsy', 'oojs-ui', 'wikibase.dataTypeStore'], function() {
+        windowManager = new OO.ui.WindowManager();
+        $('body').append(windowManager.$element);
+      
+        // Dataset selection gear icon
+        var configButton = $('<span>')
+          .attr({
+            id: 'ps-config-button',
+            title: 'Select primary sources datasets'
+          })
+          .tipsy()
+          .appendTo(portletLink);
+        // Bind gear icon to dataset selection modal window (function in this module)
+        ps.sidebar.configDialog(windowManager, configButton);
+
+        // Filter link
+        var listButton = $(mw.util.addPortletLink(
+            'p-tb',
+            '#',
+            'Primary sources filter',
+            'n-ps-list',
+            'List statements from primary sources'
+          ));
+        // Bind filter link to filter modal window (function in filter module)
+        ps.filter.listDialog(windowManager, listButton);
+      });
+    })(),
+    // END: sidebar links
     
     // BEGIN: browse suggested claims
     generateNav: (function generateNav() {
