@@ -1,5 +1,7 @@
 (function(mw, $) {
 
+    console.log("Primary sources tool - templates");
+
     (function extendWbTemplates (){
         mw.wbTemplates.store.values["primarysources-referenceview"] = "<div class=\"wikibase-referenceview $1\">\n<div class=\"wikibase-referenceview-heading $4\">$3</div>\n<div class=\"wikibase-referenceview-listview\">$2</div>\n</div>";
         mw.wbTemplates.store.values["primarysources-toolbar-button"] = "<span class=\"$3 wikibase-toolbar-item wikibase-toolbar-button $1\"><a class=\"$4\" href=\"#\" data-statement-id=\"$5\" data-dataset=\"$6\" data-property=\"$7\" data-object=\"$8\" data-sources=\"$9\" data-qualifiers=\"$10\"><span class=\"wb-icon\"></span>$2</a></span>";
