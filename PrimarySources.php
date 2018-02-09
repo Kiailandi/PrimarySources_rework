@@ -134,7 +134,6 @@ $wgResourceModules['ext.PrimarySources.templates'] = array(
         '/modules/ext.PrimarySources.templates.js'
     ),
     'styles' => array(
-        '/modules/ext.PrimarySources.itemCuration.css'
     ),
     'messages' => array(
     ),
@@ -171,6 +170,22 @@ $wgResourceModules['ext.PrimarySources.filter'] = array(
     'dependencies' => array(
         'ext.PrimarySources.globals',
         'ext.PrimarySources.commons',
+    ),
+    'localBasePath' => $dir,
+    'remoteExtPath' => $dirbasename
+);
+$wgResourceModules['ext.PrimarySources.sidebar'] = array(
+    'scripts' => array(
+        '/modules/ext.PrimarySources.sidebar.js'
+    ),
+    'styles' => array(
+    ),
+    'messages' => array(
+    ),
+    'dependencies' => array(
+        'ext.PrimarySources.globals',
+        'ext.PrimarySources.commons',
+        'ext.PrimarySources.filter'
     ),
     'localBasePath' => $dir,
     'remoteExtPath' => $dirbasename
