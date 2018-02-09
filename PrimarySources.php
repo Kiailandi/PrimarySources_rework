@@ -154,7 +154,8 @@ $wgResourceModules['ext.PrimarySources.itemCuration'] = array(
     'dependencies' => array(
         'ext.PrimarySources.globals',
         'ext.PrimarySources.commons',
-        'ext.PrimarySources.templates'
+        'ext.PrimarySources.templates',
+        'ext.PrimarySources.referencePreview'
     ),
     'localBasePath' => $dir,
     'remoteExtPath' => $dirbasename
@@ -170,6 +171,7 @@ $wgResourceModules['ext.PrimarySources.filter'] = array(
     'dependencies' => array(
         'ext.PrimarySources.globals',
         'ext.PrimarySources.commons',
+        'ext.PrimarySources.referencePreview'
     ),
     'localBasePath' => $dir,
     'remoteExtPath' => $dirbasename
