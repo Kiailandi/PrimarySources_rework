@@ -54,7 +54,7 @@
   '  FILTER STRSTARTS(str(?statement_value), "http://www.wikidata.org/entity/Q") .' +
   '  FILTER STRENDS(str(?dataset), "new") .}' +
   '}';
-  
-  ps.globals = globals;
+  mw.ps = {};
+  mw.ps.globals = globals;
   
 }(mediaWiki));
