@@ -1,6 +1,5 @@
 (function(mw, $) {
-
-    console.log("Primary sources tool - templates");
+    console.log("Primary sources tool - HTML templates");
 
     (function extendWbTemplates (){
         mw.wbTemplates.store.values["primarysources-referenceview"] = "<div class=\"wikibase-referenceview $1\">\n<div class=\"wikibase-referenceview-heading $4\">$3</div>\n<div class=\"wikibase-referenceview-listview\">$2</div>\n</div>";
@@ -12,9 +11,9 @@
         mw.wbTemplates.store.values["primarysources-ui-toggler"] = "<a class=\"ui-toggler ui-toggler-toggle ui-state-default\"><span class=\"ui-toggler-icon ui-icon ui-icon-triangle-1-s\"></span><span class=\"ui-toggler-label\">$1</span></a>";
     })();
 
-    var PrimarySources = {};
+    var ps = {};
     
-    PrimarySources.template = {
+    ps.template = {
         qualifierHtml:  
             mw.wbTemplate("wikibase-listview", 
                 mw.wbTemplate("wikibase-snaklistview",
@@ -152,6 +151,6 @@
             [0].outerHTML.replace(/(?:\r\n|\r|\n)/g, "")        
     },
     
-    mw.PrimarySources = PrimarySources;
+    mw.ps = ps;
     
 }( mediaWiki, jQuery ) );
