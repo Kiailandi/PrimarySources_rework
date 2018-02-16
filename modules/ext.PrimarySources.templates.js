@@ -13,7 +13,7 @@
 
     var ps = {};
     
-    ps.template = {
+    ps.templates = {
         qualifierHtml:  
             mw.wbTemplate("wikibase-listview", 
                 mw.wbTemplate("wikibase-snaklistview",
