@@ -51,6 +51,6 @@
       '}'
   };
 
-  mw.ps = {};
+  mw.ps = ps;
 
 }(mediaWiki, jQuery));

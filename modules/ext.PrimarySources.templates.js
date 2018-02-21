@@ -149,7 +149,7 @@
                     mw.wbTemplate("wikibase-toolbar-container", "")),
                 "{{property}}")
             [0].outerHTML.replace(/(?:\r\n|\r|\n)/g, "")        
-    },
+    };
     
     mw.ps = ps;
     

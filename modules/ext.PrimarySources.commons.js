@@ -158,6 +158,28 @@
             .getDataValueType();
     }
 
+    function _isUrl(url) {
+        if (typeof URL !== 'function') {
+            return url.indexOf('http') === 0;
+            // TODO: very bad fallback hack
+        }
+
+        try {
+            url = new URL(url.toString());
+            return url.protocol.indexOf('http') === 0 && url.host;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function _normalizeUrl(url) {
+        try {
+            return (new URL(url.toString())).href;
+        } catch (e) {
+            return url;
+        }
+    }
+
     // Public methods
     ps.commons = {
         /**
@@ -454,19 +476,7 @@
             });
         },
 
-        isUrl: function isUrl(url) {
-            if (typeof URL !== 'function') {
-                return url.indexOf('http') === 0;
-                // TODO: very bad fallback hack
-            }
-
-            try {
-                url = new URL(url.toString());
-                return url.protocol.indexOf('http') === 0 && url.host;
-            } catch (e) {
-                return false;
-            }
-        },
+        isUrl: _isUrl,
 
         buildValueKeysFromWikidataStatement: function buildValueKeysFromWikidataStatement(statement) {
             var mainSnak = statement.mainsnak;
@@ -495,7 +505,7 @@
 
         jsonToTsvValue: function jsonToTsvValue(dataValue, dataType) {
             if (!dataValue.type) {
-                commons.debug.log('No data value type given');
+                ps.commons.debug.log('No data value type given');
                 return dataValue.value;
             }
             switch (dataValue.type) {
@@ -516,7 +526,7 @@
                 case 'monolingualtext':
                     return dataValue.value.language + ':' + JSON.stringify(dataValue.value.text);
                 case 'string':
-                    var str = (dataType === 'url') ? commons.normalizeUrl(dataValue.value)
+                    var str = (dataType === 'url') ? _normalizeUrl(dataValue.value)
                         : dataValue.value;
                     return JSON.stringify(str);
                 case 'wikibase-entityid':
@@ -527,17 +537,11 @@
                             return 'P' + dataValue.value['numeric-id'];
                     }
             }
-            commons.debug.log('Unknown data value type ' + dataValue.type);
+            ps.commons.debug.log('Unknown data value type ' + dataValue.type);
             return dataValue.value;
         },
 
-        normalizeUrl: function normalizeUrl(url) {
-            try {
-                return (new URL(url.toString())).href;
-            } catch (e) {
-                return url;
-            }
-        },
+        normalizeUrl: _normalizeUrl,
 
         tsvValueToJson: function tsvValueToJson(value) {
             // From https://www.wikidata.org/wiki/Special:ListDatatypes and
@@ -630,10 +634,10 @@
                         throw e;
                     }
                 }
-                if (commons.isUrl(value)) {
+                if (_isUrl(value)) {
                     return {
                         type: 'url',
-                        value: commons.normalizeUrl(value)
+                        value: _normalizeUrl(value)
                     };
                 } else {
                     return {
@@ -662,7 +666,7 @@
 
             for (var i = 3; i < lineLength; i += 2) {
                 if (i === lineLength - 1) {
-                    commons.debug.log('Malformed qualifier/source pieces');
+                    ps.commons.debug.log('Malformed qualifier/source pieces');
                     break;
                 }
                 if (/^P\d+$/.exec(line[i])) {
@@ -677,7 +681,7 @@
                     source.push({
                         sourceProperty: line[i].replace(/^S/, 'P'),
                         sourceObject: line[i + 1],
-                        sourceType: (commons.tsvValueToJson(line[i + 1])).type,
+                        sourceType: (ps.commons.tsvValueToJson(line[i + 1])).type,
                         sourceId: id,
                         key: line[i] + '\t' + line[i + 1]
                     });
@@ -695,12 +699,12 @@
                         var url = source.sourceObject.replace(/^"/, '').replace(/"$/, '');
                         var blacklisted = isBlacklisted(url);
                         if (blacklisted) {
-                            commons.debug.log('Encountered blacklisted reference URL ' + url);
+                            ps.commons.debug.log('Encountered blacklisted reference URL ' + url);
                             var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.key;
                             (function (currentId, currentUrl) {
-                                commons.setStatementState(currentId, commons.STATEMENT_STATES.blacklisted, dataset, 'reference')
+                                ps.commons.setStatementState(currentId, commons.STATEMENT_STATES.blacklisted, dataset, 'reference')
                                     .done(function () {
-                                        commons.debug.log('Automatically blacklisted statement ' +
+                                        ps.commons.debug.log('Automatically blacklisted statement ' +
                                             currentId + ' with blacklisted reference URL ' +
                                             currentUrl);
                                     });
@@ -734,16 +738,16 @@
         },
 
         datasetUriToLabel: function datasetUriToLabel(uri) {
-            if (isUrl(uri)) {
+            if (_isUrl(uri)) {
                 // [ "http:", "", "DATASET-LABEL", "STATE" ]
                 return uri.split('/')[2];
             } else {
-                commons.debug.log('The dataset has an invalid URI: "' + uri + '". Will appear as is (no human-readable conversion)')
+                ps.commons.debug.log('The dataset has an invalid URI: "' + uri + '". Will appear as is (no human-readable conversion)')
                 return uri;
             }
         }
         // END: utilities
-    }
+    };
 
     mw.ps = ps;
 
