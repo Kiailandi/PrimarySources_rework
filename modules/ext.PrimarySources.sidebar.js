@@ -210,7 +210,7 @@
       }
     }
     // END: browse suggested claims
-    }
+    };
   
   mw.ps = ps;
   
