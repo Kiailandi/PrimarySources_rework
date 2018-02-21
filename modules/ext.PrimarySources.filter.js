@@ -15,10 +15,7 @@
     
     // parsePrimarySourcesStatement moved to commons
 
-    // accessible object
-    ps.filter = {
-      // BEGIN: filter modal window
-      listDialog: function listDialog(windowManager, button) {
+    function _listDialog(windowManager, button) {
         /**
          * A row displaying a statement
          *
@@ -29,6 +26,8 @@
         function StatementRow(config) {
             StatementRow.super.call(this, config);
 
+            console.log("1");
+
             this.statement = config.statement;
             var widget = this;
 
@@ -38,11 +37,16 @@
             numberOfSource = this.statement.source.length;
             numberOfQualifier = this.statement.qualifiers.length;
 
+            console.log("2");
+            
+            // TODO verificare StatementRow
             var htmlCallbacks = [
                 ps.commons.getValueHtml(this.statement.subject), //0
                 ps.commons.getValueHtml(this.statement.predicate), //1
                 ps.commons.getValueHtml(this.statement.object, this.statement.predicate) //2
             ];
+
+            console.log("3");
 
             this.statement.qualifiers.forEach(function(qualifier) {
                 htmlCallbacks.push(ps.commons.getValueHtml(qualifier.qualifierProperty));
@@ -50,6 +54,8 @@
                     ps.commons.getValueHtml(qualifier.qualifierObject, qualifier.qualifierProperty)
                 );
             });
+
+            console.log("4");
 
             // Add reference to table
             this.statement.source.forEach(function(source){
@@ -126,13 +132,13 @@
                 // Source table
                 var $tableSource = $('<table>');
                 $tableSource.append(
-                        $('<tr>').append(
-                            $('<td>')
-                                .html(sourcePropertyHtml),
-                            $('<td>')
-                                .html(sourceValueHtml)
-                        )
-                    );
+                    $('<tr>').append(
+                        $('<td>')
+                            .html(sourcePropertyHtml),
+                        $('<td>')
+                            .html(sourceValueHtml)
+                    )
+                );
 
 
                 var approveButton = new OO.ui.ButtonWidget({
@@ -209,6 +215,7 @@
                     });
             });
         }
+
         OO.inheritClass(StatementRow, OO.ui.Widget);
         StatementRow.static.tagName = 'tbody';
 
@@ -290,9 +297,9 @@
             });
 
             /*
-            - create claim (this is a new claim)
-            - create claim with reference (this is a new claim)
-            - create reference (thi is a claim already exists)
+             - create claim (this is a new claim)
+             - create claim with reference (this is a new claim)
+             - create reference (thi is a claim already exists)
              */
 
             this.showProgressBar();
@@ -332,8 +339,8 @@
                 widget.statement.dataset,
                 type
             ).done(function() {
-                    widget.toggle(false).setDisabled(true);
-                });
+                widget.toggle(false).setDisabled(true);
+            });
         };
 
         StatementRow.prototype.showProgressBar = function() {
@@ -635,14 +642,18 @@
                 }
                 widget.alreadyDisplayedStatementKeys[statement.key] = true;
 
-                var row = new StatementRow({
-                    statement: statement
-                });
-                widget.table.append(row.$element);
+                // Append row only if there is the subject
+                if (statement.subject !== "") {
+                    var row = new StatementRow({
+                        statement: statement
+                    });
+                    widget.table.append(row.$element);
+                }
+
             });
 
 
-                testDuplicate(statements[1]); //Q1000070
+            testDuplicate(statements[1]); //Q1000070
 
 
         };
@@ -675,9 +686,14 @@
         button.click(function() {
             windowManager.openWindow('ps-list');
         });
-      }
+    };
+
+    // accessible object
+    ps.filter = {
+      // BEGIN: filter modal window
+      listDialog: _listDialog
       // END: filter modal window
-    }
+    };
 
    /**
     * (Used only by ListDialog)
