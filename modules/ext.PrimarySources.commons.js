@@ -323,7 +323,7 @@
         // Update the suggestions state
         setStatementState: function setStatementState(quickStatement, state, dataset, type) {
             if (!ps.globals.STATEMENT_STATES[state]) {
-                commons.reportError('Invalid statement state');
+                ps.commons.reportError('Invalid statement state');
             }
             var data = {
                 qs: quickStatement,
@@ -334,7 +334,7 @@
             };
             return $.post(ps.globals.API_ENDPOINTS.CURATE_SERVICE, JSON.stringify(data))
                 .fail(function () {
-                    commons.reportError('Set statement state to ' + state + ' failed.');
+                    ps.commons.reportError('Set statement state to ' + state + ' failed.');
                 });
         },
         // Get the available datasets
@@ -345,7 +345,7 @@
                 if (!blacklist.timestamp) {
                     blacklist.timestamp = 0;
                 }
-                if (now - blacklist.timestamp < CACHE_EXPIRY) {
+                if (now - blacklist.timestamp < ps.globals.CACHE_EXPIRY) {
                     return callback(blacklist.data);
                 }
             }

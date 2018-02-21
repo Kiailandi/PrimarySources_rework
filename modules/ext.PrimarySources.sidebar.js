@@ -8,9 +8,6 @@
   // Used by the property browser
   var anchorList = [];
 
-  console.log("AAA");
-  console.log(ps);
-
   var dataset = ps.globals.DATASET;
 
   // accessible object
@@ -87,23 +84,6 @@
       });
     },
     // END: dataset selection
-    scrollFollowTop: function scrollFollowTop($sidebar) {
-      var $window = $(window),
-          offset = $sidebar.offset(),
-          topPadding = 15;
-
-      $window.scroll(function() {
-        if ($window.scrollTop() > offset.top) {
-          $sidebar.stop().animate({
-            marginTop: $window.scrollTop() - offset.top + topPadding
-          }, 200);
-          } else {
-          $sidebar.stop().animate({
-            marginTop: 0
-          }, 200);
-        }
-      });
-    },
     alphaPos: function alphaPos(text){
       if(text <= anchorList[0]){
         return 0;
@@ -141,6 +121,24 @@
       }
     }
   };
+
+    function scrollFollowTop($sidebar) {
+        var $window = $(window),
+            offset = $sidebar.offset(),
+            topPadding = 15;
+
+        $window.scroll(function() {
+            if ($window.scrollTop() > offset.top) {
+                $sidebar.stop().animate({
+                    marginTop: $window.scrollTop() - offset.top + topPadding
+                }, 200);
+            } else {
+                $sidebar.stop().animate({
+                    marginTop: 0
+                }, 200);
+            }
+        });
+    }
 
     // BEGIN: sidebar links - self invoking
     (function createSidebarLinks() {

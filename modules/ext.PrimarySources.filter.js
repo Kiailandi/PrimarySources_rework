@@ -477,7 +477,7 @@
                 property: this.propertyInput.getValue(),
                 value: this.valueInput.getValue(),
                 offset: 0,
-                limit: 10 // number of loaded statements
+                limit: 100 // number of loaded statements
             };
             this.alreadyDisplayedStatementKeys = {};
 
