@@ -43,9 +43,9 @@ class PrimarySourcesHooks {
 
         $out->addModules( 'ext.PrimarySources.globals' );
         $out->addModules( 'ext.PrimarySources.commons' );
-        //$out->addModules( 'ext.PrimarySources.templates' );
+        $out->addModules( 'ext.PrimarySources.templates' );
         $out->addModules( 'ext.PrimarySources.sidebar' );
-        //$out->addModules( 'ext.PrimarySources.itemCuration' );
+        $out->addModules( 'ext.PrimarySources.itemCuration' );
         $out->addModules( 'ext.PrimarySources.referencePreview' );
         $out->addModules( 'ext.PrimarySources.filter' );
 
@@ -147,10 +147,10 @@ class PrimarySourcesHooks {
 		    'remoteExtPath' => 'PrimarySources',
 		];
         
-        $testModules['qunit']['ext.PrimarySources.tests'] = $boilerplate + array(
+        /*$testModules['qunit']['ext.PrimarySources.tests'] = $boilerplate + array(
 	        'dependencies' => ['ext.PrimarySources.templates'],
 	        'scripts' => ['tests/qunit/ext.PrimarySources.templates.test.js']
-        );
+        );*/
         return true;
     }
 
