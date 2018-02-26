@@ -15,7 +15,7 @@
     mw.wbTemplates.store.values["primarysources-toolbar-container"] = "<span class=\"wikibase-toolbar-container $1\">$2</span>";
     mw.wbTemplates.store.values["primarysources-ui-toggler"] = "<a class=\"ui-toggler ui-toggler-toggle ui-state-default\"><span class=\"ui-toggler-icon ui-icon ui-icon-triangle-1-s\"></span><span class=\"ui-toggler-label\">$1</span></a>";
     */
-    var ps = {};
+    var ps = mw.ps || {};
     
     ps.templates = {
         /*qualifierHtml:  
