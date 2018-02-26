@@ -4,9 +4,8 @@
   var ps = mw.ps || {};
 
   // Get the selected dataset from a cookie
-  var dataset;
   mw.loader.using(['mediawiki.cookie']).then(function () {
-    dataset = mw.cookie.get('ps-dataset', null, '');
+    mw.ps.globals.DATASET = mw.cookie.get('ps-dataset', null, '');
   });
   var api_base_uri = 'https://pst.wmflabs.org/pst/';
 
@@ -39,7 +38,7 @@
     DEBUG: JSON.parse(localStorage.getItem('f2w_debug')) || false,
     FAKE_OR_RANDOM_DATA: JSON.parse(localStorage.getItem('f2w_fakeOrRandomData')) || false,
     CACHE_EXPIRY: 60 * 60 * 1000,
-    DATASET: dataset,
+    DATASET: "",
     // SPARQL query to get the set of statement item values in the back end
     STATEMENT_VALUES:
       'SELECT DISTINCT ?statement_value WHERE {' +
