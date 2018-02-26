@@ -610,4 +610,4 @@
 
   mw.ps = ps;
 
-}(mediaWiki, jQuery));
+})(mediaWiki, jQuery);

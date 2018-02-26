@@ -108,4 +108,4 @@
         }
     });
 
-}(mediaWiki, jQuery));
+})(mediaWiki, jQuery);
