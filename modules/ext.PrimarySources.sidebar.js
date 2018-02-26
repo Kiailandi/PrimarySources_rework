@@ -164,7 +164,7 @@
                 url: ps.globals.API_ENDPOINTS.RANDOM_SERVICE + '?dataset=' + dataset
             }).done(function(data) {
                 var newQid = data[0].statement.split(/\t/)[0];
-                document.location.href = 'https://www.wikidata.org/wiki/' + newQid;
+                document.location.href = document.location.origin + "/wiki/" + newQid;
             }).fail(function() {
                 return ps.commons.reportError('Could not obtain random primary sources item');
             });
