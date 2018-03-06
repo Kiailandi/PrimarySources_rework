@@ -455,7 +455,7 @@
               }
 
               if (!isDuplicate) {
-                createNewStatement(property, freebaseObject);
+                ps.itemCuration.createNewStatement(property, freebaseObject);
               }
             }
           }
