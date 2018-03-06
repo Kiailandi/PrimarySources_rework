@@ -409,7 +409,7 @@
             });
         },
         getWhitelistedSourceUrlsWithCallback: function getWhitelistedSourceUrlsWithCallback(callback) {
-            ps.commons.getWhitelistedSourceUrls()
+            getWhitelistedSourceUrls()
             .done(function(whitelist) {
               callback(null, whitelist);
             })
@@ -440,7 +440,6 @@
             }
                 ;
         },
-
         getValueHtml: function getValueHtml(value, property) {
             var cacheKey = property + '\t' + value;
             if (cacheKey in valueHtmlCache) {
