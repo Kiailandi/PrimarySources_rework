@@ -609,7 +609,8 @@
 
   mw.ps = ps;
     
-  (function init() {
+  ($.getScript('https://www.wikidata.org/w/index.php?title=User:Kiailandi/async.js&action=raw&ctype=text%2Fjavascript').done(
+    function init() {
     
     mw.ps.itemCuration.addClickHandlers();
     
@@ -621,12 +622,11 @@
         (document.location.search.indexOf('&action=history') !== -1)) {
       return;
     }
-    qid = mw.ps.itemCuration.getQid();
+    var qid = mw.ps.itemCuration.getQid();
     if (!qid) {
       return debug.log('Did not manage to load the QID.');
     }
     
-    $.getScript('https://www.wikidata.org/w/index.php?title=User:Kiailandi/async.js&action=raw&ctype=text%2Fjavascript').done(
     window.async.parallel({
       blacklistedSourceUrls: mw.ps.commons.getBlacklistedSourceUrlsWithCallback,
       whitelistedSourceUrls: mw.ps.commons.getWhitelistedSourceUrlsWithCallback,
@@ -646,7 +646,7 @@
           blacklistedSourceUrls);
 
       mw.ps.itemCuration.matchClaims(wikidataClaims, freebaseClaims);
-    }));
-  })();
+    });
+  }));
 
 })(mediaWiki, jQuery);
