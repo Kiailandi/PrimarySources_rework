@@ -642,7 +642,7 @@
                 widget.alreadyDisplayedStatementKeys[statement.key] = true;
 
                 // Append row only if there is the subject
-                if (statement.subject.length === 0) {
+                if (statement.subject.length !== 0) {
                     var row = new StatementRow({
                         statement: statement
                     });
