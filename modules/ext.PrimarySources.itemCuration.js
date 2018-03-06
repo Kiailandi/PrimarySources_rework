@@ -624,7 +624,7 @@
     }
     var qid = mw.ps.itemCuration.getQid();
     if (!qid) {
-      return debug.log('Did not manage to load the QID.');
+      return ps.commons.debug.log('Did not manage to load the QID.');
     }
     
     async.parallel({

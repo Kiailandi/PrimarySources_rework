@@ -414,7 +414,7 @@
               callback(null, whitelist);
             })
             .fail(function() {
-              debug.log('Could not obtain whitelisted source URLs');
+              ps.commons.debug.log('Could not obtain whitelisted source URLs');
               callback(null);
             });
         },
