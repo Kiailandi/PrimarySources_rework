@@ -423,7 +423,7 @@
                 // No source, duplicate statement
                 ps.commons.setStatementState(freebaseObject.id, ps.globals.STATEMENT_STATES.duplicate, freebaseObject.dataset, 'claim')
                   .done(function() {
-                    ps.globals.debug.log('Automatically duplicate statement ' +
+                    ps.commons.debug.log('Automatically duplicate statement ' +
                       freebaseObject.id);
                   });
               } else {
@@ -443,7 +443,7 @@
                 if (wikidataObject.mainsnak.snaktype === 'value' &&
                   ps.commons.jsonToTsvValue(wikidataObject.mainsnak.datavalue) === freebaseObject.object) {
                   isDuplicate = true;
-                  ps.globals.debug.log('Duplicate found! ' + property + ':' + freebaseObject.object);
+                  ps.commons.debug.log('Duplicate found! ' + property + ':' + freebaseObject.object);
 
                   // Add new sources to existing statement
                   ps.itemCuration.prepareNewSources(
@@ -465,7 +465,7 @@
       }
       for (var property in newClaims) {
         var claims = newClaims[property];
-        ps.globals.debug.log('New claim ' + property);
+        ps.commons.debug.log('New claim ' + property);
         createNewClaim(property, claims);
       }
     },
@@ -532,7 +532,7 @@
                     // The back end approves everything
                     ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'reference')
                       .done(function() {
-                        ps.globals.debug.log('Approved referenced claim [' + sourceQuickStatement + ']');
+                        ps.commons.debug.log('Approved referenced claim [' + sourceQuickStatement + ']');
                         if (data.pageinfo && data.pageinfo.lastrevid) {
                           document.location.hash = 'revision=' +
                             data.pageinfo.lastrevid;
@@ -552,7 +552,7 @@
                     // The back end approves everything
                     ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'reference')
                       .done(function() {
-                        ps.globals.debug.log('Approved referenced claim [' + sourceQuickStatement + ']');
+                        ps.commons.debug.log('Approved referenced claim [' + sourceQuickStatement + ']');
                         if (data.pageinfo && data.pageinfo.lastrevid) {
                           document.location.hash = 'revision=' +
                             data.pageinfo.lastrevid;
@@ -566,7 +566,7 @@
           // Reference rejection
           else if (classList.contains('f2w-reject')) {
             ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.rejected, dataset, 'reference').done(function() {
-              ps.globals.debug.log('Rejected referenced claim [' + sourceQuickStatement + ']');
+              ps.commons.debug.log('Rejected referenced claim [' + sourceQuickStatement + ']');
               return document.location.reload();
             });
           }
