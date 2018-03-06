@@ -385,7 +385,7 @@
                         return false;
                       }
                     });
-                debug.log('Caching source URL whitelist');
+                ps.commons.debug.log('Caching source URL whitelist');
                 localStorage.setItem('f2w_whitelist', JSON.stringify({
                   timestamp: now,
                   data: whitelist
@@ -393,7 +393,7 @@
                 return whitelist;
               } else {
                 // Fail silently
-                debug.log('Could not obtain whitelisted source URLs');
+                ps.commons.debug.log('Could not obtain whitelisted source URLs');
                 return [];
               }
             });
@@ -404,7 +404,7 @@
               callback(null, blacklist);
             })
             .fail(function() {
-              debug.log('Could not obtain blacklisted source URLs');
+              ps.commons.debug.log('Could not obtain blacklisted source URLs');
               callback(null);
             });
         },
@@ -585,7 +585,7 @@
                 for (var i = 0, lenI = data.claims[predicate].length; i < lenI; i++) {
                     var claimObject = data.claims[predicate][i];
                     var mainSnak = claimObject.mainsnak;
-                    if (mainSnak.snaktype === 'value' && jsonToTsvValue(mainSnak.datavalue, mainSnak.datatype) === object) {
+                    if (mainSnak.snaktype === 'value' && mw.ps.commons.jsonToTsvValue(mainSnak.datavalue, mainSnak.datatype) === object) {
                         index = i;
                         break;
                     }
@@ -658,7 +658,7 @@
                 return [mainSnak.snaktype];
             }
 
-            var keys = [jsonToTsvValue(mainSnak.datavalue, mainSnak.datatype)];
+            var keys = [ps.commons.jsonToTsvValue(mainSnak.datavalue, mainSnak.datatype)];
 
             if (statement.qualifiers) {
                 var qualifierKeyParts = [];
@@ -666,7 +666,7 @@
                     qualifiers.forEach(function (qualifier) {
                         qualifierKeyParts.push(
                             qualifier.property + '\t' +
-                            commons.jsonToTsvValue(qualifier.datavalue, qualifier.datatype)
+                            ps.commons.jsonToTsvValue(qualifier.datavalue, qualifier.datatype)
                         );
                     });
                 });
