@@ -608,6 +608,45 @@
     }
   };
 
+
+  (function init() {
+    mw.ps.itemCuration.addClickHandlers();
+    
+    if ((mw.config.get('wgPageContentModel') !== 'wikibase-item') ||
+        (mw.config.get('wgIsRedirect')) ||
+        // Do not run on diff pages
+        (document.location.search.indexOf('&diff=') !== -1) ||
+        // Do not run on history pages
+        (document.location.search.indexOf('&action=history') !== -1)) {
+      return;
+    }
+    qid = mw.ps.itemCuration.getQid();
+    if (!qid) {
+      return debug.log('Did not manage to load the QID.');
+    }
+
+    async.parallel({
+      blacklistedSourceUrls: mw.ps.commons.getBlacklistedSourceUrlsWithCallback,
+      whitelistedSourceUrls: mw.ps.commons.getWhitelistedSourceUrlsWithCallback,
+      wikidataEntityData: ps.itemCuration.getWikidataEntityData.bind(null, qid),
+      freebaseEntityData: ps.itemCuration.getFreebaseEntityData.bind(null, qid),
+    }, function(err, results) {
+      if (err) {
+        reportError(err);
+      }
+      // See https://www.mediawiki.org/wiki/Wikibase/Notes/JSON
+      var wikidataEntityData = results.wikidataEntityData;
+      var wikidataClaims = wikidataEntityData.claims || {};
+
+      var freebaseEntityData = results.freebaseEntityData;
+      var blacklistedSourceUrls = results.blacklistedSourceUrls;
+      var freebaseClaims = ps.itemCuration.parseFreebaseClaims(freebaseEntityData,
+          blacklistedSourceUrls);
+
+      ps.itemCuration.matchClaims(wikidataClaims, freebaseClaims);
+    });
+  })();
+
   mw.ps = ps;
 
 })(mediaWiki, jQuery);
