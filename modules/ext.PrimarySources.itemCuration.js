@@ -622,7 +622,7 @@
         (document.location.search.indexOf('&action=history') !== -1)) {
       return 0;
     }
-    var qid = mw.ps.itemCuration.getQid();
+    qid = mw.ps.itemCuration.getQid();
     if (!qid) {
       return ps.commons.debug.log('Did not manage to load the QID.');
     }
