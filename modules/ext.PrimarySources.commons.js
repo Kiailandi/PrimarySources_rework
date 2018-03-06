@@ -347,7 +347,7 @@
                 }
             });
         },
-        getWhiteListedSourceUrls = function getWhitelistedSourceUrls() {
+        getWhiteListedSourceUrls: function getWhitelistedSourceUrls() {
             var now = Date.now();
             if (localStorage.getItem('f2w_whitelist')) {
               var whitelist = JSON.parse(localStorage.getItem('f2w_whitelist'));
@@ -398,8 +398,7 @@
               }
             });
         },
-        
-        getBlacklistedSourceUrlWithCallback = function getBlacklistedSourceUrlsWithCallback(callback) {
+        getBlacklistedSourceUrlWithCallback: function getBlacklistedSourceUrlsWithCallback(callback) {
             getBlacklistedSourceUrls()
             .done(function(blacklist) {
               callback(null, blacklist);
@@ -409,8 +408,7 @@
               callback(null);
             });
         },
-        
-        getWhitelistedSourceUrlsWithCallback = function getWhitelistedSourceUrlsWithCallback(callback) {
+        getWhitelistedSourceUrlsWithCallback: function getWhitelistedSourceUrlsWithCallback(callback) {
             getWhitelistedSourceUrls()
             .done(function(whitelist) {
               callback(null, whitelist);
