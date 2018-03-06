@@ -347,7 +347,7 @@
                 }
             });
         },
-        getWhiteListedSourceUrls: function getWhitelistedSourceUrls() {
+        getWhitelistedSourceUrls: function getWhitelistedSourceUrls() {
             var now = Date.now();
             if (localStorage.getItem('f2w_whitelist')) {
               var whitelist = JSON.parse(localStorage.getItem('f2w_whitelist'));
@@ -409,7 +409,7 @@
             });
         },
         getWhitelistedSourceUrlsWithCallback: function getWhitelistedSourceUrlsWithCallback(callback) {
-            getWhitelistedSourceUrls()
+            ps.commons.getWhitelistedSourceUrls()
             .done(function(whitelist) {
               callback(null, whitelist);
             })
