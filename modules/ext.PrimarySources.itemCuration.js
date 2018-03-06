@@ -169,14 +169,14 @@
             ps.commons.getValueHtml(snak.sourceProperty),
             ps.commons.getValueHtml(snak.sourceObject, snak.sourceProperty)
           ).then(function(formattedProperty, formattedValue) {
-            return ps.template.HTML_TEMPLATES.sourceItemHtml
+            return ps.templates.HTML_TEMPLATES.sourceItemHtml
               .replace(/\{\{source-property-html\}\}/g, formattedProperty)
               .replace(/\{\{source-object\}\}/g, formattedValue);
           });
         });
 
         return $.when.apply($, sourceItemsPromises).then(function() {
-          return ps.template.HTML_TEMPLATES.sourceHtml
+          return ps.templates.HTML_TEMPLATES.sourceHtml
             .replace(/\{\{data-source\}\}/g, escapeHtml(JSON.stringify(source)))
             .replace(/\{\{data-property\}\}/g, property)
             .replace(/\{\{data-object\}\}/g, escapeHtml(object.object))
@@ -206,7 +206,7 @@
           ps.itemCuration.getSourcesHtml(object.sources, property, object),
           ps.commons.getValueHtml(object.object, property)
         ).then(function(qualifiersHtml, sourcesHtml, formattedValue) {
-          return ps.template.HTML_TEMPLATES.statementViewHtml
+          return ps.templates.HTML_TEMPLATES.statementViewHtml
             .replace(/\{\{object\}\}/g, formattedValue)
             .replace(/\{\{data-object\}\}/g, ps.itemCuration.escapeHtml(object.object))
             .replace(/\{\{data-property\}\}/g, property)
@@ -377,7 +377,7 @@
       ps.commons.getValueHtml(newClaim.property).done(function(propertyHtml) {
         $.when.apply($, statementPromises).then(function() {
           var statementViewsHtml = Array.prototype.slice.call(arguments).join('');
-          var mainHtml = ps.template.HTML_TEMPLATES.mainHtml
+          var mainHtml = ps.templates.HTML_TEMPLATES.mainHtml
             .replace(/\{\{statement-views\}\}/g, statementViewsHtml)
             .replace(/\{\{property\}\}/g, newClaim.property)
             .replace(/\{\{data-property\}\}/g, newClaim.property)
@@ -428,7 +428,7 @@
                   });
               } else {
                 // maybe new sources
-                prepareNewSources(
+                ps.itemCuration.prepareNewSources(
                   property,
                   freebaseObject,
                   existingWikidataObjects[freebaseKey]
@@ -446,7 +446,7 @@
                   ps.globals.debug.log('Duplicate found! ' + property + ':' + freebaseObject.object);
 
                   // Add new sources to existing statement
-                  prepareNewSources(
+                  ps.itemCuration.prepareNewSources(
                     property,
                     freebaseObject,
                     wikidataObject
