@@ -177,14 +177,14 @@
 
         return $.when.apply($, sourceItemsPromises).then(function() {
           return ps.templates.sourceHtml
-            .replace(/\{\{data-source\}\}/g, escapeHtml(JSON.stringify(source)))
+            .replace(/\{\{data-source\}\}/g, ps.itemCuration.escapeHtml(JSON.stringify(source)))
             .replace(/\{\{data-property\}\}/g, property)
-            .replace(/\{\{data-object\}\}/g, escapeHtml(object.object))
+            .replace(/\{\{data-object\}\}/g, ps.itemCuration.escapeHtml(object.object))
             .replace(/\{\{data-dataset\}\}/g, object.dataset)
             .replace(/\{\{statement-id\}\}/g, source[0].sourceId)
             .replace(/\{\{source-html\}\}/g,
               Array.prototype.slice.call(arguments).join(''))
-            .replace(/\{\{data-qualifiers\}\}/g, escapeHtml(JSON.stringify(
+            .replace(/\{\{data-qualifiers\}\}/g, ps.itemCuration.escapeHtml(JSON.stringify(
               object.qualifiers)));
         });
       });
@@ -252,7 +252,7 @@
       });
     },
     createNewSources: function createNewSources(sources, property, object, statementId) {
-      getSourcesHtml(sources, property, object).then(function(html) {
+      ps.itemCuration.getSourcesHtml(sources, property, object).then(function(html) {
         var fragment = document.createDocumentFragment();
         var child = document.createElement('div');
         child.innerHTML = html;
