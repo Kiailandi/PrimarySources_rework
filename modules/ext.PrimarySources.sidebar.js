@@ -195,7 +195,7 @@
                     'List statements from primary sources'
                 ));
                 // Bind filter link to filter modal window (function in filter module)
-                ps.filter.listDialog(windowManager, listButton);
+                ps.filter.init(windowManager, listButton);
             });
     })();
     // END: sidebar links
