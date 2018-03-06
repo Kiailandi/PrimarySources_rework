@@ -752,7 +752,7 @@
                     source.push({
                         sourceProperty: line[i].replace(/^S/, 'P'),
                         sourceObject: line[i + 1],
-                        sourceType: (ps._tsvValueToJson(line[i + 1])).type,
+                        sourceType: (_tsvValueToJson(line[i + 1])).type,
                         sourceId: id,
                         key: line[i] + '\t' + line[i + 1]
                     });
