@@ -320,7 +320,7 @@
       );
     },
     createNewStatement: function createNewStatement(property, object) {
-      getStatementHtml(property, object).then(function(html) {
+      ps.itemCuration.getStatementHtml(property, object).then(function(html) {
         var fragment = document.createDocumentFragment();
         var child = document.createElement('div');
         child.innerHTML = html;
@@ -371,7 +371,7 @@
         .querySelector('.wikibase-statementgrouplistview')
         .querySelector('.wikibase-listview');
       var statementPromises = newClaim.objects.map(function(object) {
-        return getStatementHtml(newClaim.property, object);
+        return ps.itemCuration.getStatementHtml(newClaim.property, object);
       });
 
       ps.commons.getValueHtml(newClaim.property).done(function(propertyHtml) {
