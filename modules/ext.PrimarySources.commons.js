@@ -398,7 +398,7 @@
               }
             });
         },
-        getBlacklistedSourceUrlWithCallback: function getBlacklistedSourceUrlsWithCallback(callback) {
+        getBlacklistedSourceUrlsWithCallback: function getBlacklistedSourceUrlsWithCallback(callback) {
             getBlacklistedSourceUrls()
             .done(function(blacklist) {
               callback(null, blacklist);
