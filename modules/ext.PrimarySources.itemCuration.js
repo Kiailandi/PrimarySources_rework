@@ -609,7 +609,7 @@
 
   mw.ps = ps;
     
-  ($.getScript('https://www.wikidata.org/w/index.php?title=User:Kiailandi/async.js&action=raw&ctype=text%2Fjavascript').done(
+  $.getScript('https://www.wikidata.org/w/index.php?title=User:Kiailandi/async.js&action=raw&ctype=text%2Fjavascript').done(
     function init() {
     
     mw.ps.itemCuration.addClickHandlers();
@@ -620,14 +620,14 @@
         (document.location.search.indexOf('&diff=') !== -1) ||
         // Do not run on history pages
         (document.location.search.indexOf('&action=history') !== -1)) {
-      return;
+      return 0;
     }
     var qid = mw.ps.itemCuration.getQid();
     if (!qid) {
       return debug.log('Did not manage to load the QID.');
     }
     
-    window.async.parallel({
+    async.parallel({
       blacklistedSourceUrls: mw.ps.commons.getBlacklistedSourceUrlsWithCallback,
       whitelistedSourceUrls: mw.ps.commons.getWhitelistedSourceUrlsWithCallback,
       wikidataEntityData: mw.ps.itemCuration.getWikidataEntityData.bind(null, qid),
@@ -647,6 +647,6 @@
 
       mw.ps.itemCuration.matchClaims(wikidataClaims, freebaseClaims);
     });
-  }));
+  });
 
 })(mediaWiki, jQuery);
