@@ -105,7 +105,7 @@
     }    
 
     // Only called by getValueHtml
-    function getEntityLabel(entityId) {
+    function _getEntityLabel(entityId) {
         if (!(entityId in entityLabelCache)) {
             loadEntityLabels([entityId]);
         }
@@ -490,7 +490,7 @@
             } else if (parsed.type === 'url') {
                 valueHtmlCache[cacheKey] = $.Deferred().resolve('<a rel="nofollow" class="external free" href="' + parsed.value + '">' + parsed.value + '</a>');
             } else if (parsed.type === 'wikibase-item' || parsed.type === 'wikibase-property') {
-                return getEntityLabel(value).then(function (label) {
+                return _getEntityLabel(value).then(function (label) {
                     return '<a href="/entity/' + value + '">' + label + '</a>';
                     //TODO: better URL
                 });
@@ -674,6 +674,8 @@
         },
 
         isUrl: _isUrl,
+
+        getEntityLabel: _getEntityLabel,
 
         buildValueKeysFromWikidataStatement: function buildValueKeysFromWikidataStatement(statement) {
             var mainSnak = statement.mainsnak;
