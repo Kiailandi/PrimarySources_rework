@@ -13,42 +13,34 @@
 
     var ps = mw.ps || {};
 
-    var sparql_search = "SELECT * \
-    WHERE { \
-        GRAPH {{DATASET}} { \
-                ?subject a wikibase:Item ; \
-            {{PROPERTY}} ?statement_node . \
-                ?statement_node ?statement_property ?statement_value . \
-                    OPTIONAL { \
-                    ?statement_value ?reference_property ?reference_value . \
-        } \
-        } \
-    } \
-    OFFSET {{OFFSET}} \
-    LIMIT {{LIMIT}}";
+    var sparql_search =  '   SELECT *   '  +
+        '   WHERE {  '  +
+        '     GRAPH {{DATASET}} {  '  +
+        '       ?subject a wikibase:Item ;  '  +
+        '                  {{PROPERTY}} ?statement_node .  '  +
+        '       ?statement_node ?statement_property ?statement_value .  '  +
+        '       OPTIONAL {  '  +
+        '         ?statement_value ?reference_property ?reference_value .  '  +
+        '       }  '  +
+        '     }  '  +
+        '   }  '  +
+        '   OFFSET {{OFFSET}}  '  +
+        '  LIMIT {{LIMIT}}  ' ;
 
-    var sparql_search_with_value = " \
-        SELECT * \
-        WHERE { \
-        GRAPH {{DATASET}} { \
-                ?subject a wikibase:Item ; \
-            {{PROPERTY}} ?statement_node . \
-                { SELECT ?statement_node WHERE { ?statement_node ?statement_property wd:{{VALUE}} . } } \
-                ?statement_node ?statement_property ?statement_value . \
-                OPTIONAL { \
-                ?statement_value ?reference_property ?reference_value .} \
-        } \
-    } \
-    OFFSET {{OFFSET}} \
-    LIMIT {{LIMIT}}";
+    var sparql_search_with_value =  '   SELECT *  '  +
+        '   WHERE {  '  +
+        '     GRAPH {{DATASET}} {  '  +
+        '       ?subject a wikibase:Item ;  '  +
+        '                  {{PROPERTY}} ?statement_node .  '  +
+        '       { SELECT ?statement_node WHERE { ?statement_node ?statement_property wd:{{VALUE}} . } }   '  +
+        '       ?statement_node ?statement_property ?statement_value .  '  +
+        '       OPTIONAL {  '  +
+        '         ?statement_value ?reference_property ?reference_value .}  '  +
+        '     }  '  +
+        '   }  '  +
+        '   OFFSET {{OFFSET}}  '  +
+        '  LIMIT {{LIMIT}}  ' ;
 
-        /*
-        * Dataset se c'è rimpiazza con <valore_variable> altrimenti ?dataset
-        * property se c'è rimpiazza con p:valore_var altrimenti con ?property
-        * se c'è il valore usare un'altra query
-        * */
-
-    // parsePrimarySourcesStatement moved to commons
 
     function _listDialog(windowManager, button) {
         /**
@@ -506,25 +498,61 @@
             this.$body.append(this.stackLayout.$element);
         };
 
+        /**
+         * OnOptionSubmit
+         */
+        /*
+         * Dataset se c'è rimpiazza con <valore_variable> altrimenti ?dataset
+         * property se c'è rimpiazza con p:valore_var altrimenti con ?property
+         * se c'è il valore usare un'altra query
+         * */
         ListDialog.prototype.onOptionSubmit = function() {
             this.mainPanel.$element.empty();
             this.table = null;
             var sparql = this.sparqlQuery.getValue();
+
             if (sparql !==  '') {
                 // Use SPARQL endpoint
                 this.sparql = sparql;
                 this.executeSparqlQuery();
             } else {
-                // Use /search service
-                this.parameters = {
-                    dataset: this.datasetInput.getValue(),
-                    property: this.propertyInput.getValue(),
-                    value: this.valueInput.getValue(),
-                    offset: 0,
-                    limit: 100 // number of loaded statements
-                };
-                this.alreadyDisplayedStatementKeys = {};
-                this.executeQuery();
+
+                var correct_query = sparql_search;
+                if (this.valueInput.getValue().length > 0) {
+                    correct_query = sparql_search_with_value;
+                    correct_query = correct_query.replace(/\{\{VALUE\}\}/g, + this.valueInput.getValue());
+                }
+
+                if (this.propertyInput.getValue().length > 0) {
+                    correct_query = correct_query.replace(/\{\{PROPERTY\}\}/g, 'p:' + this.propertyInput.getValue());
+                } else {
+                    correct_query = correct_query.replace(/\{\{PROPERTY\}\}/g, '?property');
+                }
+
+                if (this.datasetInput.getValue().length > 0) {
+                    correct_query = correct_query.replace(/\{\{DATASET\}\}/g, '<' + this.propertyInput.getValue() + '>');
+                } else {
+                    correct_query = correct_query.replace(/\{\{DATASET\}\}/g, '?dataset');
+                }
+
+                correct_query = correct_query
+                    .replace(/\{\{OFFSET\}\}/g, '0')
+                    .replace(/\{\{LIMIT\}\}/g, '100');
+
+                this.sparql = correct_query;
+                this.executeSparqlQuery();
+
+
+                // // Use /search service
+                // this.parameters = {
+                //     dataset: this.datasetInput.getValue(),
+                //     property: this.propertyInput.getValue(),
+                //     value: this.valueInput.getValue(),
+                //     offset: 0,
+                //     limit: 100 // number of loaded statements
+                // };
+                // this.alreadyDisplayedStatementKeys = {};
+                // this.executeQuery();
             }
         };
 
