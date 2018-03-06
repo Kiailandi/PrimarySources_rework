@@ -49,9 +49,7 @@
       '  FILTER STRENDS(str(?dataset), "new") .}' +
       '}'
   };
-
-  $.getScript('https://www.wikidata.org/w/index.php?title=User:Kiailandi/async.js&action=raw&ctype=text%2Fjavascript');
-  
+    
   mw.ps = ps;
 
 })(mediaWiki, jQuery);
