@@ -26,8 +26,6 @@
         function StatementRow(config) {
             StatementRow.super.call(this, config);
 
-            console.log("1");
-
             this.statement = config.statement;
             var widget = this;
 
@@ -38,6 +36,7 @@
             numberOfQualifier = this.statement.qualifiers.length;
 
             console.log("2");
+            console.log(this.statement);
             
             // TODO verificare StatementRow
             var htmlCallbacks = [
@@ -643,7 +642,7 @@
                 widget.alreadyDisplayedStatementKeys[statement.key] = true;
 
                 // Append row only if there is the subject
-                if (statement.subject !== "") {
+                if (statement.subject.length === 0) {
                     var row = new StatementRow({
                         statement: statement
                     });
@@ -653,7 +652,7 @@
             });
 
 
-            testDuplicate(statements[1]); //Q1000070
+            //testDuplicate(statements[1]); //Q1000070
 
 
         };

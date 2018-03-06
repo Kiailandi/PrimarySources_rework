@@ -137,7 +137,7 @@
         });
 
         sourceSnaks.forEach(function (snak) {
-            var dataValue = commons.tsvValueToJson(snak.sourceObject);
+            var dataValue = _tsvValueToJson(snak.sourceObject);
             var type = getValueTypeFromDataValueType(dataValue.type);
 
             result[snak.sourceProperty].push({
@@ -177,6 +177,111 @@
             return (new URL(url.toString())).href;
         } catch (e) {
             return url;
+        }
+    }
+
+    function _tsvValueToJson(value) {
+        // From https://www.wikidata.org/wiki/Special:ListDatatypes and
+        // https://de.wikipedia.org/wiki/Wikipedia:Wikidata/Wikidata_Spielwiese
+        // https://www.wikidata.org/wiki/Special:EntityData/Q90.json
+
+        // Q1
+        var itemRegEx = /^Q\d+$/;
+
+        // P1
+        var propertyRegEx = /^P\d+$/;
+
+        // @43.3111/-16.6655
+        var coordinatesRegEx = /^@([+\-]?\d+(?:.\d+)?)\/([+\-]?\d+(?:.\d+))?$/;
+
+        // fr:"Les Misérables"
+        var languageStringRegEx = /^(\w+):("[^"\\]*(?:\\.[^"\\]*)*")$/;
+
+        // +2013-01-01T00:00:00Z/10
+        /* jshint maxlen: false */
+        var timeRegEx = /^[+-]\d+-\d\d-\d\dT\d\d:\d\d:\d\dZ\/\d+$/;
+        /* jshint maxlen: 80 */
+
+        // +/-1234.4567
+        var quantityRegEx = /^[+-]\d+(\.\d+)?$/;
+
+        if (itemRegEx.test(value)) {
+            return {
+                type: 'wikibase-item',
+                value: {
+                    'entity-type': 'item',
+                    'numeric-id': parseInt(value.replace(/^Q/, ''))
+                }
+            };
+        } else if (propertyRegEx.test(value)) {
+            return {
+                type: 'wikibase-property',
+                value: {
+                    'entity-type': 'property',
+                    'numeric-id': parseInt(value.replace(/^P/, ''))
+                }
+            };
+        } else if (coordinatesRegEx.test(value)) {
+            var latitude = value.replace(coordinatesRegEx, '$1');
+            var longitude = value.replace(coordinatesRegEx, '$2');
+            return {
+                type: 'globe-coordinate',
+                value: {
+                    latitude: parseFloat(latitude),
+                    longitude: parseFloat(longitude),
+                    altitude: null,
+                    precision: computeCoordinatesPrecision(latitude, longitude),
+                    globe: 'http://www.wikidata.org/entity/Q2'
+                }
+            };
+        } else if (languageStringRegEx.test(value)) {
+            return {
+                type: 'monolingualtext',
+                value: {
+                    language: value.replace(languageStringRegEx, '$1'),
+                    text: JSON.parse(value.replace(languageStringRegEx, '$2'))
+                }
+            };
+        } else if (timeRegEx.test(value)) {
+            var parts = value.split('/');
+            return {
+                type: 'time',
+                value: {
+                    time: parts[0],
+                    timezone: 0,
+                    before: 0,
+                    after: 0,
+                    precision: parseInt(parts[1]),
+                    calendarmodel: 'http://www.wikidata.org/entity/Q1985727'
+                }
+            };
+        } else if (quantityRegEx.test(value)) {
+            return {
+                type: 'quantity',
+                value: {
+                    amount: value,
+                    unit: '1'
+                }
+            };
+        } else {
+            try {
+                value = JSON.parse(value);
+            } catch (e) { //If it is an invalid JSON we assume it is the value
+                if (!(e instanceof SyntaxError)) {
+                    throw e;
+                }
+            }
+            if (_isUrl(value)) {
+                return {
+                    type: 'url',
+                    value: _normalizeUrl(value)
+                };
+            } else {
+                return {
+                    type: 'string',
+                    value: value
+                };
+            }
         }
     }
 
@@ -271,7 +376,7 @@
             if (cacheKey in valueHtmlCache) {
                 return valueHtmlCache[cacheKey];
             }
-            var parsed = commons.tsvValueToJson(value);
+            var parsed = _tsvValueToJson(value);
             var dataValue = {
                 type: getValueTypeFromDataValueType(parsed.type),
                 value: parsed.value
@@ -367,7 +472,7 @@
         // BEGIN: post approved claims to Wikidata
         // https://www.wikidata.org/w/api.php?action=help&modules=wbcreateclaim
         createClaim: function createClaim(subject, predicate, object, qualifiers) {
-            var value = (commons.tsvValueToJson(object)).value;
+            var value = (_tsvValueToJson(object)).value;
             var api = new mw.Api();
             return api.postWithToken('csrf', {
                 action: 'wbcreateclaim',
@@ -384,7 +489,7 @@
                         return data;
                     }
 
-                    var value = (commons.tsvValueToJson(qualifier.qualifierObject)).value;
+                    var value = (_tsvValueToJson(qualifier.qualifierObject)).value;
                     return api.postWithToken('csrf', {
                         action: 'wbsetqualifier',
                         claim: data.claim.id,
@@ -543,110 +648,7 @@
 
         normalizeUrl: _normalizeUrl,
 
-        tsvValueToJson: function tsvValueToJson(value) {
-            // From https://www.wikidata.org/wiki/Special:ListDatatypes and
-            // https://de.wikipedia.org/wiki/Wikipedia:Wikidata/Wikidata_Spielwiese
-            // https://www.wikidata.org/wiki/Special:EntityData/Q90.json
-
-            // Q1
-            var itemRegEx = /^Q\d+$/;
-
-            // P1
-            var propertyRegEx = /^P\d+$/;
-
-            // @43.3111/-16.6655
-            var coordinatesRegEx = /^@([+\-]?\d+(?:.\d+)?)\/([+\-]?\d+(?:.\d+))?$/;
-
-            // fr:"Les Misérables"
-            var languageStringRegEx = /^(\w+):("[^"\\]*(?:\\.[^"\\]*)*")$/;
-
-            // +2013-01-01T00:00:00Z/10
-            /* jshint maxlen: false */
-            var timeRegEx = /^[+-]\d+-\d\d-\d\dT\d\d:\d\d:\d\dZ\/\d+$/;
-            /* jshint maxlen: 80 */
-
-            // +/-1234.4567
-            var quantityRegEx = /^[+-]\d+(\.\d+)?$/;
-
-            if (itemRegEx.test(value)) {
-                return {
-                    type: 'wikibase-item',
-                    value: {
-                        'entity-type': 'item',
-                        'numeric-id': parseInt(value.replace(/^Q/, ''))
-                    }
-                };
-            } else if (propertyRegEx.test(value)) {
-                return {
-                    type: 'wikibase-property',
-                    value: {
-                        'entity-type': 'property',
-                        'numeric-id': parseInt(value.replace(/^P/, ''))
-                    }
-                };
-            } else if (coordinatesRegEx.test(value)) {
-                var latitude = value.replace(coordinatesRegEx, '$1');
-                var longitude = value.replace(coordinatesRegEx, '$2');
-                return {
-                    type: 'globe-coordinate',
-                    value: {
-                        latitude: parseFloat(latitude),
-                        longitude: parseFloat(longitude),
-                        altitude: null,
-                        precision: computeCoordinatesPrecision(latitude, longitude),
-                        globe: 'http://www.wikidata.org/entity/Q2'
-                    }
-                };
-            } else if (languageStringRegEx.test(value)) {
-                return {
-                    type: 'monolingualtext',
-                    value: {
-                        language: value.replace(languageStringRegEx, '$1'),
-                        text: JSON.parse(value.replace(languageStringRegEx, '$2'))
-                    }
-                };
-            } else if (timeRegEx.test(value)) {
-                var parts = value.split('/');
-                return {
-                    type: 'time',
-                    value: {
-                        time: parts[0],
-                        timezone: 0,
-                        before: 0,
-                        after: 0,
-                        precision: parseInt(parts[1]),
-                        calendarmodel: 'http://www.wikidata.org/entity/Q1985727'
-                    }
-                };
-            } else if (quantityRegEx.test(value)) {
-                return {
-                    type: 'quantity',
-                    value: {
-                        amount: value,
-                        unit: '1'
-                    }
-                };
-            } else {
-                try {
-                    value = JSON.parse(value);
-                } catch (e) { //If it is an invalid JSON we assume it is the value
-                    if (!(e instanceof SyntaxError)) {
-                        throw e;
-                    }
-                }
-                if (_isUrl(value)) {
-                    return {
-                        type: 'url',
-                        value: _normalizeUrl(value)
-                    };
-                } else {
-                    return {
-                        type: 'string',
-                        value: value
-                    };
-                }
-            }
-        },
+        tsvValueToJson: _tsvValueToJson,
 
         parsePrimarySourcesStatement: function parsePrimarySourcesStatement(statement, isBlacklisted) {
 
@@ -681,7 +683,7 @@
                     source.push({
                         sourceProperty: line[i].replace(/^S/, 'P'),
                         sourceObject: line[i + 1],
-                        sourceType: (ps.commons.tsvValueToJson(line[i + 1])).type,
+                        sourceType: (ps._tsvValueToJson(line[i + 1])).type,
                         sourceId: id,
                         key: line[i] + '\t' + line[i + 1]
                     });
