@@ -753,7 +753,7 @@
                     source.push({
                         sourceProperty: line[i].replace(/^S/, 'P'),
                         sourceObject: line[i + 1],
-                        sourceType: (ps._tsvValueToJson(line[i + 1])).type,
+                        sourceType: (_tsvValueToJson(line[i + 1])).type,
                         sourceId: id,
                         key: line[i] + '\t' + line[i + 1]
                     });
@@ -774,7 +774,7 @@
                             ps.commons.debug.log('Encountered blacklisted reference URL ' + url);
                             var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.key;
                             (function (currentId, currentUrl) {
-                                ps.commons.setStatementState(currentId, commons.STATEMENT_STATES.blacklisted, dataset, 'reference')
+                                ps.commons.setStatementState(currentId, ps.commons.STATEMENT_STATES.blacklisted, dataset, 'reference')
                                     .done(function () {
                                         ps.commons.debug.log('Automatically blacklisted statement ' +
                                             currentId + ' with blacklisted reference URL ' +
