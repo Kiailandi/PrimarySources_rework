@@ -399,7 +399,7 @@
             });
         },
         getBlacklistedSourceUrlsWithCallback: function getBlacklistedSourceUrlsWithCallback(callback) {
-            getBlacklistedSourceUrls()
+            ps.commons.getBlacklistedSourceUrls()
             .done(function(blacklist) {
               callback(null, blacklist);
             })
@@ -409,7 +409,7 @@
             });
         },
         getWhitelistedSourceUrlsWithCallback: function getWhitelistedSourceUrlsWithCallback(callback) {
-            getWhitelistedSourceUrls()
+            ps.commons.getWhitelistedSourceUrls()
             .done(function(whitelist) {
               callback(null, whitelist);
             })
