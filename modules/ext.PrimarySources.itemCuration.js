@@ -527,7 +527,7 @@
                 ps.commons.createReference(qid, predicate, object, source,
                   function(error, data) {
                     if (error) {
-                      return ps.commons.reportError(error);
+                      return mw.ps.commons.reportError(error);
                     }
                     // The back end approves everything
                     ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'reference')
@@ -546,7 +546,7 @@
                 ps.commons.createClaimWithReference(qid, predicate, object, qualifiers,
                     source)
                   .fail(function(error) {
-                    return ps.commons.reportError(error);
+                    return mw.ps.commons.reportError(error);
                   })
                   .done(function(data) {
                     // The back end approves everything
@@ -634,7 +634,7 @@
       freebaseEntityData: mw.ps.itemCuration.getFreebaseEntityData.bind(null, qid),
     }, function(err, results) {
       if (err) {
-        reportError(err);
+        mw.ps.commons.reportError(err);
       }
       // See https://www.mediawiki.org/wiki/Wikibase/Notes/JSON
       var wikidataEntityData = results.wikidataEntityData;
