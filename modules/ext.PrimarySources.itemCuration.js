@@ -202,13 +202,13 @@
     },
     getStatementHtml: function getStatementHtml(property, object) {
         return $.when(
-          getQualifiersHtml(object.qualifiers),
-          getSourcesHtml(object.sources, property, object),
+          ps.itemCuration.getQualifiersHtml(object.qualifiers),
+          ps.itemCuration.getSourcesHtml(object.sources, property, object),
           ps.commons.getValueHtml(object.object, property)
         ).then(function(qualifiersHtml, sourcesHtml, formattedValue) {
           return ps.template.HTML_TEMPLATES.statementViewHtml
             .replace(/\{\{object\}\}/g, formattedValue)
-            .replace(/\{\{data-object\}\}/g, escapeHtml(object.object))
+            .replace(/\{\{data-object\}\}/g, ps.itemCuration.escapeHtml(object.object))
             .replace(/\{\{data-property\}\}/g, property)
             .replace(/\{\{references\}\}/g,
               object.sources.length === 1 ?
@@ -218,9 +218,9 @@
             .replace(/\{\{qualifiers\}\}/g, qualifiersHtml)
             .replace(/\{\{statement-id\}\}/g, object.id)
             .replace(/\{\{data-dataset\}\}/g, object.dataset)
-            .replace(/\{\{data-qualifiers\}\}/g, escapeHtml(JSON.stringify(
+            .replace(/\{\{data-qualifiers\}\}/g, ps.itemCuration.escapeHtml(JSON.stringify(
               object.qualifiers)))
-            .replace(/\{\{data-sources\}\}/g, escapeHtml(JSON.stringify(
+            .replace(/\{\{data-sources\}\}/g, ps.itemCuration.escapeHtml(JSON.stringify(
               object.sources)));
         });
     },
