@@ -360,7 +360,7 @@
               }
             }
             return $.ajax({
-              url: SOURCE_URL_WHITELIST
+              url: ps.globals.API_ENDPOINTS.SOURCE_URL_WHITELIST
             }).then(function(data) {
               if (data && data.parse && data.parse.text && data.parse.text['*']) {
                 var whitelist = data.parse.text['*']
