@@ -347,7 +347,79 @@
                 }
             });
         },
-
+        getWhiteListedSourceUrls = function getWhitelistedSourceUrls() {
+            var now = Date.now();
+            if (localStorage.getItem('f2w_whitelist')) {
+              var whitelist = JSON.parse(localStorage.getItem('f2w_whitelist'));
+              if (!whitelist.timestamp) {
+                whitelist.timestamp = 0;
+              }
+              if (now - whitelist.timestamp < CACHE_EXPIRY) {
+                debug.log('Using cached source URL whitelist');
+                return $.Deferred().resolve(whitelist.data);
+              }
+            }
+            return $.ajax({
+              url: SOURCE_URL_WHITELIST
+            }).then(function(data) {
+              if (data && data.parse && data.parse.text && data.parse.text['*']) {
+                var whitelist = data.parse.text['*']
+                    .replace(/\n/g, '')
+                    .replace(/^.*?<ul>(.*?)<\/ul>.*?$/g, '$1')
+                    .replace(/<\/li>/g, '')
+                    .split('<li>').slice(1)
+                    .map(function(url) {
+                      return url.trim();
+                    })
+                    .filter(function(url) {
+                      var copy = url;
+                      if (/\s/g.test(copy) || !/\./g.test(copy)) {
+                        return false;
+                      }
+                      if (!/^https?:\/\//.test(copy)) {
+                        copy = 'http://' + url;
+                      }
+                      try {
+                        return (new URL(copy)).host !== '';
+                      } catch (e) {
+                        return false;
+                      }
+                    });
+                debug.log('Caching source URL whitelist');
+                localStorage.setItem('f2w_whitelist', JSON.stringify({
+                  timestamp: now,
+                  data: whitelist
+                }));
+                return whitelist;
+              } else {
+                // Fail silently
+                debug.log('Could not obtain whitelisted source URLs');
+                return [];
+              }
+            });
+        },
+        
+        getBlacklistedSourceUrlWithCallback = function getBlacklistedSourceUrlsWithCallback(callback) {
+            getBlacklistedSourceUrls()
+            .done(function(blacklist) {
+              callback(null, blacklist);
+            })
+            .fail(function() {
+              debug.log('Could not obtain blacklisted source URLs');
+              callback(null);
+            });
+        },
+        
+        getWhitelistedSourceUrlsWithCallback = function getWhitelistedSourceUrlsWithCallback(callback) {
+            getWhitelistedSourceUrls()
+            .done(function(whitelist) {
+              callback(null, whitelist);
+            })
+            .fail(function() {
+              debug.log('Could not obtain whitelisted source URLs');
+              callback(null);
+            });
+        },
         /**
          *
          * @param blacklistedSourceUrls
