@@ -347,7 +347,7 @@
                 }
             });
         },
-        getWhiteListedSourceUrls: function getWhitelistedSourceUrls() {
+        getWhitelistedSourceUrls: function getWhitelistedSourceUrls() {
             var now = Date.now();
             if (localStorage.getItem('f2w_whitelist')) {
               var whitelist = JSON.parse(localStorage.getItem('f2w_whitelist'));
@@ -360,7 +360,7 @@
               }
             }
             return $.ajax({
-              url: SOURCE_URL_WHITELIST
+              url: ps.globals.API_ENDPOINTS.SOURCE_URL_WHITELIST
             }).then(function(data) {
               if (data && data.parse && data.parse.text && data.parse.text['*']) {
                 var whitelist = data.parse.text['*']
@@ -385,7 +385,7 @@
                         return false;
                       }
                     });
-                debug.log('Caching source URL whitelist');
+                ps.commons.debug.log('Caching source URL whitelist');
                 localStorage.setItem('f2w_whitelist', JSON.stringify({
                   timestamp: now,
                   data: whitelist
@@ -393,28 +393,28 @@
                 return whitelist;
               } else {
                 // Fail silently
-                debug.log('Could not obtain whitelisted source URLs');
+                ps.commons.debug.log('Could not obtain whitelisted source URLs');
                 return [];
               }
             });
         },
-        getBlacklistedSourceUrlWithCallback: function getBlacklistedSourceUrlsWithCallback(callback) {
-            getBlacklistedSourceUrls()
+        getBlacklistedSourceUrlsWithCallback: function getBlacklistedSourceUrlsWithCallback(callback) {
+            ps.commons.getBlacklistedSourceUrls()
             .done(function(blacklist) {
               callback(null, blacklist);
             })
             .fail(function() {
-              debug.log('Could not obtain blacklisted source URLs');
+              ps.commons.debug.log('Could not obtain blacklisted source URLs');
               callback(null);
             });
         },
         getWhitelistedSourceUrlsWithCallback: function getWhitelistedSourceUrlsWithCallback(callback) {
-            getWhitelistedSourceUrls()
+            ps.commons.getWhitelistedSourceUrls()
             .done(function(whitelist) {
               callback(null, whitelist);
             })
             .fail(function() {
-              debug.log('Could not obtain whitelisted source URLs');
+              ps.commons.debug.log('Could not obtain whitelisted source URLs');
               callback(null);
             });
         },
@@ -440,7 +440,6 @@
             }
                 ;
         },
-
         getValueHtml: function getValueHtml(value, property) {
             var cacheKey = property + '\t' + value;
             if (cacheKey in valueHtmlCache) {
@@ -586,7 +585,7 @@
                 for (var i = 0, lenI = data.claims[predicate].length; i < lenI; i++) {
                     var claimObject = data.claims[predicate][i];
                     var mainSnak = claimObject.mainsnak;
-                    if (mainSnak.snaktype === 'value' && jsonToTsvValue(mainSnak.datavalue, mainSnak.datatype) === object) {
+                    if (mainSnak.snaktype === 'value' && mw.ps.commons.jsonToTsvValue(mainSnak.datavalue, mainSnak.datatype) === object) {
                         index = i;
                         break;
                     }
@@ -659,7 +658,7 @@
                 return [mainSnak.snaktype];
             }
 
-            var keys = [jsonToTsvValue(mainSnak.datavalue, mainSnak.datatype)];
+            var keys = [ps.commons.jsonToTsvValue(mainSnak.datavalue, mainSnak.datatype)];
 
             if (statement.qualifiers) {
                 var qualifierKeyParts = [];
@@ -667,7 +666,7 @@
                     qualifiers.forEach(function (qualifier) {
                         qualifierKeyParts.push(
                             qualifier.property + '\t' +
-                            commons.jsonToTsvValue(qualifier.datavalue, qualifier.datatype)
+                            ps.commons.jsonToTsvValue(qualifier.datavalue, qualifier.datatype)
                         );
                     });
                 });

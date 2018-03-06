@@ -10,9 +10,8 @@
  */
 (function(mw, $) {
   console.log("Primary sources tool - Item curation");
-
+  
   var ps = mw.ps || {};
-
   // The current item
   var qid = null;
 
@@ -246,7 +245,7 @@
     getFreebaseEntityData: function getFreebaseEntityData(qid, callback) {
       $.ajax({
         url: ps.globals.FAKE_OR_RANDOM_DATA ?
-          ps.globals.SUGGEST_SERVICE.replace(/\{\{qid\}\}/, 'any') : ps.globals.SUGGEST_SERVICE.replace(/\{\{qid\}\}/, qid) + '&dataset=' +
+          ps.globals.API_ENDPOINTS.SUGGEST_SERVICE.replace(/\{\{qid\}\}/, 'any') : ps.globals.API_ENDPOINTS.SUGGEST_SERVICE.replace(/\{\{qid\}\}/, qid) + '&dataset=' +
           ps.globals.DATASET
       }).done(function(data) {
         return callback(null, data);
@@ -528,7 +527,7 @@
                 ps.commons.createReference(qid, predicate, object, source,
                   function(error, data) {
                     if (error) {
-                      return ps.commons.reportError(error);
+                      return mw.ps.commons.reportError(error);
                     }
                     // The back end approves everything
                     ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'reference')
@@ -547,7 +546,7 @@
                 ps.commons.createClaimWithReference(qid, predicate, object, qualifiers,
                     source)
                   .fail(function(error) {
-                    return ps.commons.reportError(error);
+                    return mw.ps.commons.reportError(error);
                   })
                   .done(function(data) {
                     // The back end approves everything
@@ -608,8 +607,11 @@
     }
   };
 
-
-  (function init() {
+  mw.ps = ps;
+    
+  $.getScript('https://www.wikidata.org/w/index.php?title=User:Kiailandi/async.js&action=raw&ctype=text%2Fjavascript').done(
+    function init() {
+    
     mw.ps.itemCuration.addClickHandlers();
     
     if ((mw.config.get('wgPageContentModel') !== 'wikibase-item') ||
@@ -618,21 +620,21 @@
         (document.location.search.indexOf('&diff=') !== -1) ||
         // Do not run on history pages
         (document.location.search.indexOf('&action=history') !== -1)) {
-      return;
+      return 0;
     }
-    qid = mw.ps.itemCuration.getQid();
+    var qid = mw.ps.itemCuration.getQid();
     if (!qid) {
-      return debug.log('Did not manage to load the QID.');
+      return ps.commons.debug.log('Did not manage to load the QID.');
     }
-
+    
     async.parallel({
       blacklistedSourceUrls: mw.ps.commons.getBlacklistedSourceUrlsWithCallback,
       whitelistedSourceUrls: mw.ps.commons.getWhitelistedSourceUrlsWithCallback,
-      wikidataEntityData: ps.itemCuration.getWikidataEntityData.bind(null, qid),
-      freebaseEntityData: ps.itemCuration.getFreebaseEntityData.bind(null, qid),
+      wikidataEntityData: mw.ps.itemCuration.getWikidataEntityData.bind(null, qid),
+      freebaseEntityData: mw.ps.itemCuration.getFreebaseEntityData.bind(null, qid),
     }, function(err, results) {
       if (err) {
-        reportError(err);
+        mw.ps.commons.reportError(err);
       }
       // See https://www.mediawiki.org/wiki/Wikibase/Notes/JSON
       var wikidataEntityData = results.wikidataEntityData;
@@ -640,13 +642,11 @@
 
       var freebaseEntityData = results.freebaseEntityData;
       var blacklistedSourceUrls = results.blacklistedSourceUrls;
-      var freebaseClaims = ps.itemCuration.parseFreebaseClaims(freebaseEntityData,
+      var freebaseClaims = mw.ps.itemCuration.parseFreebaseClaims(freebaseEntityData,
           blacklistedSourceUrls);
 
-      ps.itemCuration.matchClaims(wikidataClaims, freebaseClaims);
+      mw.ps.itemCuration.matchClaims(wikidataClaims, freebaseClaims);
     });
-  })();
-
-  mw.ps = ps;
+  });
 
 })(mediaWiki, jQuery);

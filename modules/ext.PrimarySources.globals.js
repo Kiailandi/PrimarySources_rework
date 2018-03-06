@@ -49,7 +49,7 @@
       '  FILTER STRENDS(str(?dataset), "new") .}' +
       '}'
   };
-
+    
   mw.ps = ps;
 
 })(mediaWiki, jQuery);
