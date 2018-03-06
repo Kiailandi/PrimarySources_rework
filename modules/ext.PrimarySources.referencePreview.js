@@ -77,7 +77,7 @@
             $('#myNav').width('0%');
             $('#blackboard').html('');
         },
-        apprendPreviewButton : function appendPreviewButton(container){
+        appendPreviewButton : function appendPreviewButton(container){
             if(container.find(".external.free").length > 0){
             var refs = container.find(".wikibase-snakview-property");
                 refs.each(function(index, item) {

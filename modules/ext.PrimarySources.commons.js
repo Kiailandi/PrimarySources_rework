@@ -10,6 +10,7 @@
 
     var entityLabelCache = {};
     var valueHtmlCache = {};
+    var urlFormatterCache = {};
 
     // Private methods
     function computeCoordinatesPrecision(latitude, longitude) {
@@ -80,6 +81,28 @@
 
         return entityIds;
     }
+
+    function getUrlFormatter(property) {
+        if (property in urlFormatterCache) {
+          return urlFormatterCache[property];
+        }
+    
+        var api = new mw.Api();
+        urlFormatterCache[property] = api.get({
+          action: 'wbgetentities',
+          ids: property,
+          props: 'claims'
+        }).then(function(result) {
+          var urlFormatter = '';
+          $.each(result.entities, function(_, entity) {
+            if (entity.claims && 'P1630' in entity.claims) {
+              urlFormatter = entity.claims.P1630[0].mainsnak.datavalue.value;
+            }
+          });
+          return urlFormatter;
+        });
+        return urlFormatterCache[property];
+    }    
 
     // Only called by getValueHtml
     function _getEntityLabel(entityId) {

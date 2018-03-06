@@ -105,7 +105,7 @@
         var text_nospace = anchor.title.text().replace(/\W/g, '');
         var text_space = anchor.title.text().replace(/[^\w\s]/g, '');
         if(anchorList.indexOf(text_nospace) == -1){
-          var pos = alphaPos(text_nospace);
+          var pos = ps.sidebar.alphaPos(text_nospace);
           anchorList.splice(pos, 0, text_nospace);
           if(pos === 0){
             $('#p-ps-nav-list').prepend('<li id="n-ps-anchor-' + text_nospace + '"><a href="#" title="move to ' + text_space + '">' + text_space + '</a></li>');

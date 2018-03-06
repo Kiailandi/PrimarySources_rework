@@ -24,9 +24,9 @@
             CURATE_SERVICE: BASE_URI + 'curate',
             SEARCH_SERVICE: BASE_URI + 'search',
             SPARQL_SERVICE: BASE_URI + 'sparql',
-            SOURCE_URL_BLACKLIST: 'https://www.wikidata.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_blacklist',
-            SOURCE_URL_WHITELIST: 'https://www.wikidata.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_whitelist',
-            WIKIDATA_ENTITY_DATA_URL: 'https://www.wikidata.org/wiki/Special:EntityData/{{qid}}.json'
+            SOURCE_URL_BLACKLIST: 'https://wikidata-pst.wmflabs.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_blacklist',
+            SOURCE_URL_WHITELIST: 'https://wikidata-pst.wmflabs.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_whitelist',
+            WIKIDATA_ENTITY_DATA_URL: 'https://wikidata-pst.wmflabs.org/wiki/Special:EntityData/{{qid}}.json'
         },
         WIKIDATA_API_COMMENT: 'Added via [[Wikidata:Primary sources tool]]',
         STATEMENT_STATES: {
@@ -45,8 +45,8 @@
         STATEMENT_VALUES: 'SELECT DISTINCT ?statement_value WHERE {' +
         '  GRAPH ?dataset {' +
         '  ?statement_node ?statement_property ?statement_value .' +
-        '  FILTER STRSTARTS(str(?statement_node), "http://www.wikidata.org/entity/statement/") .' +
-        '  FILTER STRSTARTS(str(?statement_value), "http://www.wikidata.org/entity/Q") .' +
+        '  FILTER STRSTARTS(str(?statement_node), "http://wikidata-pst.wmflabs.org/entity/statement/") .' +
+        '  FILTER STRSTARTS(str(?statement_value), "http://wikidata-pst.wmflabs.org/entity/Q") .' +
         '  FILTER STRENDS(str(?dataset), "new") .}' +
         '}'
     };

@@ -152,7 +152,7 @@
           getValueHtml(qualifier.qualifierProperty),
           getValueHtml(qualifier.qualifierObject, qualifier.qualifierProperty)
         ).then(function(formattedProperty, formattedValue) {
-          return HTML_TEMPLATES.qualifierHtml
+          return ps.templates.qualifierHtml
             .replace(/\{\{qualifier-property-html\}\}/g, formattedProperty)
             .replace(/\{\{qualifier-object\}\}/g, formattedValue);
         });
@@ -169,22 +169,22 @@
             ps.commons.getValueHtml(snak.sourceProperty),
             ps.commons.getValueHtml(snak.sourceObject, snak.sourceProperty)
           ).then(function(formattedProperty, formattedValue) {
-            return ps.template.HTML_TEMPLATES.sourceItemHtml
+            return ps.templates.sourceItemHtml
               .replace(/\{\{source-property-html\}\}/g, formattedProperty)
               .replace(/\{\{source-object\}\}/g, formattedValue);
           });
         });
 
         return $.when.apply($, sourceItemsPromises).then(function() {
-          return ps.template.HTML_TEMPLATES.sourceHtml
-            .replace(/\{\{data-source\}\}/g, escapeHtml(JSON.stringify(source)))
+          return ps.templates.sourceHtml
+            .replace(/\{\{data-source\}\}/g, ps.itemCuration.escapeHtml(JSON.stringify(source)))
             .replace(/\{\{data-property\}\}/g, property)
-            .replace(/\{\{data-object\}\}/g, escapeHtml(object.object))
+            .replace(/\{\{data-object\}\}/g, ps.itemCuration.escapeHtml(object.object))
             .replace(/\{\{data-dataset\}\}/g, object.dataset)
             .replace(/\{\{statement-id\}\}/g, source[0].sourceId)
             .replace(/\{\{source-html\}\}/g,
               Array.prototype.slice.call(arguments).join(''))
-            .replace(/\{\{data-qualifiers\}\}/g, escapeHtml(JSON.stringify(
+            .replace(/\{\{data-qualifiers\}\}/g, ps.itemCuration.escapeHtml(JSON.stringify(
               object.qualifiers)));
         });
       });
@@ -202,13 +202,13 @@
     },
     getStatementHtml: function getStatementHtml(property, object) {
         return $.when(
-          getQualifiersHtml(object.qualifiers),
-          getSourcesHtml(object.sources, property, object),
+          ps.itemCuration.getQualifiersHtml(object.qualifiers),
+          ps.itemCuration.getSourcesHtml(object.sources, property, object),
           ps.commons.getValueHtml(object.object, property)
         ).then(function(qualifiersHtml, sourcesHtml, formattedValue) {
-          return ps.template.HTML_TEMPLATES.statementViewHtml
+          return ps.templates.statementViewHtml
             .replace(/\{\{object\}\}/g, formattedValue)
-            .replace(/\{\{data-object\}\}/g, escapeHtml(object.object))
+            .replace(/\{\{data-object\}\}/g, ps.itemCuration.escapeHtml(object.object))
             .replace(/\{\{data-property\}\}/g, property)
             .replace(/\{\{references\}\}/g,
               object.sources.length === 1 ?
@@ -218,9 +218,9 @@
             .replace(/\{\{qualifiers\}\}/g, qualifiersHtml)
             .replace(/\{\{statement-id\}\}/g, object.id)
             .replace(/\{\{data-dataset\}\}/g, object.dataset)
-            .replace(/\{\{data-qualifiers\}\}/g, escapeHtml(JSON.stringify(
+            .replace(/\{\{data-qualifiers\}\}/g, ps.itemCuration.escapeHtml(JSON.stringify(
               object.qualifiers)))
-            .replace(/\{\{data-sources\}\}/g, escapeHtml(JSON.stringify(
+            .replace(/\{\{data-sources\}\}/g, ps.itemCuration.escapeHtml(JSON.stringify(
               object.sources)));
         });
     },
@@ -252,7 +252,7 @@
       });
     },
     createNewSources: function createNewSources(sources, property, object, statementId) {
-      getSourcesHtml(sources, property, object).then(function(html) {
+      ps.itemCuration.getSourcesHtml(sources, property, object).then(function(html) {
         var fragment = document.createDocumentFragment();
         var child = document.createElement('div');
         child.innerHTML = html;
@@ -312,7 +312,7 @@
         }).length > 0;
       });
 
-      return createNewSources(
+      return ps.itemCuration.createNewSources(
         object.sources,
         property,
         object,
@@ -320,7 +320,7 @@
       );
     },
     createNewStatement: function createNewStatement(property, object) {
-      getStatementHtml(property, object).then(function(html) {
+      ps.itemCuration.getStatementHtml(property, object).then(function(html) {
         var fragment = document.createDocumentFragment();
         var child = document.createElement('div');
         child.innerHTML = html;
@@ -371,13 +371,13 @@
         .querySelector('.wikibase-statementgrouplistview')
         .querySelector('.wikibase-listview');
       var statementPromises = newClaim.objects.map(function(object) {
-        return getStatementHtml(newClaim.property, object);
+        return ps.itemCuration.getStatementHtml(newClaim.property, object);
       });
 
       ps.commons.getValueHtml(newClaim.property).done(function(propertyHtml) {
         $.when.apply($, statementPromises).then(function() {
           var statementViewsHtml = Array.prototype.slice.call(arguments).join('');
-          var mainHtml = ps.template.HTML_TEMPLATES.mainHtml
+          var mainHtml = ps.templates.mainHtml
             .replace(/\{\{statement-views\}\}/g, statementViewsHtml)
             .replace(/\{\{property\}\}/g, newClaim.property)
             .replace(/\{\{data-property\}\}/g, newClaim.property)
@@ -423,12 +423,12 @@
                 // No source, duplicate statement
                 ps.commons.setStatementState(freebaseObject.id, ps.globals.STATEMENT_STATES.duplicate, freebaseObject.dataset, 'claim')
                   .done(function() {
-                    ps.globals.debug.log('Automatically duplicate statement ' +
+                    ps.commons.debug.log('Automatically duplicate statement ' +
                       freebaseObject.id);
                   });
               } else {
                 // maybe new sources
-                prepareNewSources(
+                ps.itemCuration.prepareNewSources(
                   property,
                   freebaseObject,
                   existingWikidataObjects[freebaseKey]
@@ -443,10 +443,10 @@
                 if (wikidataObject.mainsnak.snaktype === 'value' &&
                   ps.commons.jsonToTsvValue(wikidataObject.mainsnak.datavalue) === freebaseObject.object) {
                   isDuplicate = true;
-                  ps.globals.debug.log('Duplicate found! ' + property + ':' + freebaseObject.object);
+                  ps.commons.debug.log('Duplicate found! ' + property + ':' + freebaseObject.object);
 
                   // Add new sources to existing statement
-                  prepareNewSources(
+                  ps.itemCuration.prepareNewSources(
                     property,
                     freebaseObject,
                     wikidataObject
@@ -465,7 +465,7 @@
       }
       for (var property in newClaims) {
         var claims = newClaims[property];
-        ps.globals.debug.log('New claim ' + property);
+        ps.commons.debug.log('New claim ' + property);
         createNewClaim(property, claims);
       }
     },
@@ -532,7 +532,7 @@
                     // The back end approves everything
                     ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'reference')
                       .done(function() {
-                        ps.globals.debug.log('Approved referenced claim [' + sourceQuickStatement + ']');
+                        ps.commons.debug.log('Approved referenced claim [' + sourceQuickStatement + ']');
                         if (data.pageinfo && data.pageinfo.lastrevid) {
                           document.location.hash = 'revision=' +
                             data.pageinfo.lastrevid;
@@ -552,7 +552,7 @@
                     // The back end approves everything
                     ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'reference')
                       .done(function() {
-                        ps.globals.debug.log('Approved referenced claim [' + sourceQuickStatement + ']');
+                        ps.commons.debug.log('Approved referenced claim [' + sourceQuickStatement + ']');
                         if (data.pageinfo && data.pageinfo.lastrevid) {
                           document.location.hash = 'revision=' +
                             data.pageinfo.lastrevid;
@@ -566,7 +566,7 @@
           // Reference rejection
           else if (classList.contains('f2w-reject')) {
             ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.rejected, dataset, 'reference').done(function() {
-              ps.globals.debug.log('Rejected referenced claim [' + sourceQuickStatement + ']');
+              ps.commons.debug.log('Rejected referenced claim [' + sourceQuickStatement + ']');
               return document.location.reload();
             });
           }
@@ -622,7 +622,7 @@
         (document.location.search.indexOf('&action=history') !== -1)) {
       return 0;
     }
-    var qid = mw.ps.itemCuration.getQid();
+    qid = mw.ps.itemCuration.getQid();
     if (!qid) {
       return ps.commons.debug.log('Did not manage to load the QID.');
     }
