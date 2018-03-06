@@ -773,7 +773,7 @@
                             ps.commons.debug.log('Encountered blacklisted reference URL ' + url);
                             var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.key;
                             (function (currentId, currentUrl) {
-                                ps.commons.setStatementState(currentId, commons.STATEMENT_STATES.blacklisted, dataset, 'reference')
+                                ps.commons.setStatementState(currentId, ps.commons.STATEMENT_STATES.blacklisted, dataset, 'reference')
                                     .done(function () {
                                         ps.commons.debug.log('Automatically blacklisted statement ' +
                                             currentId + ' with blacklisted reference URL ' +

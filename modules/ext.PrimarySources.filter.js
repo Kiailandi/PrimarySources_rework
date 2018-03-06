@@ -35,9 +35,9 @@
             numberOfSource = this.statement.source.length;
             numberOfQualifier = this.statement.qualifiers.length;
 
-            console.log("2");
+            console.log("ST ROW");
             console.log(this.statement);
-            
+
             // TODO verificare StatementRow
             var htmlCallbacks = [
                 ps.commons.getValueHtml(this.statement.subject), //0
@@ -45,16 +45,12 @@
                 ps.commons.getValueHtml(this.statement.object, this.statement.predicate) //2
             ];
 
-            console.log("3");
-
             this.statement.qualifiers.forEach(function(qualifier) {
                 htmlCallbacks.push(ps.commons.getValueHtml(qualifier.qualifierProperty));
                 htmlCallbacks.push(
                     ps.commons.getValueHtml(qualifier.qualifierObject, qualifier.qualifierProperty)
                 );
             });
-
-            console.log("4");
 
             // Add reference to table
             this.statement.source.forEach(function(source){
@@ -230,6 +226,8 @@
             console.log("S P O: ");
             console.log(widget.statement.subject + " - " + widget.statement.predicate + " - " + widget.statement.object);
 
+            // Get claims for item with ID 'widget.statement.subject' and property with ID 'widget.statement.predicate'
+            // https://www.wikidata.org/w/api.php?action=help&modules=wbgetclaims
             console.log("API CALL");
             $.ajax( {
                 url: 'https://www.wikidata.org/w/api.php',
@@ -248,8 +246,8 @@
 
                 var existingClaims = data['claims'];
                 if ( Object.keys(existingClaims).length > 0 ) {
-                    // there are already some claim with this property
 
+                    // there are already some claim with this property
                     console.log("Existing claims");
                     console.log(existingClaims);
 
@@ -264,11 +262,9 @@
                             console.log("Duplicato ma guarda i qualif e le ref");
                             console.log(widget.statement.object + " -> Nuovo: " + existingObj);
 
-
                             // se ha qualificatori aggiungilo come nuovo
                             console.log(widget.statement.qualifiers);
                             console.log(existingValues[c].qualifiers);
-
 
                             for (var z = 0; z < widget.statement.qualifiers.length; z++) {
                                 // puo essere undefined se non esiste un qulif con quella prop
@@ -292,6 +288,7 @@
                 } else {
                     // in this item there are not claim with this property
                     // create a new claim (new prop)
+                    //
                 }
             });
 
@@ -624,7 +621,7 @@
                 this.initTable();
             }
 
-            console.log("Statements");
+            console.log("Statements nella tabella");
             console.log(statements);
 
             // Create row for the table
@@ -640,21 +637,24 @@
                     return; // Don't display twice the same statement
                 }
                 widget.alreadyDisplayedStatementKeys[statement.key] = true;
-
-                // Append row only if there is the subject
-                if (statement.subject.length !== 0) {
-                    var row = new StatementRow({
-                        statement: statement
-                    });
-                    widget.table.append(row.$element);
-                }
-
             });
 
 
+            for (var i = 0; i < statements.length; i++) {
+                if (statements[i].subject.length > 0) {
+                    console.log("Ok");
+                    console.log(statements[i]);
+                        //     var row = new StatementRow({
+                        //         statement: statement
+                        //     });
+                        //     widget.table.append(row.$element);
+                } else {
+                    console.log("Broken claim!");
+                    console.log(statements[i]);
+                }
+            }
+
             //testDuplicate(statements[1]); //Q1000070
-
-
         };
 
         ListDialog.prototype.initTable = function() {
@@ -699,8 +699,7 @@
     * @param parameters
     * @returns {*}
     */
-  function searchStatements(parameters) {
-
+   function searchStatements(parameters) {
        // TODO API SPARQL
        // TODO DOMAIN OF INTEREST
        // TODO convert to flexbox as https://codepen.io/afnecors/pen/wPRZRj
@@ -709,7 +708,9 @@
            $.ajax({
                url: ps.globals.API_ENDPOINTS.SEARCH_SERVICE,
                data: parameters
-           }).then(function(data) { return data; }),
+           }).then(function(data) {
+               return data;
+           }),
            ps.commons.getBlacklistedSourceUrls()
        ).then(
            function (data, blacklistedSourceUrls) {
@@ -723,7 +724,7 @@
        );
    }
 
-  function test() {
+   function test() {
       // 1 oggetto
 // https://www.wikidata.org/w/api.php?action=wbgetclaims&entity=Q153832&property=P18&format=json
       var ogg = {"claims":{"P18":[{"mainsnak":{"snaktype":"value","property":"P18","hash":"e1e165b33690b67a57d6c11a7c573aa17a027044","datavalue":{"value":"Alcide de Gasperi 2.jpg","type":"string"},"datatype":"commonsMedia"},"type":"statement","id":"Q153832$B43D86B2-97F0-493F-8AD9-F2748A79E910","rank":"normal"}]}};
@@ -750,6 +751,6 @@
       console.log(ps.commons.jsonToTsvValue(oggData.claims["P570"][0].mainsnak.datavalue));
   }
 
-  mw.ps = ps;
+   mw.ps = ps;
   
 })( mediaWiki, jQuery );
