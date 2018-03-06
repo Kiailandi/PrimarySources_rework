@@ -152,7 +152,7 @@
           getValueHtml(qualifier.qualifierProperty),
           getValueHtml(qualifier.qualifierObject, qualifier.qualifierProperty)
         ).then(function(formattedProperty, formattedValue) {
-          return HTML_TEMPLATES.qualifierHtml
+          return ps.templates.qualifierHtml
             .replace(/\{\{qualifier-property-html\}\}/g, formattedProperty)
             .replace(/\{\{qualifier-object\}\}/g, formattedValue);
         });
@@ -169,14 +169,14 @@
             ps.commons.getValueHtml(snak.sourceProperty),
             ps.commons.getValueHtml(snak.sourceObject, snak.sourceProperty)
           ).then(function(formattedProperty, formattedValue) {
-            return ps.templates.HTML_TEMPLATES.sourceItemHtml
+            return ps.templates.sourceItemHtml
               .replace(/\{\{source-property-html\}\}/g, formattedProperty)
               .replace(/\{\{source-object\}\}/g, formattedValue);
           });
         });
 
         return $.when.apply($, sourceItemsPromises).then(function() {
-          return ps.templates.HTML_TEMPLATES.sourceHtml
+          return ps.templates.sourceHtml
             .replace(/\{\{data-source\}\}/g, escapeHtml(JSON.stringify(source)))
             .replace(/\{\{data-property\}\}/g, property)
             .replace(/\{\{data-object\}\}/g, escapeHtml(object.object))
@@ -206,7 +206,7 @@
           ps.itemCuration.getSourcesHtml(object.sources, property, object),
           ps.commons.getValueHtml(object.object, property)
         ).then(function(qualifiersHtml, sourcesHtml, formattedValue) {
-          return ps.templates.HTML_TEMPLATES.statementViewHtml
+          return ps.templates.statementViewHtml
             .replace(/\{\{object\}\}/g, formattedValue)
             .replace(/\{\{data-object\}\}/g, ps.itemCuration.escapeHtml(object.object))
             .replace(/\{\{data-property\}\}/g, property)
@@ -312,7 +312,7 @@
         }).length > 0;
       });
 
-      return createNewSources(
+      return ps.itemCuration.createNewSources(
         object.sources,
         property,
         object,
@@ -377,7 +377,7 @@
       ps.commons.getValueHtml(newClaim.property).done(function(propertyHtml) {
         $.when.apply($, statementPromises).then(function() {
           var statementViewsHtml = Array.prototype.slice.call(arguments).join('');
-          var mainHtml = ps.templates.HTML_TEMPLATES.mainHtml
+          var mainHtml = ps.templates.mainHtml
             .replace(/\{\{statement-views\}\}/g, statementViewsHtml)
             .replace(/\{\{property\}\}/g, newClaim.property)
             .replace(/\{\{data-property\}\}/g, newClaim.property)
