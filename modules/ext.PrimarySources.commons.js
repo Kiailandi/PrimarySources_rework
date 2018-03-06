@@ -355,7 +355,7 @@
                 whitelist.timestamp = 0;
               }
               if (now - whitelist.timestamp < ps.globals.CACHE_EXPIRY) {
-                debug.log('Using cached source URL whitelist');
+                ps.commons.debug.log('Using cached source URL whitelist');
                 return $.Deferred().resolve(whitelist.data);
               }
             }
