@@ -751,7 +751,7 @@
 
         ListDialog.prototype.onNextButtonSubmit = function () {
             this.nextStatementsButton.$element.remove();
-            this.executeQuery();
+            this.executeSparqlQuery();
         };
 
         /**
