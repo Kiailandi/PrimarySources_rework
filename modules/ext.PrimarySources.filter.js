@@ -329,7 +329,7 @@
                         if (data.hasOwnProperty(ds)) {
                             var entities = data[ds];
                             entities.forEach(function (id) {
-                                getEntityLabel(id)
+                                ps.commons.getEntityLabel(id)
                                     .then(function (label) {
                                         if (label.includes(value)) {
                                             suggestions[id] = label;
@@ -646,9 +646,9 @@
             } else {
 
                 var correct_query = searchSparqlQuery;
-                if (this.valueInput.getValue().length > 0) {
+                if (this.entityValueInput.getValue().length > 0) {
                     correct_query = searchWithValueSparqlQuery;
-                    correct_query = correct_query.replace(/\{\{VALUE\}\}/g, + this.valueInput.getValue());
+                    correct_query = correct_query.replace(/\{\{VALUE\}\}/g, + this.entityValueInput.getValue());
                 }
 
                 if (this.propertyInput.getValue().length > 0) {

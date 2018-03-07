@@ -104,7 +104,6 @@
         return urlFormatterCache[property];
     }    
 
-    // Only called by getValueHtml
     function _getEntityLabel(entityId) {
         if (!(entityId in entityLabelCache)) {
             loadEntityLabels([entityId]);

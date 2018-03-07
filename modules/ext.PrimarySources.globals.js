@@ -24,7 +24,7 @@
             CURATE_SERVICE: BASE_URI + 'curate',
             SEARCH_SERVICE: BASE_URI + 'search',
             PROPERTIES_SERVICE: BASE_URI + 'properties',
-            VALUES_SERVICE = BASE_URI + 'values',
+            VALUES_SERVICE: BASE_URI + 'values',
             SPARQL_SERVICE: BASE_URI + 'sparql',
             SOURCE_URL_BLACKLIST: 'https://wikidata-pst.wmflabs.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_blacklist',
             SOURCE_URL_WHITELIST: 'https://wikidata-pst.wmflabs.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Wikidata:Primary_sources_tool/URL_whitelist',
