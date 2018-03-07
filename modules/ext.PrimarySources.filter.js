@@ -13,6 +13,7 @@
 
     var ps = mw.ps || {};
 
+    /* BEGIN: baked SPARQL queries */
     var searchSparqlQuery = '   SELECT *   ' +
         '   WHERE {  ' +
         '     GRAPH {{DATASET}} {  ' +
@@ -40,7 +41,8 @@
         '   }  ' +
         '   OFFSET {{OFFSET}}  ' +
         '  LIMIT {{LIMIT}}  ';
-
+    var subjectsSparqlQuery = "SELECT ?subject WHERE { ?subject a wikibase:Item } OFFSET {{offset}} LIMIT {{limit}}";
+    /* END: baked SPARQL queries */
 
     function _listDialog(windowManager, button) {
         /**
@@ -546,7 +548,7 @@
             var widget = this;
 
             /**
-             * Dataset dropdown
+             * Dataset menu
              * @type {OO.ui.DropdownInputWidget}
              */
             this.datasetInput = new OO.ui.DropdownInputWidget();
@@ -561,16 +563,23 @@
             });
 
             /**
-             * Property field
-             * @type {OO.ui.TextInputWidget}
+             * Baked filters menu
+             * @type {OO.iu.DropdownWidget}
              */
-            this.propertyInput = new AutocompleteWidget({
-                service: ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE,
-                placeholder: 'Type a property like "date of birth"',
+            this.bakedFilters = new OO.ui.DropdownWidget({
+                label: 'Pick a baked filter',
+                menu: {
+                    items: [
+                        new OO.ui.MenuOptionWidget({
+                            data: subjectsSparqlQuery,
+                            label: 'All subject items'          
+                        })
+                    ]
+                }
             });
 
             /**
-             * Value field
+             * Entity value autocompletion
              * @type {OO.ui.TextInputWidget}
              */
             this.entityValueInput = new AutocompleteWidget({
@@ -579,8 +588,17 @@
             });
 
             /**
-             * Sparql query field
+             * Property autocompletion
              * @type {OO.ui.TextInputWidget}
+             */
+            this.propertyInput = new AutocompleteWidget({
+                service: ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE,
+                placeholder: 'Type a property like "date of birth"',
+            });
+
+            /**
+             * Arbitrary SPARQL query input
+             * @type {OO.ui.MultilineTextInputWidget}
              */
             this.sparqlQuery = new OO.ui.MultilineTextInputWidget({
                 placeholder: 'Browse suggestions with SPARQL',
@@ -596,11 +614,11 @@
 
             var fieldset = new OO.ui.FieldsetLayout({
                 label: 'Filters',
-                classes: ['container'],
-                help: new OO.ui.HtmlSnippet('TODO help')
+                classes: ['container']
             });
             fieldset.addItems([
                 new OO.ui.FieldLayout(this.datasetInput, { label: 'Dataset' }),
+                new OO.ui.FieldLayout(this.bakedFilters, { label: 'Baked filters' }),
                 new OO.ui.FieldLayout(this.entityValueInput, { label: 'Entity of interest' }),
                 new OO.ui.FieldLayout(this.propertyInput, { label: 'Property of interest' }),
                 new OO.ui.FieldLayout(this.sparqlQuery, { label: 'SPARQL query' }),
@@ -637,9 +655,14 @@
         ListDialog.prototype.onOptionSubmit = function () {
             this.mainPanel.$element.empty();
             this.table = null;
+            var baked = this.bakedFilters.findSelectedItem();
             var sparql = this.sparqlQuery.getValue();
 
-            if (sparql !== '') {
+            if (baked !== null) {
+                this.sparql = baked.getData();
+                this.executeSparqlQuery();
+            }
+            else if (sparql !== '') {
                 // Use SPARQL endpoint
                 this.sparql = sparql;
                 this.executeSparqlQuery();
