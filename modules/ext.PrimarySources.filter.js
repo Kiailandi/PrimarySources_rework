@@ -655,11 +655,13 @@
         ListDialog.prototype.onOptionSubmit = function () {
             this.mainPanel.$element.empty();
             this.table = null;
-            var baked = this.bakedFilters.findSelectedItem();
+            var baked = this.bakedFilters.getMenu().findSelectedItem();
             var sparql = this.sparqlQuery.getValue();
 
             if (baked !== null) {
-                this.sparql = baked.getData();
+                this.sparql = baked.getData()
+                this.sparqlOffset = 0;
+                this.sparqlLimit = 100;
                 this.executeSparqlQuery();
             }
             else if (sparql !== '') {
@@ -833,10 +835,27 @@
             // run SPARQL query
             $.get(
                 ps.globals.API_ENDPOINTS.SPARQL_SERVICE,
-                { query: widget.sparql },
+                { query: widget.sparql
+                    .replace('{{offset}}', widget.sparqlOffset)
+                    .replace('{{limit}}', widget.sparqlLimit)
+                },
                 function (data) {
                     progressBar.$element.remove();
+                    // paging
+                    widget.sparqlOffset += widget.sparqlLimit;
                     widget.displaySparqlResult(data.head.vars, data.results.bindings);
+                    if (data.hasOwnProperty('results')) {
+                        widget.nextStatementsButton = new OO.ui.ButtonWidget({
+                            label: 'Load more'
+                        });
+                        widget.nextStatementsButton.connect(
+                            widget,
+                            { click: 'onNextButtonSubmit' }
+                        );
+                        widget.mainPanel.$element.append(
+                            widget.nextStatementsButton.$element
+                        );
+                    }
                 },
                 'json'
             )
