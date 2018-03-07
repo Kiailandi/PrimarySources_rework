@@ -13,33 +13,33 @@
 
     var ps = mw.ps || {};
 
-    var sparql_search =  '   SELECT *   '  +
-        '   WHERE {  '  +
-        '     GRAPH {{DATASET}} {  '  +
-        '       ?subject a wikibase:Item ;  '  +
-        '                  {{PROPERTY}} ?statement_node .  '  +
-        '       ?statement_node ?statement_property ?statement_value .  '  +
-        '       OPTIONAL {  '  +
-        '         ?statement_value ?reference_property ?reference_value .  '  +
-        '       }  '  +
-        '     }  '  +
-        '   }  '  +
-        '   OFFSET {{OFFSET}}  '  +
-        '  LIMIT {{LIMIT}}  ' ;
+    var searchSparqlQuery = '   SELECT *   ' +
+        '   WHERE {  ' +
+        '     GRAPH {{DATASET}} {  ' +
+        '       ?subject a wikibase:Item ;  ' +
+        '                  {{PROPERTY}} ?statement_node .  ' +
+        '       ?statement_node ?statement_property ?statement_value .  ' +
+        '       OPTIONAL {  ' +
+        '         ?statement_value ?reference_property ?reference_value .  ' +
+        '       }  ' +
+        '     }  ' +
+        '   }  ' +
+        '   OFFSET {{OFFSET}}  ' +
+        '  LIMIT {{LIMIT}}  ';
 
-    var sparql_search_with_value =  '   SELECT *  '  +
-        '   WHERE {  '  +
-        '     GRAPH {{DATASET}} {  '  +
-        '       ?subject a wikibase:Item ;  '  +
-        '                  {{PROPERTY}} ?statement_node .  '  +
-        '       { SELECT ?statement_node WHERE { ?statement_node ?statement_property wd:{{VALUE}} . } }   '  +
-        '       ?statement_node ?statement_property ?statement_value .  '  +
-        '       OPTIONAL {  '  +
-        '         ?statement_value ?reference_property ?reference_value .}  '  +
-        '     }  '  +
-        '   }  '  +
-        '   OFFSET {{OFFSET}}  '  +
-        '  LIMIT {{LIMIT}}  ' ;
+    var searchWithValueSparqlQuery = '   SELECT *  ' +
+        '   WHERE {  ' +
+        '     GRAPH {{DATASET}} {  ' +
+        '       ?subject a wikibase:Item ;  ' +
+        '                  {{PROPERTY}} ?statement_node .  ' +
+        '       { SELECT ?statement_node WHERE { ?statement_node ?statement_property wd:{{VALUE}} . } }   ' +
+        '       ?statement_node ?statement_property ?statement_value .  ' +
+        '       OPTIONAL {  ' +
+        '         ?statement_value ?reference_property ?reference_value .}  ' +
+        '     }  ' +
+        '   }  ' +
+        '   OFFSET {{OFFSET}}  ' +
+        '  LIMIT {{LIMIT}}  ';
 
 
     function _listDialog(windowManager, button) {
@@ -167,13 +167,13 @@
                     label: 'Approve',
                     flags: 'constructive'
                 });
-                approveButton.connect(widget, {click: 'approve'});
+                approveButton.connect(widget, { click: 'approve' });
 
                 var rejectButton = new OO.ui.ButtonWidget({
                     label: 'Reject',
                     flags: 'destructive'
                 });
-                rejectButton.connect(widget, {click: 'reject'});
+                rejectButton.connect(widget, { click: 'reject' });
 
                 var buttonGroup = new OO.ui.ButtonGroupWidget({
                     items: [approveButton, rejectButton]
@@ -222,15 +222,15 @@
                         for (var i in statements) {
                             ps.commons.buildValueKeysFromWikidataStatement(statements[i]);
                             if ($.inArray(
-                                    widget.statement.key,
-                                    ps.commons.buildValueKeysFromWikidataStatement(statements[i])
-                                ) !== -1) {
+                                widget.statement.key,
+                                ps.commons.buildValueKeysFromWikidataStatement(statements[i])
+                            ) !== -1) {
                                 widget.toggle(false).setDisabled(true);
                                 if (widget.statement.source.length === 0) {
                                     ps.commons.setStatementState(widget.statement.id,
                                         ps.globals.STATEMENT_STATES.duplicate).done(function () {
-                                        ps.commons.debug.log(widget.statement.id + ' tagged as duplicate');
-                                    });
+                                            ps.commons.debug.log(widget.statement.id + ' tagged as duplicate');
+                                        });
                                 }
                             }
                         }
@@ -239,6 +239,152 @@
         }
         OO.inheritClass(StatementRow, OO.ui.Widget);
         StatementRow.static.tagName = 'tbody';
+
+        function SparqlResultRow(headers, bindings) {
+            SparqlResultRow.super.call(this, headers, bindings);
+            var cells = [];
+            headers.forEach(function (header) {
+                var cell = $('<td>');
+                var value, valueType;
+                // Handle empty values in case of OPTIONAL clauses
+                if (bindings.hasOwnProperty(header)) {
+                    value = bindings[header].value;
+                    valueType = bindings[header].type;
+                } else {
+                    value = null;
+                    valueType = null;
+                }
+                // Empty cell
+                if (value === null) {
+                    cells.push(cell);
+                }
+                // Entities: format linked labels
+                else if (valueType === 'uri' && /[QP]\d+$/.test(value)) {
+                    ps.commons.getEntityLabel(value.split('/').pop())
+                        .then(function (label) {
+                            cell.append(
+                                $('<a>')
+                                    .attr('href', value)
+                                    .text(label)
+                            );
+                        });
+                    cells.push(cell);
+                }
+                // URIs: make a link
+                else if (valueType === 'uri') {
+                    var label;
+                    // Mint readable labels based on expected namespaces
+                    if (value === 'http://www.w3.org/ns/prov#wasDerivedFrom') {
+                        label = 'RDF reference property';
+                    } else if (value === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type') {
+                        label = 'RDF type';
+                    } else if (value.startsWith('http://www.wikidata.org/entity/statement/')) {
+                        label = 'RDF statement node';
+                    } else if (value.startsWith('http://www.wikidata.org/reference/')) {
+                        label = 'RDF reference node';
+                    } else {
+                        label = value;
+                    }
+                    cell.append(
+                        $('<a>')
+                            .attr('href', value)
+                            .text(label)
+                    );
+                    cells.push(cell);
+                }
+                // Literals: return as is
+                else {
+                    cell.text(value);
+                    cells.push(cell);
+                }
+            });
+            this.$element.append(
+                $('<tr>').append(cells)
+            );
+        }
+        OO.inheritClass(SparqlResultRow, OO.ui.Widget);
+        SparqlResultRow.static.tagName = 'tbody';
+
+        function AutocompleteWidget(config) {
+            OO.ui.SearchInputWidget.call(this, config);
+            OO.ui.mixin.LookupElement.call(this, config);
+            // The Web service returning autocompletion suggestions
+            this.service = config.service;
+        };
+        OO.inheritClass(AutocompleteWidget, OO.ui.SearchInputWidget);
+        OO.mixinClass(AutocompleteWidget, OO.ui.mixin.LookupElement);
+
+        /**
+         * @inheritdoc
+         */
+        AutocompleteWidget.prototype.getLookupRequest = function () {
+            var value = this.getValue();
+            var deferred = $.Deferred();
+            var suggestions = {};
+
+            $.get(
+                this.service,
+                function (data) {
+                    for (var ds in data) {
+                        if (data.hasOwnProperty(ds)) {
+                            var entities = data[ds];
+                            entities.forEach(function (id) {
+                                getEntityLabel(id)
+                                    .then(function (label) {
+                                        if (label.includes(value)) {
+                                            suggestions[id] = label;
+                                        }
+                                    });
+                            });
+                        }
+                    }
+                    deferred.resolve(suggestions);
+                }
+            )
+                .fail(function (xhr, textStatus) {
+                    reportError('Could not retrieve suggestions for autocompletion');
+                    deferred.reject(textStatus);
+                })
+            return deferred.promise({ abort: function () { } });
+        };
+
+        /**
+         * @inheritdoc
+         */
+        AutocompleteWidget.prototype.getLookupCacheDataFromResponse = function (response) {
+            return response || {};
+        };
+
+        /**
+         * @inheritdoc
+         */
+        AutocompleteWidget.prototype.getLookupMenuOptionsFromData = function (data) {
+            var items = [];
+            for (var id in data) {
+                if (data.hasOwnProperty(id)) {
+                    var label = data[id];
+                    items.push(new OO.ui.MenuOptionWidget({
+                        data: id,
+                        label: label
+                    }))
+                }
+            }
+            return items;
+        };
+
+        /*
+         * The method implemented in OO.ui.mixin.LookupElement sets the value of the input widget to the DATA of the chosen element.
+         * Set it to the LABEL instead (and properly set the data).
+         * Also ensure the lookup menu is not displayed again when the value is set.
+         * See https://doc.wikimedia.org/oojs-ui/master/js/#!/api/OO.ui.mixin.LookupElement
+         */
+        AutocompleteWidget.prototype.onLookupMenuItemChoose = function (item) {
+            this.setLookupsDisabled(true);
+            this
+                .setValue(item.getLabel())
+                .setData(item.getData());
+            this.setLookupsDisabled(false);
+        };
 
         /**
          * On button click "Approve"
@@ -388,10 +534,10 @@
 
         OO.inheritClass(ListDialog, OO.ui.ProcessDialog);
         ListDialog.static.name = 'ps-list';
-        ListDialog.static.title = 'Primary Sources statement filter';
-        ListDialog.static.size = 'larger';
+        ListDialog.static.title = 'primary sources filter';
+        ListDialog.static.size = 'full';
         ListDialog.static.actions = [
-            {label: 'Close', flags: 'safe'}
+            { label: 'Close', flags: 'safe' }
         ];
 
         ListDialog.prototype.initialize = function () {
@@ -405,10 +551,10 @@
              */
             this.datasetInput = new OO.ui.DropdownInputWidget();
             ps.commons.getDatasets(function (datasets) {
-                var options = [{data: '', label: 'All sources'}];
+                var options = [{ data: '', label: 'All sources' }];
                 datasets.forEach(function (item) {
-                    var uri = item['dataset'];
-                    options.push({data: uri, label: ps.commons.datasetUriToLabel(uri)});
+                    var uri = item.dataset;
+                    options.push({ data: uri, label: ps.commons.datasetUriToLabel(uri) });
                 });
                 widget.datasetInput.setOptions(options)
                     .setValue(ps.globals.DATASET);
@@ -418,35 +564,27 @@
              * Property field
              * @type {OO.ui.TextInputWidget}
              */
-            this.propertyInput = new OO.ui.TextInputWidget({
-                placeholder: 'PXX',
-                validate: /^[pP]\d+$/
+            this.propertyInput = new AutocompleteWidget({
+                service: ps.globals.PROPERTIES_SERVICE,
+                placeholder: 'Type a property like "date of birth"',
             });
 
             /**
              * Value field
              * @type {OO.ui.TextInputWidget}
              */
-            this.valueInput = new OO.ui.TextInputWidget({
-                placeholder: 'Filter by value like item id',
-                id: 'test'
-            });
-
-            /**
-             * Domain of interest field
-             * @type {OO.ui.TextInputWidget}
-             */
-            this.domainOfInterest = new OO.ui.TextInputWidget({
-                placeholder: 'Filter by domain of interest'
+            this.entityValueInput = new AutocompleteWidget({
+                service: VALUES_SERVICE,
+                placeholder: 'Type something you are interested in, like "politician"',
             });
 
             /**
              * Sparql query field
              * @type {OO.ui.TextInputWidget}
              */
-            this.sparqlQuery = new OO.ui.TextInputWidget({
-                placeholder: 'Write your SPARQL query',
-                multiline: true
+            this.sparqlQuery = new OO.ui.MultilineTextInputWidget({
+                placeholder: 'Browse suggestions with SPARQL',
+                autosize: true
             });
 
             var loadButton = new OO.ui.ButtonInputWidget({
@@ -454,18 +592,18 @@
                 flags: 'progressive',
                 type: 'submit'
             });
-            loadButton.connect(this, {click: 'onOptionSubmit'});
+            loadButton.connect(this, { click: 'onOptionSubmit' });
 
             var fieldset = new OO.ui.FieldsetLayout({
-                label: 'Query options',
-                classes: ['container']
+                label: 'Filters',
+                classes: ['container'],
+                help: new OO.ui.HtmlSnippet('TODO help')
             });
             fieldset.addItems([
-                new OO.ui.FieldLayout(this.datasetInput, {label: 'Dataset'}),
-                new OO.ui.FieldLayout(this.propertyInput, {label: 'Property'}),
-                new OO.ui.FieldLayout(this.valueInput, {label: 'Value'}),
-                new OO.ui.FieldLayout(this.domainOfInterest, {label: 'Domain of interest'}),
-                new OO.ui.FieldLayout(this.sparqlQuery, {label: 'SPARQL Query'}),
+                new OO.ui.FieldLayout(this.datasetInput, { label: 'Dataset' }),
+                new OO.ui.FieldLayout(this.entityValueInput, { label: 'Entity of interest' }),
+                new OO.ui.FieldLayout(this.propertyInput, { label: 'Property of interest' }),
+                new OO.ui.FieldLayout(this.sparqlQuery, { label: 'SPARQL query' }),
                 new OO.ui.FieldLayout(loadButton)
             ]);
             var formPanel = new OO.ui.PanelLayout({
@@ -475,20 +613,10 @@
             formPanel.$element.append(fieldset.$element);
 
             // Main panel
-            var alertIcon = new OO.ui.IconWidget({
-                icon: 'alert'
-            });
-            var description = new OO.ui.LabelWidget({
-                label: 'This feature is currently in active development. ' +
-                'It allows to list statements contained in Primary Sources ' +
-                'and do action on them. Statements with qualifiers or sources ' +
-                'are hidden.'
-            });
             this.mainPanel = new OO.ui.PanelLayout({
                 padded: true,
                 scrollable: true
             });
-            this.mainPanel.$element.append(alertIcon.$element, description.$element);
 
             // Final layout
             this.stackLayout = new OO.ui.StackLayout({
@@ -506,20 +634,20 @@
          * property se c'è rimpiazza con p:valore_var altrimenti con ?property
          * se c'è il valore usare un'altra query
          * */
-        ListDialog.prototype.onOptionSubmit = function() {
+        ListDialog.prototype.onOptionSubmit = function () {
             this.mainPanel.$element.empty();
             this.table = null;
             var sparql = this.sparqlQuery.getValue();
 
-            if (sparql !==  '') {
+            if (sparql !== '') {
                 // Use SPARQL endpoint
                 this.sparql = sparql;
                 this.executeSparqlQuery();
             } else {
 
-                var correct_query = sparql_search;
+                var correct_query = searchSparqlQuery;
                 if (this.valueInput.getValue().length > 0) {
-                    correct_query = sparql_search_with_value;
+                    correct_query = searchWithValueSparqlQuery;
                     correct_query = correct_query.replace(/\{\{VALUE\}\}/g, + this.valueInput.getValue());
                 }
 
@@ -556,7 +684,6 @@
             }
         };
 
-
         /**
          * On submit
          */
@@ -588,7 +715,7 @@
                         });
                         widget.nextStatementsButton.connect(
                             widget,
-                            {click: 'onNextButtonSubmit'}
+                            { click: 'onNextButtonSubmit' }
                         );
                         widget.mainPanel.$element.append(
                             widget.nextStatementsButton.$element
@@ -672,7 +799,6 @@
             return window.innerHeight - 100;
         };
 
-
         /**
          * SPARQL
          */
@@ -684,7 +810,7 @@
             // run SPARQL query
             $.get(
                 ps.globals.API_ENDPOINTS.SPARQL_SERVICE,
-                {query: widget.sparql},
+                { query: widget.sparql },
                 function (data) {
                     progressBar.$element.remove();
                     widget.displaySparqlResult(data.head.vars, data.results.bindings);
@@ -742,71 +868,6 @@
             this.mainPanel.$element.append(this.table);
         };
 
-        function SparqlResultRow(headers, bindings) {
-            SparqlResultRow.super.call(this, headers, bindings);
-            var cells = [];
-            headers.forEach(function(header) {
-                var cell = $('<td>');
-                var value, valueType;
-                // Handle empty values in case of OPTIONAL clauses
-                if (bindings.hasOwnProperty(header)) {
-                    value = bindings[header].value;
-                    valueType = bindings[header].type;
-                } else {
-                    value = null;
-                    valueType = null;
-                }
-                // Empty cell
-                if (value === null) {
-                    cells.push(cell);
-                }
-                // Entities: format linked labels
-                else if (valueType === 'uri' && /[QP]\d+$/.test(value)) {
-                    ps.commons.getEntityLabel(value.split('/').pop())
-                        .then(function(label) {
-                            cell.append(
-                                $('<a>')
-                                    .attr('href', value)
-                                    .text(label)
-                            );
-                        });
-                    cells.push(cell);
-                }
-                // URIs: make a link
-                else if (valueType === 'uri') {
-                    var label;
-                    // Mint readable labels based on expected namespaces
-                    if (value === 'http://www.w3.org/ns/prov#wasDerivedFrom') {
-                        label = 'RDF reference property';
-                    } else if (value === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type') {
-                        label = 'RDF type';
-                    } else if (value.startsWith('http://www.wikidata.org/entity/statement/')) {
-                        label = 'RDF statement node';
-                    } else if (value.startsWith('http://www.wikidata.org/reference/')) {
-                        label = 'RDF reference node';
-                    } else {
-                        label = value;
-                    }
-                    cell.append(
-                        $('<a>')
-                            .attr('href', value)
-                            .text(label)
-                    );
-                    cells.push(cell);
-                }
-                // Literals: return as is
-                else {
-                    cell.text(value);
-                    cells.push(cell);
-                }
-            });
-            this.$element.append(
-                $('<tr>').append(cells)
-            );
-        }
-        OO.inheritClass(SparqlResultRow, OO.ui.Widget);
-        SparqlResultRow.static.tagName = 'tbody';
-
         // Add modal to window
         windowManager.addWindows([new ListDialog()]);
 
@@ -854,7 +915,7 @@
 
     function test() {
         // 1 oggetto
-// https://www.wikidata.org/w/api.php?action=wbgetclaims&entity=Q153832&property=P18&format=json
+        // https://www.wikidata.org/w/api.php?action=wbgetclaims&entity=Q153832&property=P18&format=json
         var ogg = {
             "claims": {
                 "P18": [{
@@ -862,15 +923,15 @@
                         "snaktype": "value",
                         "property": "P18",
                         "hash": "e1e165b33690b67a57d6c11a7c573aa17a027044",
-                        "datavalue": {"value": "Alcide de Gasperi 2.jpg", "type": "string"},
+                        "datavalue": { "value": "Alcide de Gasperi 2.jpg", "type": "string" },
                         "datatype": "commonsMedia"
                     }, "type": "statement", "id": "Q153832$B43D86B2-97F0-493F-8AD9-F2748A79E910", "rank": "normal"
                 }]
             }
         };
 
-// 2 oggetto + qualif (1 o +)
-// https://www.wikidata.org/w/api.php?action=wbgetclaims&entity=Q153832&property=P39&format=json
+        // 2 oggetto + qualif (1 o +)
+        // https://www.wikidata.org/w/api.php?action=wbgetclaims&entity=Q153832&property=P39&format=json
         var oggQualif = {
             "claims": {
                 "P39": [{
@@ -879,7 +940,7 @@
                         "property": "P39",
                         "hash": "cb8b4fa5efbf4a072b6f196eb8634c8023139de0",
                         "datavalue": {
-                            "value": {"entity-type": "item", "numeric-id": 3657214, "id": "Q3657214"},
+                            "value": { "entity-type": "item", "numeric-id": 3657214, "id": "Q3657214" },
                             "type": "wikibase-entityid"
                         },
                         "datatype": "wikibase-item"
@@ -913,7 +974,7 @@
                             "property": "P1366",
                             "hash": "65ddc86b27d18b09ed20f929befb0e96d0290266",
                             "datavalue": {
-                                "value": {"entity-type": "item", "numeric-id": 1245, "id": "Q1245"},
+                                "value": { "entity-type": "item", "numeric-id": 1245, "id": "Q1245" },
                                 "type": "wikibase-entityid"
                             },
                             "datatype": "wikibase-item"
@@ -946,7 +1007,7 @@
                                 "property": "P143",
                                 "hash": "5a343e7e758a4282a01316d3e959b6e653b767fc",
                                 "datavalue": {
-                                    "value": {"entity-type": "item", "numeric-id": 11920, "id": "Q11920"},
+                                    "value": { "entity-type": "item", "numeric-id": 11920, "id": "Q11920" },
                                     "type": "wikibase-entityid"
                                 },
                                 "datatype": "wikibase-item"
@@ -960,7 +1021,7 @@
                         "property": "P39",
                         "hash": "2c6ed8aff886577d6268388e6fda2440b06b9a11",
                         "datavalue": {
-                            "value": {"entity-type": "item", "numeric-id": 25160174, "id": "Q25160174"},
+                            "value": { "entity-type": "item", "numeric-id": 25160174, "id": "Q25160174" },
                             "type": "wikibase-entityid"
                         },
                         "datatype": "wikibase-item"
@@ -1004,7 +1065,7 @@
                             "property": "P1365",
                             "hash": "2b3b65ac58f438a23600845599d4ec6ca5cbae5c",
                             "datavalue": {
-                                "value": {"entity-type": "item", "numeric-id": 471315, "id": "Q471315"},
+                                "value": { "entity-type": "item", "numeric-id": 471315, "id": "Q471315" },
                                 "type": "wikibase-entityid"
                             },
                             "datatype": "wikibase-item"
@@ -1025,7 +1086,7 @@
                         "property": "P39",
                         "hash": "9d21b6bca7c3df3837c7c8478f6eb98644b9d1cd",
                         "datavalue": {
-                            "value": {"entity-type": "item", "numeric-id": 27169, "id": "Q27169"},
+                            "value": { "entity-type": "item", "numeric-id": 27169, "id": "Q27169" },
                             "type": "wikibase-entityid"
                         },
                         "datatype": "wikibase-item"
@@ -1036,7 +1097,7 @@
                         "property": "P39",
                         "hash": "c10ff765d41a8b2039c38b303751b408023fe8ff",
                         "datavalue": {
-                            "value": {"entity-type": "item", "numeric-id": 18558478, "id": "Q18558478"},
+                            "value": { "entity-type": "item", "numeric-id": 18558478, "id": "Q18558478" },
                             "type": "wikibase-entityid"
                         },
                         "datatype": "wikibase-item"
@@ -1047,7 +1108,7 @@
                         "property": "P39",
                         "hash": "c03cff8df051428ba1ef308ff9c857a78f963f70",
                         "datavalue": {
-                            "value": {"entity-type": "item", "numeric-id": 26248695, "id": "Q26248695"},
+                            "value": { "entity-type": "item", "numeric-id": 26248695, "id": "Q26248695" },
                             "type": "wikibase-entityid"
                         },
                         "datatype": "wikibase-item"
@@ -1091,7 +1152,7 @@
                             "property": "P1365",
                             "hash": "30febb71c22edcca9eec21fe3b1b64c55a175ff3",
                             "datavalue": {
-                                "value": {"entity-type": "item", "numeric-id": 313717, "id": "Q313717"},
+                                "value": { "entity-type": "item", "numeric-id": 313717, "id": "Q313717" },
                                 "type": "wikibase-entityid"
                             },
                             "datatype": "wikibase-item"
@@ -1101,7 +1162,7 @@
                             "property": "P1366",
                             "hash": "7f3f6b347137639298a6e147197e2ca9c537ce76",
                             "datavalue": {
-                                "value": {"entity-type": "item", "numeric-id": 3734426, "id": "Q3734426"},
+                                "value": { "entity-type": "item", "numeric-id": 3734426, "id": "Q3734426" },
                                 "type": "wikibase-entityid"
                             },
                             "datatype": "wikibase-item"
@@ -1116,7 +1177,7 @@
                         "property": "P39",
                         "hash": "c03cff8df051428ba1ef308ff9c857a78f963f70",
                         "datavalue": {
-                            "value": {"entity-type": "item", "numeric-id": 26248695, "id": "Q26248695"},
+                            "value": { "entity-type": "item", "numeric-id": 26248695, "id": "Q26248695" },
                             "type": "wikibase-entityid"
                         },
                         "datatype": "wikibase-item"
@@ -1160,7 +1221,7 @@
                             "property": "P1365",
                             "hash": "8dd0db73f272506f37a80e19af53da21e55cac5f",
                             "datavalue": {
-                                "value": {"entity-type": "item", "numeric-id": 3734426, "id": "Q3734426"},
+                                "value": { "entity-type": "item", "numeric-id": 3734426, "id": "Q3734426" },
                                 "type": "wikibase-entityid"
                             },
                             "datatype": "wikibase-item"
@@ -1181,7 +1242,7 @@
                         "property": "P39",
                         "hash": "5a587c684e612115991808f0cca3c770351f7175",
                         "datavalue": {
-                            "value": {"entity-type": "item", "numeric-id": 740126, "id": "Q740126"},
+                            "value": { "entity-type": "item", "numeric-id": 740126, "id": "Q740126" },
                             "type": "wikibase-entityid"
                         },
                         "datatype": "wikibase-item"
@@ -1225,7 +1286,7 @@
                             "property": "P1365",
                             "hash": "a08ea209c201dd3a8690ab97b0e738bd117fb688",
                             "datavalue": {
-                                "value": {"entity-type": "item", "numeric-id": 155691, "id": "Q155691"},
+                                "value": { "entity-type": "item", "numeric-id": 155691, "id": "Q155691" },
                                 "type": "wikibase-entityid"
                             },
                             "datatype": "wikibase-item"
@@ -1235,7 +1296,7 @@
                             "property": "P1366",
                             "hash": "0a4fd9c97c82a6f79d359ec1358314245b7a6b66",
                             "datavalue": {
-                                "value": {"entity-type": "item", "numeric-id": 320963, "id": "Q320963"},
+                                "value": { "entity-type": "item", "numeric-id": 320963, "id": "Q320963" },
                                 "type": "wikibase-entityid"
                             },
                             "datatype": "wikibase-item"
@@ -1252,7 +1313,7 @@
                                 "property": "P143",
                                 "hash": "e4f6d9441d0600513c4533c672b5ab472dc73694",
                                 "datavalue": {
-                                    "value": {"entity-type": "item", "numeric-id": 328, "id": "Q328"},
+                                    "value": { "entity-type": "item", "numeric-id": 328, "id": "Q328" },
                                     "type": "wikibase-entityid"
                                 },
                                 "datatype": "wikibase-item"
@@ -1266,7 +1327,7 @@
                         "property": "P39",
                         "hash": "2ed26add50b076ac513ee5fe7b8646328ebc91cc",
                         "datavalue": {
-                            "value": {"entity-type": "item", "numeric-id": 27991492, "id": "Q27991492"},
+                            "value": { "entity-type": "item", "numeric-id": 27991492, "id": "Q27991492" },
                             "type": "wikibase-entityid"
                         },
                         "datatype": "wikibase-item"
@@ -1310,7 +1371,7 @@
                             "property": "P1365",
                             "hash": "9a86e3ff6a604e7d9ebf3a7a4debe8f6f887cd02",
                             "datavalue": {
-                                "value": {"entity-type": "item", "numeric-id": 463243, "id": "Q463243"},
+                                "value": { "entity-type": "item", "numeric-id": 463243, "id": "Q463243" },
                                 "type": "wikibase-entityid"
                             },
                             "datatype": "wikibase-item"
@@ -1320,7 +1381,7 @@
                             "property": "P1366",
                             "hash": "0a4fd9c97c82a6f79d359ec1358314245b7a6b66",
                             "datavalue": {
-                                "value": {"entity-type": "item", "numeric-id": 320963, "id": "Q320963"},
+                                "value": { "entity-type": "item", "numeric-id": 320963, "id": "Q320963" },
                                 "type": "wikibase-entityid"
                             },
                             "datatype": "wikibase-item"
@@ -1337,7 +1398,7 @@
                                 "property": "P143",
                                 "hash": "e4f6d9441d0600513c4533c672b5ab472dc73694",
                                 "datavalue": {
-                                    "value": {"entity-type": "item", "numeric-id": 328, "id": "Q328"},
+                                    "value": { "entity-type": "item", "numeric-id": 328, "id": "Q328" },
                                     "type": "wikibase-entityid"
                                 },
                                 "datatype": "wikibase-item"
@@ -1351,7 +1412,7 @@
                         "property": "P39",
                         "hash": "feb2f4d896d52226a6944399a165c9b5a4d78ee5",
                         "datavalue": {
-                            "value": {"entity-type": "item", "numeric-id": 1541071, "id": "Q1541071"},
+                            "value": { "entity-type": "item", "numeric-id": 1541071, "id": "Q1541071" },
                             "type": "wikibase-entityid"
                         },
                         "datatype": "wikibase-item"
@@ -1395,7 +1456,7 @@
                             "property": "P1365",
                             "hash": "0abe513071704206cc04c5be4097627fc5fc9bfe",
                             "datavalue": {
-                                "value": {"entity-type": "item", "numeric-id": 3771345, "id": "Q3771345"},
+                                "value": { "entity-type": "item", "numeric-id": 3771345, "id": "Q3771345" },
                                 "type": "wikibase-entityid"
                             },
                             "datatype": "wikibase-item"
@@ -1405,7 +1466,7 @@
                             "property": "P1366",
                             "hash": "7342a84e476c44c3289be9a110b360e7fa4261d1",
                             "datavalue": {
-                                "value": {"entity-type": "item", "numeric-id": 367342, "id": "Q367342"},
+                                "value": { "entity-type": "item", "numeric-id": 367342, "id": "Q367342" },
                                 "type": "wikibase-entityid"
                             },
                             "datatype": "wikibase-item"
@@ -1422,7 +1483,7 @@
                                 "property": "P143",
                                 "hash": "e4f6d9441d0600513c4533c672b5ab472dc73694",
                                 "datavalue": {
-                                    "value": {"entity-type": "item", "numeric-id": 328, "id": "Q328"},
+                                    "value": { "entity-type": "item", "numeric-id": 328, "id": "Q328" },
                                     "type": "wikibase-entityid"
                                 },
                                 "datatype": "wikibase-item"
@@ -1436,7 +1497,7 @@
                         "property": "P39",
                         "hash": "b9065b1bcfc19a4d4632b0592e88e7088d6c8f03",
                         "datavalue": {
-                            "value": {"entity-type": "item", "numeric-id": 28798091, "id": "Q28798091"},
+                            "value": { "entity-type": "item", "numeric-id": 28798091, "id": "Q28798091" },
                             "type": "wikibase-entityid"
                         },
                         "datatype": "wikibase-item"
@@ -1480,7 +1541,7 @@
                             "property": "P1365",
                             "hash": "2b3b65ac58f438a23600845599d4ec6ca5cbae5c",
                             "datavalue": {
-                                "value": {"entity-type": "item", "numeric-id": 471315, "id": "Q471315"},
+                                "value": { "entity-type": "item", "numeric-id": 471315, "id": "Q471315" },
                                 "type": "wikibase-entityid"
                             },
                             "datatype": "wikibase-item"
@@ -1496,7 +1557,7 @@
                             "property": "P2868",
                             "hash": "3a554fb09c91f05831eb4c88bfad19007d27b3aa",
                             "datavalue": {
-                                "value": {"entity-type": "item", "numeric-id": 4676846, "id": "Q4676846"},
+                                "value": { "entity-type": "item", "numeric-id": 4676846, "id": "Q4676846" },
                                 "type": "wikibase-entityid"
                             },
                             "datatype": "wikibase-item"
@@ -1511,7 +1572,7 @@
                         "property": "P39",
                         "hash": "a9b283ac7d852d7113160325159892ee5218ede8",
                         "datavalue": {
-                            "value": {"entity-type": "item", "numeric-id": 28798093, "id": "Q28798093"},
+                            "value": { "entity-type": "item", "numeric-id": 28798093, "id": "Q28798093" },
                             "type": "wikibase-entityid"
                         },
                         "datatype": "wikibase-item"
@@ -1567,7 +1628,7 @@
                             "property": "P2868",
                             "hash": "3a554fb09c91f05831eb4c88bfad19007d27b3aa",
                             "datavalue": {
-                                "value": {"entity-type": "item", "numeric-id": 4676846, "id": "Q4676846"},
+                                "value": { "entity-type": "item", "numeric-id": 4676846, "id": "Q4676846" },
                                 "type": "wikibase-entityid"
                             },
                             "datatype": "wikibase-item"
@@ -1582,7 +1643,7 @@
                         "property": "P39",
                         "hash": "3c93757411706187aba78e24a01ec25a4f30bad0",
                         "datavalue": {
-                            "value": {"entity-type": "item", "numeric-id": 33159467, "id": "Q33159467"},
+                            "value": { "entity-type": "item", "numeric-id": 33159467, "id": "Q33159467" },
                             "type": "wikibase-entityid"
                         },
                         "datatype": "wikibase-item"
@@ -1631,7 +1692,7 @@
                         "property": "P39",
                         "hash": "913f8266eb5dadbe25a3140a6420340ea0d7c19d",
                         "datavalue": {
-                            "value": {"entity-type": "item", "numeric-id": 796897, "id": "Q796897"},
+                            "value": { "entity-type": "item", "numeric-id": 796897, "id": "Q796897" },
                             "type": "wikibase-entityid"
                         },
                         "datatype": "wikibase-item"
@@ -1681,7 +1742,7 @@
                             "property": "P1366",
                             "hash": "0a4fd9c97c82a6f79d359ec1358314245b7a6b66",
                             "datavalue": {
-                                "value": {"entity-type": "item", "numeric-id": 320963, "id": "Q320963"},
+                                "value": { "entity-type": "item", "numeric-id": 320963, "id": "Q320963" },
                                 "type": "wikibase-entityid"
                             },
                             "datatype": "wikibase-item"
@@ -1696,7 +1757,7 @@
                         "property": "P39",
                         "hash": "250f56aeb4a77ee6ccf36afad4f457355bdf61b9",
                         "datavalue": {
-                            "value": {"entity-type": "item", "numeric-id": 42744067, "id": "Q42744067"},
+                            "value": { "entity-type": "item", "numeric-id": 42744067, "id": "Q42744067" },
                             "type": "wikibase-entityid"
                         },
                         "datatype": "wikibase-item"
@@ -1705,8 +1766,8 @@
             }
         }
 
-// 3 oggetto + qualif (1 o +) + ref
-// https://www.wikidata.org/w/api.php?action=wbgetclaims&entity=Q153832&property=P166&format=json
+        // 3 oggetto + qualif (1 o +) + ref
+        // https://www.wikidata.org/w/api.php?action=wbgetclaims&entity=Q153832&property=P166&format=json
         var oggQualifRef = {
             "claims": {
                 "P166": [{
@@ -1715,7 +1776,7 @@
                         "property": "P166",
                         "hash": "1556703575edeb908a70a56ae98a6e937e4cc251",
                         "datavalue": {
-                            "value": {"entity-type": "item", "numeric-id": 152337, "id": "Q152337"},
+                            "value": { "entity-type": "item", "numeric-id": 152337, "id": "Q152337" },
                             "type": "wikibase-entityid"
                         },
                         "datatype": "wikibase-item"
@@ -1750,7 +1811,7 @@
                                 "property": "P143",
                                 "hash": "d38375ffe6fe142663ff55cd783aa4df4301d83d",
                                 "datavalue": {
-                                    "value": {"entity-type": "item", "numeric-id": 48183, "id": "Q48183"},
+                                    "value": { "entity-type": "item", "numeric-id": 48183, "id": "Q48183" },
                                     "type": "wikibase-entityid"
                                 },
                                 "datatype": "wikibase-item"
@@ -1777,7 +1838,7 @@
                                 "property": "P407",
                                 "hash": "46bfd327b830f66f7061ea92d1be430c135fa91f",
                                 "datavalue": {
-                                    "value": {"entity-type": "item", "numeric-id": 188, "id": "Q188"},
+                                    "value": { "entity-type": "item", "numeric-id": 188, "id": "Q188" },
                                     "type": "wikibase-entityid"
                                 },
                                 "datatype": "wikibase-item"
@@ -1823,7 +1884,7 @@
                                 "property": "P485",
                                 "hash": "c7cf37a1c07e4f3e1e0a1a702c05b0c4a0e852d6",
                                 "datavalue": {
-                                    "value": {"entity-type": "item", "numeric-id": 648266, "id": "Q648266"},
+                                    "value": { "entity-type": "item", "numeric-id": 648266, "id": "Q648266" },
                                     "type": "wikibase-entityid"
                                 },
                                 "datatype": "wikibase-item"
@@ -1835,7 +1896,7 @@
             }
         };
 
-// 4 oggetto + ref (1 o +)
+        // 4 oggetto + ref (1 o +)
         var oggRef = {
             "claims": {
                 "P140": [{
@@ -1844,7 +1905,7 @@
                         "property": "P140",
                         "hash": "1d37cef459ae3310e8856a343b4f5d0ceaee71e2",
                         "datavalue": {
-                            "value": {"entity-type": "item", "numeric-id": 1841, "id": "Q1841"},
+                            "value": { "entity-type": "item", "numeric-id": 1841, "id": "Q1841" },
                             "type": "wikibase-entityid"
                         },
                         "datatype": "wikibase-item"
@@ -1860,7 +1921,7 @@
                                 "property": "P143",
                                 "hash": "e17507043402fe54ae6c4d65cc51f46cec987de9",
                                 "datavalue": {
-                                    "value": {"entity-type": "item", "numeric-id": 8449, "id": "Q8449"},
+                                    "value": { "entity-type": "item", "numeric-id": 8449, "id": "Q8449" },
                                     "type": "wikibase-entityid"
                                 },
                                 "datatype": "wikibase-item"
@@ -1902,7 +1963,7 @@
                                 "property": "P143",
                                 "hash": "e4f6d9441d0600513c4533c672b5ab472dc73694",
                                 "datavalue": {
-                                    "value": {"entity-type": "item", "numeric-id": 328, "id": "Q328"},
+                                    "value": { "entity-type": "item", "numeric-id": 328, "id": "Q328" },
                                     "type": "wikibase-entityid"
                                 },
                                 "datatype": "wikibase-item"
@@ -1917,7 +1978,7 @@
                                 "property": "P248",
                                 "hash": "019a50b7de741e0068bde41c9d9955b22a5de47b",
                                 "datavalue": {
-                                    "value": {"entity-type": "item", "numeric-id": 36578, "id": "Q36578"},
+                                    "value": { "entity-type": "item", "numeric-id": 36578, "id": "Q36578" },
                                     "type": "wikibase-entityid"
                                 },
                                 "datatype": "wikibase-item"
@@ -1948,7 +2009,7 @@
                                 "property": "P248",
                                 "hash": "6ff2cf2f32fe6bf566da4c3c6e2d0ae639ecef93",
                                 "datavalue": {
-                                    "value": {"entity-type": "item", "numeric-id": 17378135, "id": "Q17378135"},
+                                    "value": { "entity-type": "item", "numeric-id": 17378135, "id": "Q17378135" },
                                     "type": "wikibase-entityid"
                                 },
                                 "datatype": "wikibase-item"
@@ -1989,7 +2050,7 @@
                                 "property": "P248",
                                 "hash": "da30562523b94bc9c043e8ecdf983c520d76fa31",
                                 "datavalue": {
-                                    "value": {"entity-type": "item", "numeric-id": 20666306, "id": "Q20666306"},
+                                    "value": { "entity-type": "item", "numeric-id": 20666306, "id": "Q20666306" },
                                     "type": "wikibase-entityid"
                                 },
                                 "datatype": "wikibase-item"
@@ -2014,7 +2075,7 @@
                                 "snaktype": "value",
                                 "property": "P854",
                                 "hash": "e68720bb3d694bdb13fa0811979aba7da657825f",
-                                "datavalue": {"value": "http://data.bnf.fr/ark:/12148/cb120304841", "type": "string"},
+                                "datavalue": { "value": "http://data.bnf.fr/ark:/12148/cb120304841", "type": "string" },
                                 "datatype": "url"
                             }]
                         },
@@ -2027,7 +2088,7 @@
                                 "property": "P248",
                                 "hash": "f98ec89708e8eab9511c049702ef59df0721d652",
                                 "datavalue": {
-                                    "value": {"entity-type": "item", "numeric-id": 29861311, "id": "Q29861311"},
+                                    "value": { "entity-type": "item", "numeric-id": 29861311, "id": "Q29861311" },
                                     "type": "wikibase-entityid"
                                 },
                                 "datatype": "wikibase-item"
@@ -2036,14 +2097,14 @@
                                 "snaktype": "value",
                                 "property": "P3430",
                                 "hash": "5e77f27a47cf619392506cb0e9232e17ae1871c0",
-                                "datavalue": {"value": "w6sv5d7k", "type": "string"},
+                                "datavalue": { "value": "w6sv5d7k", "type": "string" },
                                 "datatype": "external-id"
                             }],
                             "P1810": [{
                                 "snaktype": "value",
                                 "property": "P1810",
                                 "hash": "c8b2de96463ca13926d93afec2bcc692771c6867",
-                                "datavalue": {"value": "Alcide De Gasperi", "type": "string"},
+                                "datavalue": { "value": "Alcide De Gasperi", "type": "string" },
                                 "datatype": "string"
                             }],
                             "P813": [{
@@ -2072,7 +2133,7 @@
                                 "property": "P248",
                                 "hash": "b62f3fa8bab7eb5e1bfe16d03cda082d25315c85",
                                 "datavalue": {
-                                    "value": {"entity-type": "item", "numeric-id": 63056, "id": "Q63056"},
+                                    "value": { "entity-type": "item", "numeric-id": 63056, "id": "Q63056" },
                                     "type": "wikibase-entityid"
                                 },
                                 "datatype": "wikibase-item"
@@ -2081,14 +2142,14 @@
                                 "snaktype": "value",
                                 "property": "P535",
                                 "hash": "35bcc4d0316ec7c3e7abaca0ebd2ef3c731dcb43",
-                                "datavalue": {"value": "14071697", "type": "string"},
+                                "datavalue": { "value": "14071697", "type": "string" },
                                 "datatype": "external-id"
                             }],
                             "P1810": [{
                                 "snaktype": "value",
                                 "property": "P1810",
                                 "hash": "c8b2de96463ca13926d93afec2bcc692771c6867",
-                                "datavalue": {"value": "Alcide De Gasperi", "type": "string"},
+                                "datavalue": { "value": "Alcide De Gasperi", "type": "string" },
                                 "datatype": "string"
                             }],
                             "P813": [{
@@ -2181,7 +2242,7 @@
                                 "property": "P143",
                                 "hash": "e4f6d9441d0600513c4533c672b5ab472dc73694",
                                 "datavalue": {
-                                    "value": {"entity-type": "item", "numeric-id": 328, "id": "Q328"},
+                                    "value": { "entity-type": "item", "numeric-id": 328, "id": "Q328" },
                                     "type": "wikibase-entityid"
                                 },
                                 "datatype": "wikibase-item"
