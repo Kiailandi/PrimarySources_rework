@@ -565,7 +565,7 @@
              * @type {OO.ui.TextInputWidget}
              */
             this.propertyInput = new AutocompleteWidget({
-                service: ps.globals.PROPERTIES_SERVICE,
+                service: ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE,
                 placeholder: 'Type a property like "date of birth"',
             });
 
@@ -574,7 +574,7 @@
              * @type {OO.ui.TextInputWidget}
              */
             this.entityValueInput = new AutocompleteWidget({
-                service: VALUES_SERVICE,
+                service: ps.globals.API_ENDPOINTS.VALUES_SERVICE,
                 placeholder: 'Type something you are interested in, like "politician"',
             });
 
