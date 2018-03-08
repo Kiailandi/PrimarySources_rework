@@ -596,6 +596,10 @@
                         new OO.ui.MenuOptionWidget({
                             data: 'properties',
                             label: 'All properties'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'values',
+                            label: 'All item values'
                         })
                     ]
                 }
@@ -605,7 +609,7 @@
              * Entity value autocompletion
              * @type {OO.ui.TextInputWidget}
              */
-            this.entityValueInput = new AutocompleteWidget({
+            this.itemValueInput = new AutocompleteWidget({
                 service: ps.globals.API_ENDPOINTS.VALUES_SERVICE,
                 placeholder: 'Type something you are interested in, like "politician"',
             });
@@ -642,7 +646,7 @@
             fieldset.addItems([
                 new OO.ui.FieldLayout(this.datasetInput, { label: 'Dataset' }),
                 new OO.ui.FieldLayout(this.bakedFilters, { label: 'Baked filters' }),
-                new OO.ui.FieldLayout(this.entityValueInput, { label: 'Entity of interest' }),
+                new OO.ui.FieldLayout(this.itemValueInput, { label: 'Entity of interest' }),
                 new OO.ui.FieldLayout(this.propertyInput, { label: 'Property of interest' }),
                 new OO.ui.FieldLayout(this.sparqlQuery, { label: 'SPARQL query' }),
                 new OO.ui.FieldLayout(loadButton)
@@ -707,9 +711,9 @@
             } else {
 
                 var correct_query = searchSparqlQuery;
-                if (this.entityValueInput.getValue().length > 0) {
+                if (this.itemValueInput.getValue().length > 0) {
                     correct_query = searchWithValueSparqlQuery;
-                    correct_query = correct_query.replace(/\{\{VALUE\}\}/g, + this.entityValueInput.getValue());
+                    correct_query = correct_query.replace(/\{\{VALUE\}\}/g, + this.itemValueInput.getValue());
                 }
 
                 if (this.propertyInput.getValue().length > 0) {
