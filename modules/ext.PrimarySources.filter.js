@@ -604,28 +604,40 @@
                     ]
                 }
             })
-            .connect(this, { labelChange: function() {
-                widget.itemValueInput.setDisabled(true);
-                widget.propertyInput.setDisabled(true);
-                widget.sparqlQuery.setDisabled(true);
-            } });
+            .connect(this, {
+                labelChange: function() {
+                    widget.itemValueInput.setDisabled(true);
+                    widget.propertyInput.setDisabled(true);
+                    widget.sparqlQuery.setDisabled(true);
+                }
+            });
 
             /**
              * Entity value autocompletion
-             * @type {OO.ui.TextInputWidget}
              */
             this.itemValueInput = new AutocompleteWidget({
                 service: ps.globals.API_ENDPOINTS.VALUES_SERVICE,
                 placeholder: 'Type something you are interested in, like "politician"',
+            })
+            .connect(this, {
+                change: function() {
+                    this.bakedFilters.setDisabled(true);
+                    this.sparqlQuery.setDisabled(true);
+                }
             });
 
             /**
              * Property autocompletion
-             * @type {OO.ui.TextInputWidget}
              */
             this.propertyInput = new AutocompleteWidget({
                 service: ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE,
                 placeholder: 'Type a property like "date of birth"',
+            })
+            .connect(this, {
+                change: function() {
+                    this.bakedFilters.setDisabled(true);
+                    this.sparqlQuery.setDisabled(true);
+                }
             });
 
             /**
@@ -635,6 +647,13 @@
             this.sparqlQuery = new OO.ui.MultilineTextInputWidget({
                 placeholder: 'Browse suggestions with SPARQL',
                 autosize: true
+            })
+            .connect(this, {
+                change: function() {
+                    this.bakedFilters.setDisabled(true);
+                    this.itemValueInput.setDisabled(true);
+                    this.propertyInput.setDisabled(true);
+                }
             });
 
             var loadButton = new OO.ui.ButtonInputWidget({
@@ -675,25 +694,6 @@
             this.stackLayout.addItems([formPanel, this.mainPanel]);
             this.$body.append(this.stackLayout.$element);
         };
-
-        // Handle mutually exclusive filters
-        ListDialog.prototype.onFilterSelect = function () {
-            if (this.bakedFilters.getMenu().findSelectedItem() !== null) {
-                this.itemValueInput.setDisabled(true);
-                this.propertyInput.setDisabled(true);
-                this.sparqlQuery.setDisabled(true);
-            } else if (this.itemValueInput.getValue() !== '') {
-                this.bakedFilters.setDisabled(true);
-                this.sparqlQuery.setDisabled(true);
-            } else if (this.propertyInput.getValue() !== '') {
-                this.bakedFilters.setDisabled(true);
-                this.sparqlQuery.setDisabled(true);
-            } else if (this.sparqlQuery.getValue() !== '') {
-                this.bakedFilters.setDisabled(true);
-                this.itemValueInput.setDisabled(true);
-                this.propertyInput.setDisabled(true);
-            }
-        }
 
         /**
          * OnOptionSubmit
