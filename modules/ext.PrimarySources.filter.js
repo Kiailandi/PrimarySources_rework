@@ -312,7 +312,7 @@
             var cell = $('<td>');
             ps.commons.getEntityLabel(entityId)
                 .then(function (label) {
-                    var link = entityId.startsWith('P') ? 'Property:' + entityId : entityId;
+                    var link = entityId.startsWith('P') ? document.location.origin + '/wiki/Property:' + entityId : entityId;
                     cell.append(
                         $('<a>')
                             .attr('href', link)
