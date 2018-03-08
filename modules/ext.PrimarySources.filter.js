@@ -307,6 +307,25 @@
         OO.inheritClass(SparqlResultRow, OO.ui.Widget);
         SparqlResultRow.static.tagName = 'tbody';
 
+        function ServiceResultRow(entityId) {
+            ServiceResultRow.super.call(this, result);
+            var cell = $('<td>');
+            ps.commons.getEntityLabel(entityId)
+                .then(function (label) {
+                    cell.append(
+                        $('<a>')
+                            // TODO proper link
+                            .attr('href', entityId)
+                            .text(label)
+                    );
+                    this.$element.append(
+                        $('<tr>').append(cell)
+                    );
+                })
+        }
+        OO.inheritClass(ServiceResultRow, OO.ui.Widget);
+        ServiceResultRow.static.tagName = 'tbody';
+
         function AutocompleteWidget(config) {
             OO.ui.SearchInputWidget.call(this, config);
             OO.ui.mixin.LookupElement.call(this, config);
@@ -567,12 +586,16 @@
              * @type {OO.iu.DropdownWidget}
              */
             this.bakedFilters = new OO.ui.DropdownWidget({
-                label: 'Pick a baked filter',
+                label: 'Pick one',
                 menu: {
                     items: [
                         new OO.ui.MenuOptionWidget({
-                            data: subjectsSparqlQuery,
-                            label: 'All subject items'          
+                            data: 'subjects',
+                            label: 'All subject items'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'properties',
+                            label: 'All properties'
                         })
                     ]
                 }
@@ -659,10 +682,23 @@
             var sparql = this.sparqlQuery.getValue();
 
             if (baked !== null) {
-                this.sparql = baked.getData()
-                this.sparqlOffset = 0;
-                this.sparqlLimit = 100;
-                this.executeSparqlQuery();
+                var bakedQuery = baked.getData();
+                switch (bakedQuery) {
+                    case 'subjects':
+                        this.sparql = subjectsSparqlQuery;
+                        this.sparqlOffset = 0;
+                        this.sparqlLimit = 100;
+                        this.executeSparqlQuery();
+                        break;
+                    case 'properties':
+                        this.executeServiceCall(ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE);
+                        break;
+                    case 'values':
+                        this.executeServiceCall(ps.globals.API_ENDPOINTS.VALUES_SERVICE);
+                        break;
+                    default:
+                        break;
+                }
             }
             else if (sparql !== '') {
                 // Use SPARQL endpoint
@@ -707,6 +743,61 @@
                 // this.alreadyDisplayedStatementKeys = {};
                 // this.executeQuery();
             }
+        };
+
+        /**
+         * On submit
+         */
+        ListDialog.prototype.executeServiceCall = function (url) {
+            var widget = this;
+
+            var progressBar = new OO.ui.ProgressBarWidget();
+            progressBar.$element.css('max-width', '100%');
+            widget.mainPanel.$element.append(progressBar.$element);
+
+            $.get(
+                url,
+                function (data) {
+                    progressBar.$element.remove();
+                    // TODO slice chunks of 100
+                    this.displayServiceResult(data);
+                    // if (statements.length > 0) {
+                    //     widget.nextStatementsButton = new OO.ui.ButtonWidget({
+                    //         label: 'Load more statements'
+                    //     });
+                    //     widget.nextStatementsButton.connect(
+                    //         widget,
+                    //         { click: 'onNextButtonSubmit' }
+                    //     );
+                    //     widget.mainPanel.$element.append(
+                    //         widget.nextStatementsButton.$element
+                    //     );
+                    // }
+                }
+            )
+                .fail(function (xhr, textStatus) {
+                    progressBar.$element.remove();
+                    reportError('Failed loading statements');
+                })
+        };
+
+        ListDialog.prototype.initTable = function () {
+            this.table = $('<table>')
+                .addClass('wikitable')
+                .css('width', '100%')
+                .append(
+                    $('<thead>').append(
+                        $('<tr>').append(
+                            $('<th>').text('Subject'),
+                            $('<th>').text('Property'),
+                            $('<th>').text('Object'),
+                            $('<th>').text('Reference'),
+                            $('<th>').text('Preview'),
+                            $('<th>').text('Action')
+                        )
+                    )
+                );
+            this.mainPanel.$element.append(this.table);
         };
 
         /**
@@ -835,9 +926,10 @@
             // run SPARQL query
             $.get(
                 ps.globals.API_ENDPOINTS.SPARQL_SERVICE,
-                { query: widget.sparql
-                    .replace('{{offset}}', widget.sparqlOffset)
-                    .replace('{{limit}}', widget.sparqlLimit)
+                {
+                    query: widget.sparql
+                        .replace('{{offset}}', widget.sparqlOffset)
+                        .replace('{{limit}}', widget.sparqlLimit)
                 },
                 function (data) {
                     progressBar.$element.remove();
@@ -880,10 +972,26 @@
                 })
         };
 
+        ListDialog.prototype.displayServiceResult = function (result) {
+            var widget = this;
+            if (this.table === null) {
+                this.initResultTable(Object.getOwnPropertyNames(result));
+            }
+            for (var dataset in result) {
+                if (result.hasOwnProperty(dataset)) {
+                    var entities = result[dataset];
+                    entities.forEach(function (entityId) {
+                        var row = new ServiceResultRow(entityId);
+                        widget.table.append(row.$element);
+                    })
+                }
+            }
+        };
+
         ListDialog.prototype.displaySparqlResult = function (headers, bindings) {
             var widget = this;
             if (this.table === null) {
-                this.initSparqlResultTable(headers);
+                this.initResultTable(headers);
             }
             bindings.forEach(function (binding) {
                 var row = new SparqlResultRow(headers, binding);
@@ -892,7 +1000,7 @@
 
         };
 
-        ListDialog.prototype.initSparqlResultTable = function (headers) {
+        ListDialog.prototype.initResultTable = function (headers) {
             var htmlHeaders = [];
             headers.forEach(function (header) {
                 htmlHeaders.push($('<th>').text(header));
