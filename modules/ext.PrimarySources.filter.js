@@ -308,7 +308,7 @@
         SparqlResultRow.static.tagName = 'tbody';
 
         function ServiceResultRow(entityId) {
-            ServiceResultRow.super.call(this, result);
+            ServiceResultRow.super.call(this, entityId);
             var cell = $('<td>');
             ps.commons.getEntityLabel(entityId)
                 .then(function (label) {
@@ -318,10 +318,10 @@
                             .attr('href', entityId)
                             .text(label)
                     );
+                })
                     this.$element.append(
                         $('<tr>').append(cell)
                     );
-                })
         }
         OO.inheritClass(ServiceResultRow, OO.ui.Widget);
         ServiceResultRow.static.tagName = 'tbody';
@@ -760,7 +760,7 @@
                 function (data) {
                     progressBar.$element.remove();
                     // TODO slice chunks of 100
-                    this.displayServiceResult(data);
+                    widget.displayServiceResult(data);
                     // if (statements.length > 0) {
                     //     widget.nextStatementsButton = new OO.ui.ButtonWidget({
                     //         label: 'Load more statements'
