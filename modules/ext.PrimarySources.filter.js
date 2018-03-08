@@ -604,7 +604,7 @@
                     ]
                 }
             })
-            .connect(this, { select: 'onFilterSelect' });
+            .connect(this, { labelChange: 'onFilterSelect' });
 
             /**
              * Entity value autocompletion
