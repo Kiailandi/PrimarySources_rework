@@ -669,6 +669,22 @@
             });
             this.stackLayout.addItems([formPanel, this.mainPanel]);
             this.$body.append(this.stackLayout.$element);
+            // Handle mutually exclusive filters
+            if (this.bakedFilters.getMenu().findSelectedItem() !== null) {
+                this.itemValueInput.setDisabled(true);
+                this.propertyInput.setDisabled(true);
+                this.sparqlQuery.setDisabled(true);
+            } else if (this.itemValueInput.getValue() !== '') {
+                this.bakedFilters.setDisabled(true);
+                this.sparqlQuery.setDisabled(true);
+            } else if (this.propertyInput.getValue() !== '') {
+                this.bakedFilters.setDisabled(true);
+                this.sparqlQuery.setDisabled(true);
+            } else if (this.sparqlQuery.getValue() !== '') {
+                this.bakedFilters.setDisabled(true);
+                this.itemValueInput.setDisabled(true);
+                this.propertyInput.setDisabled(true);
+            }
         };
 
         /**
@@ -687,10 +703,6 @@
             var sparql = this.sparqlQuery.getValue();
 
             if (bakedSelection !== null) {
-                // This filter excludes the others
-                this.itemValueInput.setDisabled(true);
-                this.propertyInput.setDisabled(true);
-                this.sparqlQuery.setDisabled(true);
                 var bakedQuery = bakedSelection.getData();
                 switch (bakedQuery) {
                     case 'subjects':
