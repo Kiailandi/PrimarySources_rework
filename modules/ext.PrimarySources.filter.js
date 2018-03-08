@@ -979,7 +979,12 @@
         ListDialog.prototype.displayServiceResult = function (result) {
             var widget = this;
             if (this.table === null) {
-                this.initResultTable(Object.getOwnPropertyNames(result));
+                var datasetLabels = [];
+                Object.getOwnPropertyNames(result)
+                .forEach(function (uri) {
+                    datasetLabels.push(ps.commons.datasetUriToLabel(uri));
+                })
+                this.initResultTable(datasetLabels);
             }
             for (var dataset in result) {
                 if (result.hasOwnProperty(dataset)) {
