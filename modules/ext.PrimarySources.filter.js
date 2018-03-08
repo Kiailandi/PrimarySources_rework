@@ -604,7 +604,11 @@
                     ]
                 }
             })
-            .connect(this, { labelChange: 'onFilterSelect' });
+            .connect(this, { labelChange: function() {
+                widget.itemValueInput.setDisabled(true);
+                widget.propertyInput.setDisabled(true);
+                widget.sparqlQuery.setDisabled(true);
+            } });
 
             /**
              * Entity value autocompletion
