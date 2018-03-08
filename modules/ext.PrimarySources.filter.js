@@ -603,7 +603,8 @@
                         })
                     ]
                 }
-            });
+            })
+            .connect(this, { select: 'onFilterSelect' });
 
             /**
              * Entity value autocompletion
@@ -650,7 +651,7 @@
                 new OO.ui.FieldLayout(this.propertyInput, { label: 'Property of interest' }),
                 new OO.ui.FieldLayout(this.sparqlQuery, { label: 'SPARQL query' }),
                 new OO.ui.FieldLayout(loadButton)
-            ]);
+            ])
             var formPanel = new OO.ui.PanelLayout({
                 padded: true,
                 framed: true
@@ -669,7 +670,10 @@
             });
             this.stackLayout.addItems([formPanel, this.mainPanel]);
             this.$body.append(this.stackLayout.$element);
-            // Handle mutually exclusive filters
+        };
+
+        // Handle mutually exclusive filters
+        ListDialog.prototype.onFilterSelect = function () {
             if (this.bakedFilters.getMenu().findSelectedItem() !== null) {
                 this.itemValueInput.setDisabled(true);
                 this.propertyInput.setDisabled(true);
@@ -685,7 +689,7 @@
                 this.itemValueInput.setDisabled(true);
                 this.propertyInput.setDisabled(true);
             }
-        };
+        }
 
         /**
          * OnOptionSubmit
