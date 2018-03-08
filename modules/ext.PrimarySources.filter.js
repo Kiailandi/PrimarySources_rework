@@ -682,25 +682,34 @@
         ListDialog.prototype.onOptionSubmit = function () {
             this.mainPanel.$element.empty();
             this.table = null;
-            var baked = this.bakedFilters.getMenu().findSelectedItem();
+            var bakedFiltersMenu = this.bakedFilters.getMenu();
+            var bakedSelection = bakedFiltersMenu.findSelectedItem();
             var sparql = this.sparqlQuery.getValue();
 
-            if (baked !== null) {
-                var bakedQuery = baked.getData();
+            if (bakedSelection !== null) {
+                // This filter excludes the others
+                this.itemValueInput.setDisabled(true);
+                this.propertyInput.setDisabled(true);
+                this.sparqlQuery.setDisabled(true);
+                var bakedQuery = bakedSelection.getData();
                 switch (bakedQuery) {
                     case 'subjects':
                         this.sparql = subjectsSparqlQuery;
                         this.sparqlOffset = 0;
                         this.sparqlLimit = 100;
                         this.executeSparqlQuery();
+                        bakedFiltersMenu.selectItem();
                         break;
                     case 'properties':
                         this.executeServiceCall(ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE);
+                        bakedFiltersMenu.selectItem();
                         break;
                     case 'values':
                         this.executeServiceCall(ps.globals.API_ENDPOINTS.VALUES_SERVICE);
+                        bakedFiltersMenu.selectItem();
                         break;
                     default:
+                        ps.commons.debug('Unexpected baked filter: "' + bakedQuery + '". Nothing will happen')
                         break;
                 }
             }
