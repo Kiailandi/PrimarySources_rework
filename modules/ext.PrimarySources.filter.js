@@ -604,7 +604,7 @@
                     ]
                 }
             })
-            .connect(this, { labelChange: this.blurFilters('baked', true) });
+            .connect(this, { labelChange: blurFilters('baked', true) });
 
             /**
              * Entity value autocompletion
@@ -613,7 +613,7 @@
                 service: ps.globals.API_ENDPOINTS.VALUES_SERVICE,
                 placeholder: 'Type something you are interested in, like "politician"',
             })
-            .connect(this, { change: this.blurFilters('autocompletion', true) });
+            .connect(this, { change: blurFilters('autocompletion', true) });
 
             /**
              * Property autocompletion
@@ -622,7 +622,7 @@
                 service: ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE,
                 placeholder: 'Type a property like "date of birth"',
             })
-            .connect(this, { change: this.blurFilters('autocompletion', true) });
+            .connect(this, { change: blurFilters('autocompletion', true) });
 
             /**
              * Arbitrary SPARQL query input
@@ -632,7 +632,7 @@
                 placeholder: 'Browse suggestions with SPARQL',
                 autosize: true
             })
-            .connect(this, { change: this.blurFilters('sparql', true) });
+            .connect(this, { change: blurFilters('sparql', true) });
 
             var loadButton = new OO.ui.ButtonInputWidget({
                 label: 'Load',
@@ -673,28 +673,6 @@
             this.$body.append(this.stackLayout.$element);
         };
 
-        ListDialog.prototype.blurFilters = function (currentFilter, blurred) {
-            switch (currentFilter) {
-                case 'baked':
-                    this.itemValueInput.setDisabled(blurred);
-                    this.propertyInput.setDisabled(blurred);
-                    this.sparqlQuery.setDisabled(blurred);
-                    break;
-                case 'autocompletion':
-                    this.bakedFilters.setDisabled(blurred);
-                    this.sparqlQuery.setDisabled(blurred);
-                    break;
-                case 'sparql':
-                    this.bakedFilters.setDisabled(blurred);
-                    this.itemValueInput.setDisabled(blurred);
-                    this.propertyInput.setDisabled(blurred);
-                    break;
-                default:
-                    ps.commons.debug('Unexpected filter name: "' + currentFilter + '". Will not blur/unblur');
-                    break;
-            }
-        }
-
         /**
          * OnOptionSubmit
          */
@@ -711,7 +689,7 @@
             var sparql = this.sparqlQuery.getValue();
 
             if (bakedSelection !== null) {
-                this.blurFilters('baked', false);
+                blurFilters('baked', false);
                 var bakedQuery = bakedSelection.getData();
                 bakedFiltersMenu.selectItem();
                 switch (bakedQuery) {
@@ -733,11 +711,11 @@
                 }
             }
             else if (sparql !== '') {
-                this.blurFilters('sparql', false);                
+                blurFilters('sparql', false);                
                 this.sparql = sparql;
                 this.executeSparqlQuery();
             } else {
-                this.blurFilters('autocompletion', false);
+                blurFilters('autocompletion', false);
 
                 var correct_query = searchSparqlQuery;
                 if (this.itemValueInput.getValue().length > 0) {
@@ -1069,6 +1047,28 @@
         init: _listDialog
         // END: filter modal window
     };
+
+    function blurFilters(currentFilter, blurred) {
+        switch (currentFilter) {
+            case 'baked':
+                this.itemValueInput.setDisabled(blurred);
+                this.propertyInput.setDisabled(blurred);
+                this.sparqlQuery.setDisabled(blurred);
+                break;
+            case 'autocompletion':
+                this.bakedFilters.setDisabled(blurred);
+                this.sparqlQuery.setDisabled(blurred);
+                break;
+            case 'sparql':
+                this.bakedFilters.setDisabled(blurred);
+                this.itemValueInput.setDisabled(blurred);
+                this.propertyInput.setDisabled(blurred);
+                break;
+            default:
+                ps.commons.debug('Unexpected filter name: "' + currentFilter + '". Will not blur/unblur');
+                break;
+        }
+    }
 
     /**
      * (Used only by ListDialog)
