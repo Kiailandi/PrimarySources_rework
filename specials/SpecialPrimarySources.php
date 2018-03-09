@@ -27,6 +27,18 @@ class SpecialPrimarySources extends SpecialPage {
             // Parses message from .i18n.php as wikitext and adds it to the
             // page output.
 
+            $json = file_get_contents('https://pst.wmflabs.org/pst/datasets');
+            $datasets = json_decode($json);
+            $keyUser = "user";
+            $keyDataset = "dataset";
+            $userDatasets = [];
+            for($i = 0; $i < count($datasets); $i++){
+                preg_match('/User:([^\/]+)/', $datasets[$i]->$keyUser, $re);
+                if($re[1] == $user->$user->getName()){
+                    array_push($userDatasets, $datasets[$i]->$dataset);
+                }
+            }
+
             $out->addHTML('<script>
                             function swap(){
                                 if($("#swap").text() == "I want to update a dataset"){
@@ -44,7 +56,16 @@ class SpecialPrimarySources extends SpecialPage {
                             
             $out->addHTML('<button id="swap" onClick="swap()">I want to update a dataset</button><br><br>');
             
-            $out->addHTML('<form id="uploadForm" action="http://it.dbpedia.org/pst/upload" method="post" enctype="multipart/form-data">
+            /*
+            <select>
+                <option value="volvo">Volvo</option>
+                <option value="saab">Saab</option>
+                <option value="opel">Opel</option>
+                <option value="audi">Audi</option>
+            </select>
+            */
+  
+            $out->addHTML('<form id="uploadForm" action="http://pst.wmflabs.org/pst/upload" method="post" enctype="multipart/form-data">
                           <label>Upload Dataset</label><br><br>
                           <input type="hidden" name="user" value="' . $user->getName() . '">
                           Dataset name: <input type="text" name="name" value="dataset name"><br>
@@ -52,7 +73,7 @@ class SpecialPrimarySources extends SpecialPage {
                           <input type="button" onclick="if($(\'#dataset\').get(0).files.length == 0){alert(\'Please select a file\')}else{submit()}" value="Submit">
                           </form>');
 
-            $out->addHTML('<form id="updateForm" action="http://it.dbpedia.org/pst/update" method="post" enctype="multipart/form-data" style="display:none">
+            $out->addHTML('<form id="updateForm" action="http://pst.wmflabs.org/pst/update" method="post" enctype="multipart/form-data" style="display:none">
                           <label>Update Dataset</label><br><br>
                           <input type="hidden" name="user" value="' . $user->getName() . '">
                           Dataset URI: <input type="text" name="dataset" value="dataset URI"><br>
