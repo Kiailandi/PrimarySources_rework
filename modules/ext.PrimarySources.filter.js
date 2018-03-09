@@ -634,7 +634,8 @@
                         this.bakedFilters.setDisabled(false);
                         this.sparqlQuery.setDisabled(false);
                     }
-                }
+                },
+                enter: 'onOptionSubmit'
             });
 
             /**
@@ -653,7 +654,8 @@
                         this.bakedFilters.setDisabled(false);
                         this.sparqlQuery.setDisabled(false);
                     }
-                }
+                },
+                enter: 'onOptionSubmit'                
             });
 
             /**
