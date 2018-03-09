@@ -606,9 +606,15 @@
             })
             .connect(this, {
                 labelChange: function() {
-                    this.itemValueInput.setDisabled(true);
-                    this.propertyInput.setDisabled(true);
-                    this.sparqlQuery.setDisabled(true);
+                    if (this.bakedFilters.getMenu().findSelectedItem === null) {
+                        this.itemValueInput.setDisabled(true);
+                        this.propertyInput.setDisabled(true);
+                        this.sparqlQuery.setDisabled(true);
+                    } else {
+                        this.itemValueInput.setDisabled(false);
+                        this.propertyInput.setDisabled(false);
+                        this.sparqlQuery.setDisabled(false);
+                    }
                 }
             });
 
@@ -710,12 +716,8 @@
             var bakedSelection = bakedFiltersMenu.findSelectedItem();
             var sparql = this.sparqlQuery.getValue();
 
-            if (bakedSelection !== null) {
+            if (!this.bakedFilters.isDisabled()) {
                 var bakedQuery = bakedSelection.getData();
-                bakedFiltersMenu.selectItem();
-                this.itemValueInput.setDisabled(false);
-                this.propertyInput.setDisabled(false);
-                this.sparqlQuery.setDisabled(false);
                 switch (bakedQuery) {
                     case 'subjects':
                         this.sparql = subjectsSparqlQuery;
@@ -742,6 +744,7 @@
                 this.sparql = sparql;
                 this.executeSparqlQuery();
             } else {
+                this.propertyInput
                 this.bakedFilters.setDisabled(false);
                 this.sparqlQuery.setDisabled(false);
                 
