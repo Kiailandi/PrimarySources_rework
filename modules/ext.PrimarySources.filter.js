@@ -606,9 +606,9 @@
             })
             .connect(this, {
                 labelChange: function() {
-                    widget.itemValueInput.setDisabled(true);
-                    widget.propertyInput.setDisabled(true);
-                    widget.sparqlQuery.setDisabled(true);
+                    this.itemValueInput.setDisabled(true);
+                    this.propertyInput.setDisabled(true);
+                    this.sparqlQuery.setDisabled(true);
                 }
             });
 
@@ -719,6 +719,9 @@
                         this.sparqlLimit = 100;
                         this.executeSparqlQuery();
                         bakedFiltersMenu.selectItem();
+                        this.itemValueInput.setDisabled(false);
+                        this.propertyInput.setDisabled(false);
+                        this.sparqlQuery.setDisabled(false);
                         break;
                     case 'properties':
                         this.executeServiceCall(ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE);
@@ -737,6 +740,9 @@
                 // Use SPARQL endpoint
                 this.sparql = sparql;
                 this.executeSparqlQuery();
+                this.bakedFilters.setDisabled(false);
+                this.itemValueInput.setDisabled(false);
+                this.propertyInput.setDisabled(false);
             } else {
 
                 var correct_query = searchSparqlQuery;
@@ -764,6 +770,8 @@
                 this.sparql = correct_query;
                 this.executeSparqlQuery();
 
+                this.bakedFilters.setDisabled(false);
+                this.sparqlQuery.setDisabled(false);
 
                 // // Use /search service
                 // this.parameters = {
