@@ -723,11 +723,13 @@
         /**
          * @inheritdoc
          *
+         * N.B.: Re-implemented here because the MediaWiki Vagrant instance on VPS
+         * has a dummy implementation, i.e., function(){return;}
          * Modify to emit 'enter' on Ctrl/Meta+Enter, instead of plain Enter
          */
-        this.sparqlQuery.prototype.onKeyPress = function ( e ) {
+        OO.ui.MultilineTextInputWidget.prototype.onKeyPress = function ( e ) {
             if (
-                ( e.which === OO.ui.Keys.ENTER && ( e.ctrlKey || e.metaKey ) ) ||
+                ( this.getValue() !== '' && e.which === OO.ui.Keys.ENTER && ( e.ctrlKey || e.metaKey ) ) ||
                 // Some platforms emit keycode 10 for ctrl+enter in a textarea
                 e.which === 10
             ) {
