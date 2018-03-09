@@ -735,7 +735,7 @@
                 }
             }
             else if (sparql !== '') {
-                // Use SPARQL endpoint
+                this.sparqlQuery.setValue();
                 this.bakedFilters.setDisabled(false);
                 this.itemValueInput.setDisabled(false);
                 this.propertyInput.setDisabled(false);
