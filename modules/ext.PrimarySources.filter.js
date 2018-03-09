@@ -44,21 +44,6 @@
     var subjectsSparqlQuery = "SELECT ?subject WHERE { ?subject a wikibase:Item } OFFSET {{offset}} LIMIT {{limit}}";
     /* END: baked SPARQL queries */
 
-    /**
-     * @inheritdoc
-     *
-     * Modify to emit 'enter' on Ctrl/Meta+Enter, instead of plain Enter
-     */
-    OO.ui.MultilineTextInputWidget.prototype.onKeyPress = function ( e ) {
-        if (
-            ( e.which === OO.ui.Keys.ENTER && ( e.ctrlKey || e.metaKey ) ) ||
-            // Some platforms emit keycode 10 for ctrl+enter in a textarea
-            e.which === 10
-        ) {
-            this.emit( 'enter', e );
-        }
-    };
-
     function _listDialog(windowManager, button) {
         /**
          * A row displaying a statement
@@ -733,6 +718,21 @@
             });
             this.stackLayout.addItems([formPanel, this.mainPanel]);
             this.$body.append(this.stackLayout.$element);
+        };
+
+        /**
+         * @inheritdoc
+         *
+         * Modify to emit 'enter' on Ctrl/Meta+Enter, instead of plain Enter
+         */
+        this.sparqlQuery.prototype.onKeyPress = function ( e ) {
+            if (
+                ( e.which === OO.ui.Keys.ENTER && ( e.ctrlKey || e.metaKey ) ) ||
+                // Some platforms emit keycode 10 for ctrl+enter in a textarea
+                e.which === 10
+            ) {
+                this.emit( 'enter', e );
+            }
         };
 
         /**
