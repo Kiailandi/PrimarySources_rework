@@ -627,8 +627,13 @@
             })
             .connect(this, {
                 change: function() {
-                    this.bakedFilters.setDisabled(true);
-                    this.sparqlQuery.setDisabled(true);
+                    if (this.itemValueInput.getValue() !== '') {
+                        this.bakedFilters.setDisabled(true);
+                        this.sparqlQuery.setDisabled(true);
+                    } else {
+                        this.bakedFilters.setDisabled(false);
+                        this.sparqlQuery.setDisabled(false);
+                    }
                 }
             });
 
@@ -641,8 +646,13 @@
             })
             .connect(this, {
                 change: function() {
-                    this.bakedFilters.setDisabled(true);
-                    this.sparqlQuery.setDisabled(true);
+                    if (this.propertyInput.getValue() !== '') {
+                        this.bakedFilters.setDisabled(true);
+                        this.sparqlQuery.setDisabled(true);
+                    } else {
+                        this.bakedFilters.setDisabled(false);
+                        this.sparqlQuery.setDisabled(false);
+                    }
                 }
             });
 
@@ -656,9 +666,15 @@
             })
             .connect(this, {
                 change: function() {
-                    this.bakedFilters.setDisabled(true);
-                    this.itemValueInput.setDisabled(true);
-                    this.propertyInput.setDisabled(true);
+                    if (this.sparqlQuery.getValue() !== '') {
+                        this.bakedFilters.setDisabled(true);
+                        this.itemValueInput.setDisabled(true);
+                        this.propertyInput.setDisabled(true);
+                    } else {
+                        this.bakedFilters.setDisabled(false);
+                        this.itemValueInput.setDisabled(false);
+                        this.propertyInput.setDisabled(false);
+                    }
                 }
             });
 
@@ -737,17 +753,10 @@
                         break;
                 }
             }
-            else if (sparql !== '') {
-                this.sparqlQuery.setValue();
-                this.bakedFilters.setDisabled(false);
-                this.itemValueInput.setDisabled(false);
-                this.propertyInput.setDisabled(false);
+            else if (!this.sparqlQuery.isDisabled()) {
                 this.sparql = sparql;
                 this.executeSparqlQuery();
             } else {
-                this.propertyInput
-                this.bakedFilters.setDisabled(false);
-                this.sparqlQuery.setDisabled(false);
                 
                 var correct_query = searchSparqlQuery;
                 if (this.itemValueInput.getValue().length > 0) {
