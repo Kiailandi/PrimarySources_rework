@@ -712,24 +712,22 @@
 
             if (bakedSelection !== null) {
                 var bakedQuery = bakedSelection.getData();
+                bakedFiltersMenu.selectItem();
+                this.itemValueInput.setDisabled(false);
+                this.propertyInput.setDisabled(false);
+                this.sparqlQuery.setDisabled(false);
                 switch (bakedQuery) {
                     case 'subjects':
                         this.sparql = subjectsSparqlQuery;
                         this.sparqlOffset = 0;
                         this.sparqlLimit = 100;
                         this.executeSparqlQuery();
-                        bakedFiltersMenu.selectItem();
-                        this.itemValueInput.setDisabled(false);
-                        this.propertyInput.setDisabled(false);
-                        this.sparqlQuery.setDisabled(false);
                         break;
                     case 'properties':
                         this.executeServiceCall(ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE);
-                        bakedFiltersMenu.selectItem();
                         break;
                     case 'values':
                         this.executeServiceCall(ps.globals.API_ENDPOINTS.VALUES_SERVICE);
-                        bakedFiltersMenu.selectItem();
                         break;
                     default:
                         ps.commons.debug('Unexpected baked filter: "' + bakedQuery + '". Nothing will happen')
@@ -738,13 +736,15 @@
             }
             else if (sparql !== '') {
                 // Use SPARQL endpoint
-                this.sparql = sparql;
-                this.executeSparqlQuery();
                 this.bakedFilters.setDisabled(false);
                 this.itemValueInput.setDisabled(false);
                 this.propertyInput.setDisabled(false);
+                this.sparql = sparql;
+                this.executeSparqlQuery();
             } else {
-
+                this.bakedFilters.setDisabled(false);
+                this.sparqlQuery.setDisabled(false);
+                
                 var correct_query = searchSparqlQuery;
                 if (this.itemValueInput.getValue().length > 0) {
                     correct_query = searchWithValueSparqlQuery;
@@ -769,9 +769,6 @@
 
                 this.sparql = correct_query;
                 this.executeSparqlQuery();
-
-                this.bakedFilters.setDisabled(false);
-                this.sparqlQuery.setDisabled(false);
 
                 // // Use /search service
                 // this.parameters = {
