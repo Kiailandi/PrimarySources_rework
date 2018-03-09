@@ -604,7 +604,13 @@
                     ]
                 }
             })
-            .connect(this, { labelChange: blurFilters('baked', true) });
+            .connect(this, {
+                labelChange: function() {
+                    this.itemValueInput.setDisabled(true);
+                    this.propertyInput.setDisabled(true);
+                    this.sparqlQuery.setDisabled(true);
+                }
+            });
 
             /**
              * Entity value autocompletion
@@ -613,7 +619,12 @@
                 service: ps.globals.API_ENDPOINTS.VALUES_SERVICE,
                 placeholder: 'Type something you are interested in, like "politician"',
             })
-            .connect(this, { change: blurFilters('autocompletion', true) });
+            .connect(this, {
+                change: function() {
+                    this.bakedFilters.setDisabled(true);
+                    this.sparqlQuery.setDisabled(true);
+                }
+            });
 
             /**
              * Property autocompletion
@@ -622,7 +633,12 @@
                 service: ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE,
                 placeholder: 'Type a property like "date of birth"',
             })
-            .connect(this, { change: blurFilters('autocompletion', true) });
+            .connect(this, {
+                change: function() {
+                    this.bakedFilters.setDisabled(true);
+                    this.sparqlQuery.setDisabled(true);
+                }
+            });
 
             /**
              * Arbitrary SPARQL query input
@@ -632,7 +648,13 @@
                 placeholder: 'Browse suggestions with SPARQL',
                 autosize: true
             })
-            .connect(this, { change: blurFilters('sparql', true) });
+            .connect(this, {
+                change: function() {
+                    this.bakedFilters.setDisabled(true);
+                    this.itemValueInput.setDisabled(true);
+                    this.propertyInput.setDisabled(true);
+                }
+            });
 
             var loadButton = new OO.ui.ButtonInputWidget({
                 label: 'Load',
@@ -689,21 +711,25 @@
             var sparql = this.sparqlQuery.getValue();
 
             if (bakedSelection !== null) {
-                blurFilters('baked', false);
                 var bakedQuery = bakedSelection.getData();
-                bakedFiltersMenu.selectItem();
                 switch (bakedQuery) {
                     case 'subjects':
                         this.sparql = subjectsSparqlQuery;
                         this.sparqlOffset = 0;
                         this.sparqlLimit = 100;
                         this.executeSparqlQuery();
+                        bakedFiltersMenu.selectItem();
+                        this.itemValueInput.setDisabled(false);
+                        this.propertyInput.setDisabled(false);
+                        this.sparqlQuery.setDisabled(false);
                         break;
                     case 'properties':
                         this.executeServiceCall(ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE);
+                        bakedFiltersMenu.selectItem();
                         break;
                     case 'values':
                         this.executeServiceCall(ps.globals.API_ENDPOINTS.VALUES_SERVICE);
+                        bakedFiltersMenu.selectItem();
                         break;
                     default:
                         ps.commons.debug('Unexpected baked filter: "' + bakedQuery + '". Nothing will happen')
@@ -711,11 +737,13 @@
                 }
             }
             else if (sparql !== '') {
-                blurFilters('sparql', false);                
+                // Use SPARQL endpoint
                 this.sparql = sparql;
                 this.executeSparqlQuery();
+                this.bakedFilters.setDisabled(false);
+                this.itemValueInput.setDisabled(false);
+                this.propertyInput.setDisabled(false);
             } else {
-                blurFilters('autocompletion', false);
 
                 var correct_query = searchSparqlQuery;
                 if (this.itemValueInput.getValue().length > 0) {
@@ -741,6 +769,9 @@
 
                 this.sparql = correct_query;
                 this.executeSparqlQuery();
+
+                this.bakedFilters.setDisabled(false);
+                this.sparqlQuery.setDisabled(false);
 
                 // // Use /search service
                 // this.parameters = {
@@ -1047,28 +1078,6 @@
         init: _listDialog
         // END: filter modal window
     };
-
-    function blurFilters(currentFilter, blurred) {
-        switch (currentFilter) {
-            case 'baked':
-                this.itemValueInput.setDisabled(blurred);
-                this.propertyInput.setDisabled(blurred);
-                this.sparqlQuery.setDisabled(blurred);
-                break;
-            case 'autocompletion':
-                this.bakedFilters.setDisabled(blurred);
-                this.sparqlQuery.setDisabled(blurred);
-                break;
-            case 'sparql':
-                this.bakedFilters.setDisabled(blurred);
-                this.itemValueInput.setDisabled(blurred);
-                this.propertyInput.setDisabled(blurred);
-                break;
-            default:
-                ps.commons.debug('Unexpected filter name: "' + currentFilter + '". Will not blur/unblur');
-                break;
-        }
-    }
 
     /**
      * (Used only by ListDialog)
