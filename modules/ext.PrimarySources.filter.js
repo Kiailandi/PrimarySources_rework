@@ -606,7 +606,7 @@
             })
             .connect(this, {
                 labelChange: function() {
-                    if (this.bakedFilters.getMenu().findSelectedItem === null) {
+                    if (this.bakedFilters.getMenu().findSelectedItem() === null) {
                         this.itemValueInput.setDisabled(true);
                         this.propertyInput.setDisabled(true);
                         this.sparqlQuery.setDisabled(true);
