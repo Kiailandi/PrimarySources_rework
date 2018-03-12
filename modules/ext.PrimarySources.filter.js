@@ -41,7 +41,7 @@
     '} ' +
     'OFFSET {{OFFSET}} ' +
     'LIMIT {{LIMIT}}';
-    var subjectsSparqlQuery = "SELECT ?subject WHERE { ?subject a wikibase:Item } OFFSET {{offset}} LIMIT {{limit}}";
+    var subjectsSparqlQuery = "SELECT ?subject WHERE { ?subject a wikibase:Item } OFFSET {{OFFSET}} LIMIT {{LIMIT}}";
     /* END: baked SPARQL queries */
 
     function _listDialog(windowManager, button) {
@@ -1065,8 +1065,8 @@
                 ps.globals.API_ENDPOINTS.SPARQL_SERVICE,
                 {
                     query: widget.sparql
-                        .replace('{{offset}}', widget.sparqlOffset)
-                        .replace('{{limit}}', widget.sparqlLimit)
+                        .replace('{{OFFSET}}', widget.sparqlOffset)
+                        .replace('{{LIMIT}}', widget.sparqlLimit)
                 },
                 function (data) {
                     progressBar.$element.remove();
