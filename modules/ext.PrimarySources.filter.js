@@ -801,7 +801,7 @@
         ListDialog.prototype.onOptionSubmit = function () {
             this.mainPanel.$element.empty();
             this.table = null;
-            var datasetUri = this.datasetInput.getData();
+            var datasetUri = this.datasetInput.getValue();
             var bakedFiltersMenu = this.bakedFilters.getMenu();
             var bakedSelection = bakedFiltersMenu.findSelectedItem();
             var arbitrarySparql = this.sparqlQuery.getValue();
@@ -828,8 +828,9 @@
                         var filledQuery = datasetUri === ''
                         ? searchWithValueSparqlQuery.replace('{{DATASET}}', '?dataset')
                         : searchWithValueSparqlQuery.replace('{{DATASET}}', '<' + datasetUri + '>');
-                        filledQuery
-                        .replace('{{BINDINGS}}', '?subject')
+                        filledQuery = filledQuery
+                            // DISTINCT (?subject AS ?Researchers)
+                        .replace('{{BINDINGS}}', 'DISTINCT (?subject AS ?' + bakedSelection.getLabel() + ')')
                         .replace('{{PROPERTY}}', '?property')
                         .replace('{{VALUE}}', baked);
                         this.sparql = filledQuery;
