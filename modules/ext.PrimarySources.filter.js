@@ -615,6 +615,34 @@
                             data: 'Q6581072',
                             label: 'Females'
                         }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'P19',
+                            label: 'Places of birth'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'P569',
+                            label: 'Dates of birth'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: '',
+                            label: 'Journey destinations'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'P463',
+                            label: 'Members of'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'P937',
+                            label: 'Work locations'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'P20',
+                            label: 'Places of death'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'P570',
+                            label: 'Dates of death'
+                        }),
                         new OO.ui.MenuSectionOptionWidget({
                             label: 'Occupations'
                         }),
@@ -828,11 +856,16 @@
                         var filledQuery = datasetUri === ''
                         ? searchWithValueSparqlQuery.replace('{{DATASET}}', '?dataset')
                         : searchWithValueSparqlQuery.replace('{{DATASET}}', '<' + datasetUri + '>');
-                        filledQuery = filledQuery
-                            // DISTINCT (?subject AS ?Researchers)
+                        filledQuery = baked.startsWith('Q')
+                        ? filledQuery
                         .replace('{{BINDINGS}}', 'DISTINCT (?subject AS ?' + bakedSelection.getLabel() + ')')
                         .replace('{{PROPERTY}}', '?property')
-                        .replace('{{VALUE}}', baked);
+                        .replace('{{VALUE}}', baked)
+                        : filledQuery
+                        // .replace('{{BINDINGS}}', '?subject (?property AS' + bakedSelection.getLabel() + ')')
+                        .replace('{{BINDINGS}}', '*')
+                        .replace('{{PROPERTY}}', baked)
+                        .replace('{{VALUE}}', '?value')
                         this.sparql = filledQuery;
                         this.sparqlOffset = 0;
                         this.sparqlLimit = 100;
