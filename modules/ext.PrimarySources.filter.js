@@ -14,19 +14,18 @@
     var ps = mw.ps || {};
 
     /* BEGIN: baked SPARQL queries */
-    var searchSparqlQuery = '   SELECT *   ' +
-        '   WHERE {  ' +
-        '     GRAPH {{DATASET}} {  ' +
-        '       ?subject a wikibase:Item ;  ' +
-        '                  {{PROPERTY}} ?statement_node .  ' +
-        '       ?statement_node ?statement_property ?statement_value .  ' +
-        '       OPTIONAL {  ' +
-        '         ?statement_value ?reference_property ?reference_value .  ' +
-        '       }  ' +
-        '     }  ' +
-        '   }  ' +
-        '   OFFSET {{OFFSET}}  ' +
-        '  LIMIT {{LIMIT}}  ';
+    var searchSparqlQuery =
+    'SELECT {{BINDINGS}} ' +
+    'WHERE {' +
+    '  GRAPH {{DATASET}} {' +
+    '    ?subject a wikibase:Item ;' +
+    '             {{PROPERTY}} ?statement_node .' +
+    '    ?statement_node ?statement_property ?statement_value .' +
+    '    OPTIONAL { ?statement_value ?reference_property ?reference_value . }' +
+    '  } ' +
+    '} ' +
+    'OFFSET {{OFFSET}} ' +
+    'LIMIT {{LIMIT}}';
 
     var searchWithValueSparqlQuery =
     'SELECT {{BINDINGS}} ' +
@@ -853,19 +852,17 @@
                         break;
                     // QID
                     default:
-                        var filledQuery = datasetUri === ''
-                        ? searchWithValueSparqlQuery.replace('{{DATASET}}', '?dataset')
-                        : searchWithValueSparqlQuery.replace('{{DATASET}}', '<' + datasetUri + '>');
-                        filledQuery = baked.startsWith('Q')
-                        ? filledQuery
+                        var filledQuery = baked.startsWith('Q')
+                        ? searchWithValueSparqlQuery
                         .replace('{{BINDINGS}}', 'DISTINCT (?subject AS ?' + bakedSelection.getLabel() + ')')
                         .replace('{{PROPERTY}}', '?property')
                         .replace('{{VALUE}}', baked)
-                        : filledQuery
-                        // .replace('{{BINDINGS}}', '?subject (?property AS' + bakedSelection.getLabel() + ')')
-                        .replace('{{BINDINGS}}', '*')
-                        .replace('{{PROPERTY}}', baked)
-                        .replace('{{VALUE}}', '?value')
+                        : searchSparqlQuery
+                        .replace('{{BINDINGS}}', '?subject (?statement_value AS ?value) ?reference_property ?reference_value')
+                        .replace('{{PROPERTY}}', 'p:' + baked);
+                        filledQuery = datasetUri === ''
+                        ? filledQuery.replace('{{DATASET}}', '?dataset')
+                        : filledQuery.replace('{{DATASET}}', '<' + datasetUri + '>');
                         this.sparql = filledQuery;
                         this.sparqlOffset = 0;
                         this.sparqlLimit = 100;
