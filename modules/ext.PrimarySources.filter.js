@@ -28,19 +28,19 @@
         '   OFFSET {{OFFSET}}  ' +
         '  LIMIT {{LIMIT}}  ';
 
-    var searchWithValueSparqlQuery = '   SELECT *  ' +
-        '   WHERE {  ' +
-        '     GRAPH {{DATASET}} {  ' +
-        '       ?subject a wikibase:Item ;  ' +
-        '                  {{PROPERTY}} ?statement_node .  ' +
-        '       { SELECT ?statement_node WHERE { ?statement_node ?statement_property wd:{{VALUE}} . } }   ' +
-        '       ?statement_node ?statement_property ?statement_value .  ' +
-        '       OPTIONAL {  ' +
-        '         ?statement_value ?reference_property ?reference_value .}  ' +
-        '     }  ' +
-        '   }  ' +
-        '   OFFSET {{OFFSET}}  ' +
-        '  LIMIT {{LIMIT}}  ';
+    var searchWithValueSparqlQuery =
+    'SELECT {{BINDINGS}} ' +
+    'WHERE {' +
+    '  GRAPH {{DATASET}} {' +
+    '    ?subject a wikibase:Item ;' +
+    '             {{PROPERTY}} ?statement_node .' +
+    '    { SELECT ?statement_node WHERE { ?statement_node ?statement_property wd:{{VALUE}} . } }' +
+    '    ?statement_node ?statement_property ?statement_value .  ' +
+    '    OPTIONAL { ?statement_value ?reference_property ?reference_value . }' +
+    '  } ' +
+    '} ' +
+    'OFFSET {{OFFSET}} ' +
+    'LIMIT {{LIMIT}}';
     var subjectsSparqlQuery = "SELECT ?subject WHERE { ?subject a wikibase:Item } OFFSET {{offset}} LIMIT {{limit}}";
     /* END: baked SPARQL queries */
 
@@ -589,6 +589,9 @@
                 label: 'Pick one',
                 menu: {
                     items: [
+                        new OO.ui.MenuSectionOptionWidget({
+                            label: 'General'
+                        }),
                         new OO.ui.MenuOptionWidget({
                             data: 'subjects',
                             label: 'All subject items'
@@ -600,6 +603,56 @@
                         new OO.ui.MenuOptionWidget({
                             data: 'values',
                             label: 'All item values'
+                        }),
+                        new OO.ui.MenuSectionOptionWidget({
+                            label: 'People'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'Q6581097',
+                            label: 'Males'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'Q6581072',
+                            label: 'Females'
+                        }),
+                        new OO.ui.MenuSectionOptionWidget({
+                            label: 'Occupations'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'Q11569986',
+                            label: 'Painters'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'Q11569986',
+                            label: 'Printmakers'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'Q482980',
+                            label: 'Authors'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'Q1097498',
+                            label: 'Rulers'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'Q82955',
+                            label: 'Politicians'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'Q2259532',
+                            label: 'Clerics'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'Q2516866',
+                            label: 'Publishers'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'Q16631371',
+                            label: 'Researchers'
+                        }),
+                        new OO.ui.MenuOptionWidget({
+                            data: 'Q1281618',
+                            label: 'Sculptors'
                         })
                     ]
                 }
@@ -748,15 +801,16 @@
         ListDialog.prototype.onOptionSubmit = function () {
             this.mainPanel.$element.empty();
             this.table = null;
+            var datasetUri = this.datasetInput.getData();
             var bakedFiltersMenu = this.bakedFilters.getMenu();
             var bakedSelection = bakedFiltersMenu.findSelectedItem();
-            var sparql = this.sparqlQuery.getValue();
+            var arbitrarySparql = this.sparqlQuery.getValue();
 
             if (!this.bakedFilters.isDisabled()) {
-                var bakedQuery = bakedSelection.getData();
+                var baked = bakedSelection.getData();
                 bakedFiltersMenu.selectItem();
                 this.bakedFilters.setLabel('Pick one');
-                switch (bakedQuery) {
+                switch (baked) {
                     case 'subjects':
                         this.sparql = subjectsSparqlQuery;
                         this.sparqlOffset = 0;
@@ -769,13 +823,24 @@
                     case 'values':
                         this.executeServiceCall(ps.globals.API_ENDPOINTS.VALUES_SERVICE);
                         break;
+                    // QID
                     default:
-                        ps.commons.debug('Unexpected baked filter: "' + bakedQuery + '". Nothing will happen')
+                        var filledQuery = datasetUri === ''
+                        ? searchWithValueSparqlQuery.replace('{{DATASET}}', '?dataset')
+                        : searchWithValueSparqlQuery.replace('{{DATASET}}', '<' + datasetUri + '>');
+                        filledQuery
+                        .replace('{{BINDINGS}}', '?subject')
+                        .replace('{{PROPERTY}}', '?property')
+                        .replace('{{VALUE}}', baked);
+                        this.sparql = filledQuery;
+                        this.sparqlOffset = 0;
+                        this.sparqlLimit = 100;
+                        this.executeSparqlQuery();
                         break;
                 }
             }
             else if (!this.sparqlQuery.isDisabled()) {
-                this.sparql = sparql;
+                this.sparql = arbitrarySparql;
                 this.executeSparqlQuery();
             } else {
                 
@@ -792,7 +857,7 @@
                 }
 
                 if (this.datasetInput.getValue().length > 0) {
-                    correct_query = correct_query.replace(/\{\{DATASET\}\}/g, '<' + this.propertyInput.getValue() + '>');
+                    correct_query = correct_query.replace(/\{\{DATASET\}\}/g, '<' + this.datasetInput.getValue() + '>');
                 } else {
                     correct_query = correct_query.replace(/\{\{DATASET\}\}/g, '?dataset');
                 }
