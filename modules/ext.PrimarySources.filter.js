@@ -755,6 +755,7 @@
             if (!this.bakedFilters.isDisabled()) {
                 var bakedQuery = bakedSelection.getData();
                 bakedFiltersMenu.selectItem();
+                this.bakedFilters.setLabel('Pick one');
                 switch (bakedQuery) {
                     case 'subjects':
                         this.sparql = subjectsSparqlQuery;
