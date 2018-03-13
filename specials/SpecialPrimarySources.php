@@ -56,15 +56,19 @@ class SpecialPrimarySources extends SpecialPage {
                             
             $out->addHTML('<button id="swap" onClick="swap()">I want to update a dataset</button><br><br>');
             
-            /*
-            <select>
-                <option value="volvo">Volvo</option>
-                <option value="saab">Saab</option>
-                <option value="opel">Opel</option>
-                <option value="audi">Audi</option>
-            </select>
-            */
-  
+            $updateString= '<form id="updateForm" action="http://pst.wmflabs.org/pst/update" method="post" enctype="multipart/form-data" style="display:none">
+                <label>Update Dataset</label><br><br>
+                <input type="hidden" name="user" value="' . $user->getName() . '">
+                Dataset name: <select name="name">';
+            for($i = 0; $i < count($userDatasets); $i++){
+                $updateString.= '<option value="' . $userDatasets[$i] . '">' . $userDatasets[$i] . '</option>';
+            }
+            $updateString.='</select>
+                          Dataset file to remove: <input type="file" name="remove" id="remove"><br>
+                          Dataset file to add: <input type="file" name="add" id="add"><br><br>
+                          <input type="button" onclick="if($(\'#remove\').get(0).files.length == 0 || $(\'#add\').get(0).files.length == 0 ){alert(\'Please select a file for both inputs\')}else{submit()}" value="Submit">
+                          </form>'
+
             $out->addHTML('<form id="uploadForm" action="http://pst.wmflabs.org/pst/upload" method="post" enctype="multipart/form-data">
                           <label>Upload Dataset</label><br><br>
                           <input type="hidden" name="user" value="' . $user->getName() . '">
@@ -73,14 +77,7 @@ class SpecialPrimarySources extends SpecialPage {
                           <input type="button" onclick="if($(\'#dataset\').get(0).files.length == 0){alert(\'Please select a file\')}else{submit()}" value="Submit">
                           </form>');
 
-            $out->addHTML('<form id="updateForm" action="http://pst.wmflabs.org/pst/update" method="post" enctype="multipart/form-data" style="display:none">
-                          <label>Update Dataset</label><br><br>
-                          <input type="hidden" name="user" value="' . $user->getName() . '">
-                          Dataset URI: <input type="text" name="dataset" value="dataset URI"><br>
-                          Dataset file to remove: <input type="file" name="remove" id="remove"><br>
-                          Dataset file to add: <input type="file" name="add" id="add"><br><br>
-                          <input type="button" onclick="if($(\'#remove\').get(0).files.length == 0 || $(\'#add\').get(0).files.length == 0 ){alert(\'Please select a file for both inputs\')}else{submit()}" value="Submit">
-                          </form>');
+            $out->addHTML($updateString);
         }
         else{
             $out->addWikiText( strtoupper('Please log in to use this feature') );
