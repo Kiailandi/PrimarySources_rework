@@ -34,8 +34,8 @@ class SpecialPrimarySources extends SpecialPage {
             $userDatasets = [];
             for($i = 0; $i < count($datasets); $i++){
                 preg_match('/User:([^\/]+)/', $datasets[$i]->$keyUser, $re);
-                if($re[1] == $user->$user->getName()){
-                    array_push($userDatasets, $datasets[$i]->$dataset);
+                if($re[1] == $user->getName()){
+                    array_push($userDatasets, $datasets[$i]->$keyDataset);
                 }
             }
 
@@ -67,7 +67,7 @@ class SpecialPrimarySources extends SpecialPage {
                           Dataset file to remove: <input type="file" name="remove" id="remove"><br>
                           Dataset file to add: <input type="file" name="add" id="add"><br><br>
                           <input type="button" onclick="if($(\'#remove\').get(0).files.length == 0 || $(\'#add\').get(0).files.length == 0 ){alert(\'Please select a file for both inputs\')}else{submit()}" value="Submit">
-                          </form>'
+                          </form>';
 
             $out->addHTML('<form id="uploadForm" action="http://pst.wmflabs.org/pst/upload" method="post" enctype="multipart/form-data">
                           <label>Upload Dataset</label><br><br>
