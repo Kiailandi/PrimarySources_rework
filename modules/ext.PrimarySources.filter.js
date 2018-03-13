@@ -441,6 +441,14 @@
             this.setLookupsDisabled(false);
         };
 
+        SparqlResultRow.prototype.approve = function() {
+            console.log("Approved!");
+        }
+
+        SparqlResultRow.prototype.reject = function() {
+            console.log("Rejected!");
+        }
+
         /**
          * On button click "Approve"
          */
