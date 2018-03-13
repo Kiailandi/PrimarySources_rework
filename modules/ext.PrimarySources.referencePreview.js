@@ -20,7 +20,7 @@
 
             $.ajax({
                 type: 'GET',
-                url: 'https://tools.wmflabs.org/strephit/search?url=' + encodeURI(referenceURL),
+                url: 'https://tools.wmflabs.org/strephit/search?url=' + encodeURIComponent(referenceURL),
                 success: function(msg) {
                     $('.loader').remove();
 

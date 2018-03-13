@@ -323,21 +323,21 @@
                     .connect(widget, { click: 'reject' })
                 ]
             });
-            cells.push($('<td>').append(curationButtons.$element));
 
             var previewButton = new OO.ui.ButtonWidget({
                 label: 'Preview',
-                flags: 'primary',
+                flags: ['primary', 'progressive'],
                 icon: 'articleSearch'
             })
             .connect(widget, { click: function() {
-                var spos = cells.slice(0, 3);
+                var spos = cells.slice(0, 4);
                 ps.referencePreview.openNav(
-                    spos[0], spos[1], spos[2], spos[3],
+                    spos[0].text(), spos[1].text(), spos[2].text(), spos[3].text(),
                     $(curationButtons.$element)
                 )}
             });
             cells.push($('<td>').append(previewButton.$element));            
+            cells.push($('<td>').append(curationButtons.$element));
             // END: action buttons
 
             this.$element.append(
