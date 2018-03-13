@@ -61,7 +61,7 @@ class SpecialPrimarySources extends SpecialPage {
                 <input type="hidden" name="user" value="' . $user->getName() . '">
                 Dataset name: <select name="name">';
             for($i = 0; $i < count($userDatasets); $i++){
-                $updateString.= '<option value="' . $userDatasets[$i] . '">' . $userDatasets[$i] . '</option>';
+                $updateString.= '<option value="' . $userDatasets[$i] . '">' . explode('/', $userDatasets[$i])[2] . '</option>';
             }
             $updateString.='</select><br>
                           Dataset file to remove: <input type="file" name="remove" id="remove"><br>
