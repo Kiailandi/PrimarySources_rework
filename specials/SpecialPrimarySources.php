@@ -63,7 +63,7 @@ class SpecialPrimarySources extends SpecialPage {
             for($i = 0; $i < count($userDatasets); $i++){
                 $updateString.= '<option value="' . $userDatasets[$i] . '">' . $userDatasets[$i] . '</option>';
             }
-            $updateString.='</select>
+            $updateString.='</select><br>
                           Dataset file to remove: <input type="file" name="remove" id="remove"><br>
                           Dataset file to add: <input type="file" name="add" id="add"><br><br>
                           <input type="button" onclick="if($(\'#remove\').get(0).files.length == 0 || $(\'#add\').get(0).files.length == 0 ){alert(\'Please select a file for both inputs\')}else{submit()}" value="Submit">
