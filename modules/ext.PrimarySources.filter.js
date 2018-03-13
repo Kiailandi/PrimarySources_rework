@@ -243,7 +243,10 @@
 
         function SparqlResultRow(headers, bindings) {
             SparqlResultRow.super.call(this, headers, bindings);
+            var widget = this;
             var cells = [];
+
+            // BEGIN: data cells
             headers.forEach(function (header) {
                 var cell = $('<td>');
                 var value, valueType;
@@ -299,6 +302,38 @@
                     cells.push(cell);
                 }
             });
+            // END: data cells
+
+            // Reference preview button
+            var previewButton = $('<button>').addClass('preview-button').text("Preview");
+            previewButton.click(function () {
+                mw.ps.referencePreview.openNav(
+                    $(subjectHtml).text(),
+                    $(propertyHtml).text(),
+                    $(objectHtml).text(),
+                    $(sourceValueHtml).text(),
+                    $(curationButtons.$element)
+                )
+            });
+            cells.push($('<td>').append(previewButton.$element));
+
+            // Curation buttons
+            var curationButtons = new OO.ui.ButtonGroupWidget({
+                items: [
+                    new OO.ui.ButtonWidget({
+                        label: 'Approve',
+                        flags: 'constructive'
+                    })
+                    .connect(widget, { click: 'approve' }),
+                    new OO.ui.ButtonWidget({
+                        label: 'Reject',
+                        flags: 'destructive'
+                    })
+                    .connect(widget, { click: 'reject' })
+                ]
+            });
+            cells.push($('<td>').append(curationButtons.$element));
+
             this.$element.append(
                 $('<tr>').append(cells)
             );
