@@ -241,7 +241,7 @@
         OO.inheritClass(StatementRow, OO.ui.Widget);
         StatementRow.static.tagName = 'tbody';
 
-        function SparqlResultRow(headers, bindings) {
+        function SparqlResultRow(headers, bindings, withButtons, property, value) {
             SparqlResultRow.super.call(this, headers, bindings);
             var widget = this;
             var cells = [];
@@ -305,40 +305,55 @@
             // END: data cells
             
             // BEGIN: action buttons
-            var curationButtons = new OO.ui.ButtonGroupWidget({
-                items: [
-                    new OO.ui.ButtonWidget({
-                        label: 'Approve',
-                        flags: 'progressive',
-                        icon: 'add',
-                        disabled: true
+            if (withButtons) {
+                var curationButtons = new OO.ui.ButtonGroupWidget({
+                    items: [
+                        new OO.ui.ButtonWidget({
+                            label: 'Approve',
+                            flags: 'progressive',
+                            icon: 'add',
+                            disabled: true
+                        })
+                        .connect(widget, { click: 'approve' }),
+                        new OO.ui.ButtonWidget({
+                            label: 'Reject',
+                            flags: 'destructive',
+                            icon: 'trash',
+                            disabled: true
+                        })
+                        .connect(widget, { click: 'reject' })
+                    ]
+                });
+    
+                // Generate the preview button only if we have a reference URL
+                if (cells[3].text().startsWith('http')) {
+                    var previewButton = new OO.ui.ButtonWidget({
+                        label: 'Preview',
+                        flags: ['primary', 'progressive'],
+                        icon: 'articleSearch'
                     })
-                    .connect(widget, { click: 'approve' }),
-                    new OO.ui.ButtonWidget({
-                        label: 'Reject',
-                        flags: 'destructive',
-                        icon: 'trash',
-                        disabled: true
-                    })
-                    .connect(widget, { click: 'reject' })
-                ]
-            });
-
-            var previewButton = new OO.ui.ButtonWidget({
-                label: 'Preview',
-                flags: ['primary', 'progressive'],
-                icon: 'articleSearch'
-            })
-            .connect(widget, { click: function() {
-                curationButtons.getItems().forEach(function (item) { item.setDisabled(false); });
-                var spos = cells.slice(0, 4);
-                ps.referencePreview.openNav(
-                    spos[0].text(), spos[1].text(), spos[2].text(), spos[3].text(),
-                    $(curationButtons.$element)
-                )}
-            });
-            cells.push($('<td>').append(previewButton.$element));            
-            cells.push($('<td>').append(curationButtons.$element));
+                    .connect(widget, { click: function() {
+                        curationButtons.getItems().forEach(function (item) { item.setDisabled(false); });
+                        previewParams = [cells[0].text()];
+                        if (property === '') {
+                            previewParams.push(cells[1].text());
+                        } else {
+                            previewParams.push(property);
+                        }
+                        if (value === '') {
+                            previewParams.push(cells[2].text());
+                        } else {
+                            previewParams.push(value);
+                        }
+                        ps.referencePreview.openNav(
+                            previewParams[0], previewParams[1], previewParams[2], previewParams[3],
+                            $(curationButtons.$element)
+                        )}
+                    });
+                    cells.push($('<td>').append(previewButton.$element));
+                }
+                cells.push($('<td>').append(curationButtons.$element));
+            }
             // END: action buttons
 
             this.$element.append(
@@ -881,6 +896,8 @@
             var datasetUri = this.datasetInput.getValue();
             var bakedFiltersMenu = this.bakedFilters.getMenu();
             var bakedSelection = bakedFiltersMenu.findSelectedItem();
+            var itemValue = this.itemValueInput.getValue();
+            var property = this.propertyInput.getValue();
             var arbitrarySparql = this.sparqlQuery.getValue();
 
             if (!this.bakedFilters.isDisabled()) {
@@ -924,42 +941,19 @@
                 this.sparql = arbitrarySparql;
                 this.executeSparqlQuery();
             } else {
-                
-                var correct_query = searchSparqlQuery;
-                if (this.itemValueInput.getValue().length > 0) {
-                    correct_query = searchWithValueSparqlQuery;
-                    correct_query = correct_query.replace(/\{\{VALUE\}\}/g, + this.itemValueInput.getValue());
-                }
-
-                if (this.propertyInput.getValue().length > 0) {
-                    correct_query = correct_query.replace(/\{\{PROPERTY\}\}/g, 'p:' + this.propertyInput.getValue());
-                } else {
-                    correct_query = correct_query.replace(/\{\{PROPERTY\}\}/g, '?property');
-                }
-
-                if (this.datasetInput.getValue().length > 0) {
-                    correct_query = correct_query.replace(/\{\{DATASET\}\}/g, '<' + this.datasetInput.getValue() + '>');
-                } else {
-                    correct_query = correct_query.replace(/\{\{DATASET\}\}/g, '?dataset');
-                }
-
-                correct_query = correct_query
-                    .replace(/\{\{OFFSET\}\}/g, '0')
-                    .replace(/\{\{LIMIT\}\}/g, '100');
-
-                this.sparql = correct_query;
-                this.executeSparqlQuery();
-
-                // // Use /search service
-                // this.parameters = {
-                //     dataset: this.datasetInput.getValue(),
-                //     property: this.propertyInput.getValue(),
-                //     value: this.valueInput.getValue(),
-                //     offset: 0,
-                //     limit: 100 // number of loaded statements
-                // };
-                // this.alreadyDisplayedStatementKeys = {};
-                // this.executeQuery();
+                var filledQuery = itemValue === ''
+                ? searchSparqlQuery
+                : searchWithValueSparqlQuery.replace('{{VALUE}}', itemValue);
+                filledQuery = property === ''
+                ? filledQuery.replace('{{PROPERTY}}', '?property')
+                : filledQuery.replace('{{PROPERTY}}', 'p:' + property);
+                filledQuery = datasetUri === ''
+                ? filledQuery.replace('{{DATASET}}', '?dataset')
+                : filledQuery.replace('{{DATASET}}', '<' + datasetUri + '>')
+                this.sparql = filledQuery;
+                this.sparqlOffset = 0;
+                this.sparqlLimit = 100;
+                this.executeSparqlQuery(true, property, itemValue);
             }
         };
 
@@ -979,18 +973,6 @@
                     progressBar.$element.remove();
                     // TODO slice chunks of 100
                     widget.displayServiceResult(data);
-                    // if (statements.length > 0) {
-                    //     widget.nextStatementsButton = new OO.ui.ButtonWidget({
-                    //         label: 'Load more statements'
-                    //     });
-                    //     widget.nextStatementsButton.connect(
-                    //         widget,
-                    //         { click: 'onNextButtonSubmit' }
-                    //     );
-                    //     widget.mainPanel.$element.append(
-                    //         widget.nextStatementsButton.$element
-                    //     );
-                    // }
                 }
             )
                 .fail(function (xhr, textStatus) {
@@ -1136,7 +1118,7 @@
         /**
          * SPARQL
          */
-        ListDialog.prototype.executeSparqlQuery = function () {
+        ListDialog.prototype.executeSparqlQuery = function (withButtons=false, property=null, value=null) {
             var widget = this;
             var progressBar = new OO.ui.ProgressBarWidget();
             progressBar.$element.css('max-width', '100%');
@@ -1153,7 +1135,7 @@
                     progressBar.$element.remove();
                     // paging
                     widget.sparqlOffset += widget.sparqlLimit;
-                    widget.displaySparqlResult(data.head.vars, data.results.bindings);
+                    widget.displaySparqlResult(data.head.vars, data.results.bindings, withButtons, property, value);
                     if (data.hasOwnProperty('results')) {
                         widget.nextStatementsButton = new OO.ui.ButtonWidget({
                             label: 'Load more'
@@ -1211,19 +1193,19 @@
             }
         };
 
-        ListDialog.prototype.displaySparqlResult = function (headers, bindings) {
+        ListDialog.prototype.displaySparqlResult = function (headers, bindings, withButtons, property, value) {
             var widget = this;
             if (this.table === null) {
-                this.initResultTable(headers);
+                this.initResultTable(headers, withButtons);
             }
             bindings.forEach(function (binding) {
-                var row = new SparqlResultRow(headers, binding);
+                var row = new SparqlResultRow(headers, binding, withButtons, property, value);
                 widget.table.append(row.$element);
             });
 
         };
 
-        ListDialog.prototype.initResultTable = function (headers) {
+        ListDialog.prototype.initResultTable = function (headers, withButtons) {
             var htmlHeaders = [];
             headers.forEach(function (header) {
                 htmlHeaders.push($('<th>').text(header));
@@ -1234,13 +1216,17 @@
                 .append(
                     $('<thead>').append(
                         $('<tr>').append(
-                            htmlHeaders,
-                            $('<th>')
-                            .text('Actions')
-                            .attr('colspan', 2)
+                            htmlHeaders
                         )
                     )
                 );
+            if (withButtons) {
+                $('<tr>').append(
+                    $('<th>')
+                    .text('Actions')
+                    .attr('colspan', 2)
+                );
+            }
             this.mainPanel.$element.append(this.table);
         };
 
