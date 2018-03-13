@@ -303,36 +303,42 @@
                 }
             });
             // END: data cells
-
-            // Reference preview button
-            var previewButton = $('<button>').addClass('preview-button').text("Preview");
-            previewButton.click(function () {
-                mw.ps.referencePreview.openNav(
-                    $(subjectHtml).text(),
-                    $(propertyHtml).text(),
-                    $(objectHtml).text(),
-                    $(sourceValueHtml).text(),
-                    $(curationButtons.$element)
-                )
-            });
-            cells.push($('<td>').append(previewButton.$element));
-
-            // Curation buttons
+            
+            // BEGIN: action buttons
             var curationButtons = new OO.ui.ButtonGroupWidget({
                 items: [
                     new OO.ui.ButtonWidget({
                         label: 'Approve',
-                        flags: 'constructive'
+                        flags: 'progressive',
+                        icon: 'add',
+                        disabled: true
                     })
                     .connect(widget, { click: 'approve' }),
                     new OO.ui.ButtonWidget({
                         label: 'Reject',
-                        flags: 'destructive'
+                        flags: 'destructive',
+                        icon: 'trash',
+                        disabled: true
                     })
                     .connect(widget, { click: 'reject' })
                 ]
             });
             cells.push($('<td>').append(curationButtons.$element));
+
+            var previewButton = new OO.ui.ButtonWidget({
+                label: 'Preview',
+                flags: 'primary',
+                icon: 'articleSearch'
+            })
+            .connect(widget, { click: function() {
+                var spos = cells.slice(0, 3);
+                ps.referencePreview.openNav(
+                    spos[0], spos[1], spos[2], spos[3],
+                    $(curationButtons.$element)
+                )}
+            });
+            cells.push($('<td>').append(previewButton.$element));            
+            // END: action buttons
 
             this.$element.append(
                 $('<tr>').append(cells)
@@ -1227,7 +1233,10 @@
                 .append(
                     $('<thead>').append(
                         $('<tr>').append(
-                            htmlHeaders
+                            htmlHeaders,
+                            $('<th>')
+                            .text('Actions')
+                            .attr('colspan', 2)
                         )
                     )
                 );
