@@ -330,6 +330,7 @@
                 icon: 'articleSearch'
             })
             .connect(widget, { click: function() {
+                curationButtons.getItems().forEach(function (item) { item.setDisabled(false); });
                 var spos = cells.slice(0, 4);
                 ps.referencePreview.openNav(
                     spos[0].text(), spos[1].text(), spos[2].text(), spos[3].text(),
