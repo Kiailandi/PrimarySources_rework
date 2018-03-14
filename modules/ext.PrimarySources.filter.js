@@ -353,6 +353,8 @@
                         )}
                     });
                     cells.push($('<td>').append(previewButton.$element));
+                } else {
+                    curationButtons.getItems().forEach(function (item) { item.setDisabled(false); });
                 }
                 cells.push($('<td>').append(curationButtons.$element));
             }
@@ -885,14 +887,6 @@
             }
         };
 
-        /**
-         * OnOptionSubmit
-         */
-        /*
-         * Dataset se c'è rimpiazza con <valore_variable> altrimenti ?dataset
-         * property se c'è rimpiazza con p:valore_var altrimenti con ?property
-         * se c'è il valore usare un'altra query
-         * */
         ListDialog.prototype.onOptionSubmit = function () {
             this.mainPanel.$element.empty();
             this.table = null;
