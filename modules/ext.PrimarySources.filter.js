@@ -777,6 +777,7 @@
                         this.bakedFilters.setDisabled(true);
                         this.sparqlQuery.setDisabled(true);
                     } else {
+                        this.itemValueInput.setData();
                         this.bakedFilters.setDisabled(false);
                         this.sparqlQuery.setDisabled(false);
                     }
@@ -797,6 +798,7 @@
                         this.bakedFilters.setDisabled(true);
                         this.sparqlQuery.setDisabled(true);
                     } else {
+                        this.itemValueInput.setData();
                         this.bakedFilters.setDisabled(false);
                         this.sparqlQuery.setDisabled(false);
                     }
