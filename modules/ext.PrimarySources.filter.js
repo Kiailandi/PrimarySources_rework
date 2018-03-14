@@ -1232,7 +1232,10 @@
             .append(
                 $('<thead>').append(
                     $('<tr>').append(
-                        htmlHeaders
+                        htmlHeaders,
+                        $('<th>')
+                        .text('Actions')
+                        .attr('colspan', 2)   
                     )
                 )
             )
@@ -1242,10 +1245,7 @@
             .append(
                 $('<thead>').append(
                     $('<tr>').append(
-                        htmlHeaders,
-                        $('<th>')
-                        .text('Actions')
-                        .attr('colspan', 2)   
+                        htmlHeaders
                     )
                 )
             )
