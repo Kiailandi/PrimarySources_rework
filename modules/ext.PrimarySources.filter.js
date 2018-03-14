@@ -326,7 +326,7 @@
                 });
     
                 // Generate the preview button only if we have a reference URL
-                if (cells[3].text().startsWith('http')) {
+                if (cells[4].text().startsWith('http')) {
                     var previewButton = new OO.ui.ButtonWidget({
                         label: 'Preview',
                         flags: ['primary', 'progressive'],
@@ -814,10 +814,12 @@
             .connect(this, {
                 change: function() {
                     if (this.sparqlQuery.getValue() !== '') {
+                        this.datasetInput.setDisabled(true);
                         this.bakedFilters.setDisabled(true);
                         this.itemValueInput.setDisabled(true);
                         this.propertyInput.setDisabled(true);
                     } else {
+                        this.datasetInput.setDisabled(false);
                         this.bakedFilters.setDisabled(false);
                         this.itemValueInput.setDisabled(false);
                         this.propertyInput.setDisabled(false);
@@ -893,15 +895,15 @@
         ListDialog.prototype.onOptionSubmit = function () {
             this.mainPanel.$element.empty();
             this.table = null;
+            // The dataset field is needed for all filters but the arbitrary SPARQL query
             var datasetUri = this.datasetInput.getValue();
-            var bakedFiltersMenu = this.bakedFilters.getMenu();
-            var bakedSelection = bakedFiltersMenu.findSelectedItem();
-            var itemValue = this.itemValueInput.getValue();
-            var property = this.propertyInput.getValue();
-            var arbitrarySparql = this.sparqlQuery.getValue();
 
+            // Baked filters
             if (!this.bakedFilters.isDisabled()) {
+                var bakedFiltersMenu = this.bakedFilters.getMenu();
+                var bakedSelection = bakedFiltersMenu.findSelectedItem();
                 var baked = bakedSelection.getData();
+                // Reset selection and default label
                 bakedFiltersMenu.selectItem();
                 this.bakedFilters.setLabel('Pick one');
                 switch (baked) {
@@ -938,19 +940,31 @@
                 }
             }
             else if (!this.sparqlQuery.isDisabled()) {
-                this.sparql = arbitrarySparql;
+                this.sparql = this.sparqlQuery.getValue();
                 this.executeSparqlQuery();
             } else {
-                var filledQuery = itemValue === ''
-                ? searchSparqlQuery
-                : searchWithValueSparqlQuery.replace('{{VALUE}}', itemValue);
-                filledQuery = property === ''
-                ? filledQuery.replace('{{PROPERTY}}', '?property')
-                : filledQuery.replace('{{PROPERTY}}', 'p:' + property);
+                var itemValue = this.itemValueInput.getValue();
+                var property = this.propertyInput.getValue();
+                var filledQuery;
+                var bindings = '?subject {{PROPERTY}} {{VALUE}} ?reference_property ?reference_value';
+                if (itemValue === '') {
+                    filledQuery = searchSparqlQuery;
+                    bindings = bindings.replace('{{VALUE}}', '?statement_value');
+                } else {
+                    filledQuery = searchWithValueSparqlQuery.replace('{{VALUE}}', itemValue);
+                    bindings = bindings.replace('{{VALUE}}', '');
+                }
+                if (property === '') {
+                    filledQuery = filledQuery.replace('{{PROPERTY}}', '?property');
+                    bindings = bindings.replace('{{PROPERTY}}', '?property');
+                } else {
+                    filledQuery = filledQuery.replace('{{PROPERTY}}', 'p:' + property);
+                    bindings = bindings.replace('{{PROPERTY}}', '');
+                }
                 filledQuery = datasetUri === ''
                 ? filledQuery.replace('{{DATASET}}', '?dataset')
                 : filledQuery.replace('{{DATASET}}', '<' + datasetUri + '>')
-                this.sparql = filledQuery;
+                this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
                 this.sparqlOffset = 0;
                 this.sparqlLimit = 100;
                 this.executeSparqlQuery(true, property, itemValue);
@@ -1118,7 +1132,7 @@
         /**
          * SPARQL
          */
-        ListDialog.prototype.executeSparqlQuery = function (withButtons=false, property=null, value=null) {
+        ListDialog.prototype.executeSparqlQuery = function (withButtons=false, property='', value='') {
             var widget = this;
             var progressBar = new OO.ui.ProgressBarWidget();
             progressBar.$element.css('max-width', '100%');
