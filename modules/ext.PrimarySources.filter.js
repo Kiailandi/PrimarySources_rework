@@ -326,7 +326,8 @@
                 });
     
                 // Generate the preview button only if we have a reference URL
-                if (cells[4].text().startsWith('http')) {
+                var referenceValue = cells[3].text();
+                if (referenceValue.startsWith('http')) {
                     var previewButton = new OO.ui.ButtonWidget({
                         label: 'Preview',
                         flags: ['primary', 'progressive'],
@@ -345,6 +346,7 @@
                         } else {
                             previewParams.push(value);
                         }
+                        previewParams.push(referenceValue);
                         ps.referencePreview.openNav(
                             previewParams[0], previewParams[1], previewParams[2], previewParams[3],
                             $(curationButtons.$element)
