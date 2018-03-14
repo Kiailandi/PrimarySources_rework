@@ -623,7 +623,7 @@
         OO.inheritClass(ListDialog, OO.ui.ProcessDialog);
         ListDialog.static.name = 'ps-list';
         ListDialog.static.title = 'primary sources filter';
-        ListDialog.static.size = 'full';
+        ListDialog.static.size = 'larger';
         ListDialog.static.actions = [
             { label: 'Close', flags: 'safe' }
         ];
@@ -652,119 +652,219 @@
              * Baked filters menu
              * @type {OO.iu.DropdownWidget}
              */
-            this.bakedFilters = new OO.ui.DropdownWidget({
-                label: 'Pick one',
-                menu: {
+            // this.bakedFilters = new OO.ui.DropdownWidget({
+            //     label: 'Pick one',
+            //     menu: {
+            //         items: [
+            //             new OO.ui.MenuSectionOptionWidget({
+            //                 label: 'General'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'subjects',
+            //                 label: 'All subject items'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'properties',
+            //                 label: 'All properties'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'values',
+            //                 label: 'All item values'
+            //             }),
+            //             new OO.ui.MenuSectionOptionWidget({
+            //                 label: 'People'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'Q6581097',
+            //                 label: 'Males'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'Q6581072',
+            //                 label: 'Females'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'P19',
+            //                 label: 'Places of birth'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'P569',
+            //                 label: 'Dates of birth'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: '',
+            //                 label: 'Journey destinations'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'P463',
+            //                 label: 'Members of'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'P937',
+            //                 label: 'Work locations'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'P20',
+            //                 label: 'Places of death'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'P570',
+            //                 label: 'Dates of death'
+            //             }),
+            //             new OO.ui.MenuSectionOptionWidget({
+            //                 label: 'Occupations'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'Q11569986',
+            //                 label: 'Painters'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'Q11569986',
+            //                 label: 'Printmakers'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'Q482980',
+            //                 label: 'Authors'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'Q1097498',
+            //                 label: 'Rulers'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'Q82955',
+            //                 label: 'Politicians'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'Q2259532',
+            //                 label: 'Clerics'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'Q2516866',
+            //                 label: 'Publishers'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'Q16631371',
+            //                 label: 'Researchers'
+            //             }),
+            //             new OO.ui.MenuOptionWidget({
+            //                 data: 'Q1281618',
+            //                 label: 'Sculptors'
+            //             })
+            //         ]
+            //     }
+            // })
+            this.bakedFilters = new OO.ui.ButtonSelectWidget({
+                // label: 'Pick one',
+                // menu: {
                     items: [
-                        new OO.ui.MenuSectionOptionWidget({
-                            label: 'General'
-                        }),
-                        new OO.ui.MenuOptionWidget({
+                        // new OO.ui.MenuSectionOptionWidget({
+                        //     label: 'General'
+                        // }),
+                        new OO.ui.ButtonOptionWidget({
                             data: 'subjects',
                             label: 'All subject items'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'properties',
                             label: 'All properties'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'values',
                             label: 'All item values'
                         }),
                         new OO.ui.MenuSectionOptionWidget({
                             label: 'People'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'Q6581097',
                             label: 'Males'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'Q6581072',
                             label: 'Females'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'P19',
                             label: 'Places of birth'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'P569',
                             label: 'Dates of birth'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: '',
                             label: 'Journey destinations'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'P463',
                             label: 'Members of'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'P937',
                             label: 'Work locations'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'P20',
                             label: 'Places of death'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'P570',
                             label: 'Dates of death'
                         }),
                         new OO.ui.MenuSectionOptionWidget({
                             label: 'Occupations'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'Q11569986',
                             label: 'Painters'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'Q11569986',
                             label: 'Printmakers'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'Q482980',
                             label: 'Authors'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'Q1097498',
                             label: 'Rulers'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'Q82955',
                             label: 'Politicians'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'Q2259532',
                             label: 'Clerics'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'Q2516866',
                             label: 'Publishers'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'Q16631371',
                             label: 'Researchers'
                         }),
-                        new OO.ui.MenuOptionWidget({
+                        new OO.ui.ButtonOptionWidget({
                             data: 'Q1281618',
                             label: 'Sculptors'
                         })
                     ]
-                }
+                // }
             })
-            .connect(this, {
-                labelChange: function() {
-                    if (this.bakedFilters.getMenu().findSelectedItem() !== null) {
-                        this.itemValueInput.setDisabled(true);
-                        this.propertyInput.setDisabled(true);
-                        this.sparqlQuery.setDisabled(true);
-                    } else {
-                        this.itemValueInput.setDisabled(false);
-                        this.propertyInput.setDisabled(false);
-                        this.sparqlQuery.setDisabled(false);
-                    }
-                }
-            });
+            // .connect(this, {
+            //     labelChange: function() {
+            //         if (this.bakedFilters.getMenu().findSelectedItem() !== null) {
+            //             this.itemValueInput.setDisabled(true);
+            //             this.propertyInput.setDisabled(true);
+            //             this.sparqlQuery.setDisabled(true);
+            //         } else {
+            //             this.itemValueInput.setDisabled(false);
+            //             this.propertyInput.setDisabled(false);
+            //             this.sparqlQuery.setDisabled(false);
+            //         }
+            //     }
+            // });
 
             /**
              * Entity value autocompletion
