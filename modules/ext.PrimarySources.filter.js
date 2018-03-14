@@ -1225,23 +1225,30 @@
             headers.forEach(function (header) {
                 htmlHeaders.push($('<th>').text(header));
             });
-            this.table = $('<table>')
-                .addClass('wikitable')
-                .css('width', '100%')
-                .append(
-                    $('<thead>').append(
-                        $('<tr>').append(
-                            htmlHeaders
-                        )
+            this.table = withButtons
+            ? $('<table>')
+            .addClass('wikitable')
+            .css('width', '100%')
+            .append(
+                $('<thead>').append(
+                    $('<tr>').append(
+                        htmlHeaders
                     )
-                );
-            if (withButtons) {
-                $('<tr>').append(
-                    $('<th>')
-                    .text('Actions')
-                    .attr('colspan', 2)
-                );
-            }
+                )
+            )
+            : $('<table>')
+            .addClass('wikitable')
+            .css('width', '100%')
+            .append(
+                $('<thead>').append(
+                    $('<tr>').append(
+                        htmlHeaders,
+                        $('<th>')
+                        .text('Actions')
+                        .attr('colspan', 2)   
+                    )
+                )
+            )
             this.mainPanel.$element.append(this.table);
         };
 
