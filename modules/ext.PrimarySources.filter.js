@@ -479,7 +479,6 @@
 
             // TODO createclaim with reference
 
-            // Check if is a duplicate (equal predicate and object)
             console.log("S P O: ");
             console.log(widget.statement.subject + " - " + widget.statement.predicate + " - " + widget.statement.object);
 
@@ -943,18 +942,18 @@
                 this.sparql = this.sparqlQuery.getValue();
                 this.executeSparqlQuery();
             } else {
-                var itemValue = this.itemValueInput.getValue();
-                var property = this.propertyInput.getValue();
+                var itemValue = this.itemValueInput.getData();
+                var property = this.propertyInput.getData();
                 var filledQuery;
                 var bindings = '?subject {{PROPERTY}} {{VALUE}} ?reference_property ?reference_value';
-                if (itemValue === '') {
+                if (itemValue === undefined) {
                     filledQuery = searchSparqlQuery;
                     bindings = bindings.replace('{{VALUE}}', '?statement_value');
                 } else {
                     filledQuery = searchWithValueSparqlQuery.replace('{{VALUE}}', itemValue);
                     bindings = bindings.replace('{{VALUE}}', '');
                 }
-                if (property === '') {
+                if (property === undefined) {
                     filledQuery = filledQuery.replace('{{PROPERTY}}', '?property');
                     bindings = bindings.replace('{{PROPERTY}}', '?property');
                 } else {
