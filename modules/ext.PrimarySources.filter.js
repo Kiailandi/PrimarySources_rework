@@ -241,19 +241,20 @@
         OO.inheritClass(StatementRow, OO.ui.Widget);
         StatementRow.static.tagName = 'tbody';
 
-        function SparqlResultRow(headers, bindings, withButtons, property, value) {
-            SparqlResultRow.super.call(this, headers, bindings);
+        function SparqlResultRow(config) {
+            SparqlResultRow.super.call(this, config);
+                        
             var widget = this;
             var cells = [];
 
             // BEGIN: data cells
-            headers.forEach(function (header) {
+            config.headers.forEach(function (header) {
                 var cell = $('<td>');
                 var value, valueType;
                 // Handle empty values in case of OPTIONAL clauses
-                if (bindings.hasOwnProperty(header)) {
-                    value = bindings[header].value;
-                    valueType = bindings[header].type;
+                if (config.bindings.hasOwnProperty(header)) {
+                    value = config.bindings[header].value;
+                    valueType = config.bindings[header].type;
                 } else {
                     value = null;
                     valueType = null;
@@ -305,7 +306,7 @@
             // END: data cells
             
             // BEGIN: action buttons
-            if (withButtons) {
+            if (config.showButtons) {
                 var curationButtons = new OO.ui.ButtonGroupWidget({
                     items: [
                         new OO.ui.ButtonWidget({
@@ -324,9 +325,27 @@
                         .connect(widget, { click: 'reject' })
                     ]
                 });
-    
+
+                // Build the QuickStatement needed for the /curate service
+                var subject = config.bindings.subject.value;
+                var property = config.property === '' ? config.bindings.property.value : config.property;
+                var value = config.value === '' ? config.bindings.statement_value.value : config.value;
+                var datasetUri, referenceProperty, referenceValue, statementType;
+                if (config.bindings.hasOwnProperty('reference_property')) {
+                    referenceProperty = config.bindings.reference_property.value;
+                    referenceValue = config.bindings.reference_value.value;
+                    this.statementType = 'reference';
+                } else {
+                    this.statementType = 'claim';
+                }
+                this.datasetUri = config.datasetUri === ''
+                ? config.bindings.dataset.value
+                : config.datasetUri;
+                this.quickStatement = referenceProperty === undefined
+                ? subject + '\t' + property + '\t' + value
+                : subject + '\t' + property + '\t' + value + '\t' + referenceProperty + '\t' + referenceValue;
+
                 // Generate the preview button only if we have a reference URL
-                var referenceValue = cells[3].text();
                 if (referenceValue.startsWith('http')) {
                     var previewButton = new OO.ui.ButtonWidget({
                         label: 'Preview',
@@ -336,15 +355,15 @@
                     .connect(widget, { click: function() {
                         curationButtons.getItems().forEach(function (item) { item.setDisabled(false); });
                         previewParams = [cells[0].text()];
-                        if (property === '') {
+                        if (config.property === '') {
                             previewParams.push(cells[1].text());
                         } else {
-                            previewParams.push(property);
+                            previewParams.push(config.property);
                         }
-                        if (value === '') {
+                        if (config.value === '') {
                             previewParams.push(cells[2].text());
                         } else {
-                            previewParams.push(value);
+                            previewParams.push(config.value);
                         }
                         previewParams.push(referenceValue);
                         ps.referencePreview.openNav(
@@ -468,12 +487,48 @@
         };
 
         SparqlResultRow.prototype.approve = function() {
-            console.log("Approved!");
-        }
+            // var widget = this;
+            // ps.commons.createClaim(
+            //     this.statement.subject,
+            //     this.statement.predicate,
+            //     this.statement.object,
+            //     this.statement.qualifiers
+            // ).fail(function(error) {
+            //     return reportError(error);
+            // }).done(function() {
+            //     if (this.statement.source.length > 0) {
+            //         return; // TODO add support of source review
+            //     }
+            //     setStatementState(widget.statement.id, STATEMENT_STATES.approved)
+            //     .done(function() {
+            //         widget.toggle(false).setDisabled(true);
+            //     });
+            // });
+        };
 
         SparqlResultRow.prototype.reject = function() {
-            console.log("Rejected!");
+            var widget = this;
+            this.showProgressBar();
+            ps.commons.setStatementState(this.quickStatement, ps.globals.STATEMENT_STATES.rejected, this.datasetUri, this.statementType)
+            .done(function() {
+                var message = this.statementType === 'claim'
+                ? 'Rejected claim with no reference [' + this.quickStatement + ']'
+                : 'Rejected referenced claim [' + this.quickStatement + ']';
+                ps.commons.debug.log(message);
+                widget.toggle(false).setDisabled(true);                
+            });
         }
+
+        SparqlResultRow.prototype.showProgressBar = function () {
+            var progressBar = new OO.ui.ProgressBarWidget();
+            progressBar.$element.css('max-width', '100%');
+            this.$element.empty()
+                .append(
+                    $('<td>')
+                        .attr('colspan', 5)
+                        .append(progressBar.$element)
+                );
+        };
 
         /**
          * On button click "Approve"
@@ -940,22 +995,22 @@
                 this.sparql = this.sparqlQuery.getValue();
                 this.executeSparqlQuery();
             } else {
-                var itemValue = this.itemValueInput.getData();
-                var property = this.propertyInput.getData();
+                var filteredItemValue = this.itemValueInput.getData();
+                var filteredProperty = this.propertyInput.getData();
                 var filledQuery;
                 var bindings = '?subject {{PROPERTY}} {{VALUE}} ?reference_property ?reference_value';
-                if (itemValue === undefined) {
+                if (filteredItemValue === undefined) {
                     filledQuery = searchSparqlQuery;
                     bindings = bindings.replace('{{VALUE}}', '?statement_value');
                 } else {
-                    filledQuery = searchWithValueSparqlQuery.replace('{{VALUE}}', itemValue);
+                    filledQuery = searchWithValueSparqlQuery.replace('{{VALUE}}', filteredItemValue);
                     bindings = bindings.replace('{{VALUE}}', '');
                 }
-                if (property === undefined) {
+                if (filteredProperty === undefined) {
                     filledQuery = filledQuery.replace('{{PROPERTY}}', '?property');
                     bindings = bindings.replace('{{PROPERTY}}', '?property');
                 } else {
-                    filledQuery = filledQuery.replace('{{PROPERTY}}', 'p:' + property);
+                    filledQuery = filledQuery.replace('{{PROPERTY}}', 'p:' + filteredProperty);
                     bindings = bindings.replace('{{PROPERTY}}', '');
                 }
                 filledQuery = datasetUri === ''
@@ -965,7 +1020,7 @@
                 this.sparqlOffset = 0;
                 this.sparqlLimit = 100;
                 // console.log(this.sparql);
-                this.executeSparqlQuery(true, property, itemValue);
+                this.executeSparqlQuery(true, datasetUri, filteredProperty, filteredItemValue);
             }
         };
 
@@ -1130,7 +1185,7 @@
         /**
          * SPARQL
          */
-        ListDialog.prototype.executeSparqlQuery = function (withButtons=false, property='', value='') {
+        ListDialog.prototype.executeSparqlQuery = function (showButtons=false, datasetUri='', filteredProperty='', filteredValue='') {
             var widget = this;
             var progressBar = new OO.ui.ProgressBarWidget();
             progressBar.$element.css('max-width', '100%');
@@ -1157,7 +1212,14 @@
                     } else {
                         // Paging
                         widget.sparqlOffset += widget.sparqlLimit;
-                        widget.displaySparqlResult(data.head.vars, data.results.bindings, withButtons, property, value);
+                        widget.displaySparqlResult({
+                            headers: data.head.vars,
+                            bindings: data.results.bindings,
+                            showButtons: showButtons,
+                            datasetUri: datasetUri,
+                            property: filteredProperty,
+                            value: filteredValue
+                        });
                         if (data.hasOwnProperty('results')) {
                             widget.nextStatementsButton = new OO.ui.ButtonWidget({
                                 label: 'Load more'
@@ -1216,24 +1278,31 @@
             }
         };
 
-        ListDialog.prototype.displaySparqlResult = function (headers, bindings, withButtons, property, value) {
+        ListDialog.prototype.displaySparqlResult = function (config) {
             var widget = this;
             if (this.table === null) {
-                this.initResultTable(headers, withButtons);
+                this.initResultTable(config.headers, config.showButtons);
             }
-            bindings.forEach(function (binding) {
-                var row = new SparqlResultRow(headers, binding, withButtons, property, value);
+            config.bindings.forEach(function (binding) {
+                var row = new SparqlResultRow({
+                    headers: config.headers,
+                    bindings: binding,
+                    showButtons: config.showButtons,
+                    datasetUri: config.datasetUri,
+                    property: config.property,
+                    value: config.value
+                });
                 widget.table.append(row.$element);
             });
 
         };
 
-        ListDialog.prototype.initResultTable = function (headers, withButtons) {
+        ListDialog.prototype.initResultTable = function (headers, showButtons) {
             var htmlHeaders = [];
             headers.forEach(function (header) {
                 htmlHeaders.push($('<th>').text(header));
             });
-            this.table = withButtons
+            this.table = showButtons
             ? $('<table>')
             .addClass('wikitable')
             .css('width', '100%')
