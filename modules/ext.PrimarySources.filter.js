@@ -680,7 +680,7 @@
         OO.inheritClass(ListDialog, OO.ui.ProcessDialog);
         ListDialog.static.name = 'ps-list';
         ListDialog.static.title = 'primary sources filter';
-        ListDialog.static.size = 'full';
+        ListDialog.static.size = 'larger';
         ListDialog.static.actions = [
             { label: 'Close', flags: 'safe' }
         ];
@@ -1294,24 +1294,37 @@
                     });
                     if (existing.length) {
                         var existingIndex = merged.indexOf(existing[0]);
-                        merged[existingIndex].statement_value.value = merged[existingIndex].statement_value.value.concat(binding.statement_value.value);
+                        merged[existingIndex].statement_value = merged[existingIndex].statement_value.concat(binding.statement_value);
+                        merged[existingIndex].reference_property = binding.hasOwnProperty('reference_property')
+                        ? merged[existingIndex].reference_property.concat(binding.reference_property)
+                        : merged[existingIndex].reference_property = null;
+                        merged[existingIndex].reference_value = binding.hasOwnProperty('reference_value')
+                        ? merged[existingIndex].reference_value.concat(binding.reference_value)
+                        : merged[existingIndex].reference_value = null;
                     } else {
-                        if (typeof binding.statement_value.value === 'string') {
-                            binding.statement_value.value = [binding.statement_value.value];
+                        if (typeof binding.statement_value === 'object') {
+                            binding.statement_value = [binding.statement_value];
+                        }
+                        if (binding.hasOwnProperty('reference_property') && typeof binding.reference_property === 'object') {
+                            binding.reference_property = [binding.reference_property];
+                        }
+                        if (binding.hasOwnProperty('reference_value') && typeof binding.reference_value === 'object') {
+                            binding.reference_value = [binding.reference_value];
                         }
                         merged.push(binding);
                     }
                 });
-                console.log(merged);
-                var row = new SparqlResultRow({
-                    headers: config.headers,
-                    bindings: merged,
-                    showButtons: config.showButtons,
-                    datasetUri: config.datasetUri,
-                    property: config.property,
-                    value: config.value
+                merged.forEach(function (binding) {
+                    var row = new SparqlResultRow({
+                        headers: config.headers,
+                        bindings: binding,
+                        showButtons: config.showButtons,
+                        datasetUri: config.datasetUri,
+                        property: config.property,
+                        value: config.value
+                    });
+                    widget.table.append(row.$element);
                 });
-                widget.table.append(row.$element);
             } else {
                 config.bindings.forEach(function (binding) {
                     var row = new SparqlResultRow({
