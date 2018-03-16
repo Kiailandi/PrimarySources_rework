@@ -1000,7 +1000,7 @@
                 var filteredItemValue = this.itemValueInput.getData();
                 var filteredProperty = this.propertyInput.getData();
                 var filledQuery;
-                var bindings = '?subject {{PROPERTY}} {{VALUE}} ?reference_property ?reference_value';
+                var bindings = '?subject {{PROPERTY}} ?statement_node {{VALUE}} ?reference_property ?reference_value';
                 if (filteredItemValue === undefined) {
                     filledQuery = searchSparqlQuery;
                     bindings = bindings.replace('{{VALUE}}', '?statement_value');
