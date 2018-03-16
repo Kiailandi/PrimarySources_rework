@@ -327,8 +327,10 @@
                 });
 
                 // Build the QuickStatement needed for the /curate service
-                var subject = config.bindings.subject.value;
+                var subject = config.bindings.subject.value.substring('http://www.wikidata.org/entity/'.length);
+                // FIXME get rid of the URI prefix
                 var property = config.property === '' ? config.bindings.property.value : config.property;
+                // FIXME for a reference row, the value is always a reified reference node, not the actual value: find a way to group the rows on the subject
                 var value = config.value === '' ? config.bindings.statement_value.value : config.value;
                 var datasetUri, referenceProperty, referenceValue, statementType;
                 if (config.bindings.hasOwnProperty('reference_property')) {
@@ -1020,7 +1022,7 @@
                 this.sparqlOffset = 0;
                 this.sparqlLimit = 100;
                 // console.log(this.sparql);
-                this.executeSparqlQuery(true, datasetUri, filteredProperty, filteredItemValue);
+                this.executeSparqlQuery(true, true, datasetUri, filteredProperty, filteredItemValue);
             }
         };
 
@@ -1185,7 +1187,7 @@
         /**
          * SPARQL
          */
-        ListDialog.prototype.executeSparqlQuery = function (showButtons=false, datasetUri='', filteredProperty='', filteredValue='') {
+        ListDialog.prototype.executeSparqlQuery = function (mergeOnSubject=false, showButtons=false, filteredDataset='', filteredProperty='', filteredValue='') {
             var widget = this;
             var progressBar = new OO.ui.ProgressBarWidget();
             progressBar.$element.css('max-width', '100%');
@@ -1215,8 +1217,9 @@
                         widget.displaySparqlResult({
                             headers: data.head.vars,
                             bindings: data.results.bindings,
+                            mergeOnSubject: mergeOnSubject,
                             showButtons: showButtons,
-                            datasetUri: datasetUri,
+                            datasetUri: filteredDataset,
                             property: filteredProperty,
                             value: filteredValue
                         });
@@ -1283,17 +1286,45 @@
             if (this.table === null) {
                 this.initResultTable(config.headers, config.showButtons);
             }
-            config.bindings.forEach(function (binding) {
+            if (config.mergeOnSubject) {
+                var merged = [];
+                config.bindings.forEach(function(binding) {
+                    var existing = merged.filter(function(item) {
+                        return item.statement_node.value === binding.statement_node.value;
+                    });
+                    if (existing.length) {
+                        var existingIndex = merged.indexOf(existing[0]);
+                        merged[existingIndex].statement_value.value = merged[existingIndex].statement_value.value.concat(binding.statement_value.value);
+                    } else {
+                        if (typeof binding.statement_value.value === 'string') {
+                            binding.statement_value.value = [binding.statement_value.value];
+                        }
+                        merged.push(binding);
+                    }
+                });
+                console.log(merged);
                 var row = new SparqlResultRow({
                     headers: config.headers,
-                    bindings: binding,
+                    bindings: merged,
                     showButtons: config.showButtons,
                     datasetUri: config.datasetUri,
                     property: config.property,
                     value: config.value
                 });
                 widget.table.append(row.$element);
-            });
+            } else {
+                config.bindings.forEach(function (binding) {
+                    var row = new SparqlResultRow({
+                        headers: config.headers,
+                        bindings: binding,
+                        showButtons: config.showButtons,
+                        datasetUri: config.datasetUri,
+                        property: config.property,
+                        value: config.value
+                    });
+                    widget.table.append(row.$element);
+                });
+            }
 
         };
 
