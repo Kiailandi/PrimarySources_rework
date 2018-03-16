@@ -246,16 +246,15 @@
                         
             var widget = this;
             var cells = [];
-
             // BEGIN: data cells
             config.headers.forEach(function (header) {
                 var cell = $('<td>');
                 // Multiple references
-                if (config.bindings.hasOwnProperty(header) && typeof(config.bindings[header]) === 'array') {
-                    // cell.attr('rowspan', config.bindings[header].length)
+                if (config.bindings.hasOwnProperty(header) && config.bindings[header].length > 1) {
                     config.bindings[header].forEach(function (item) {
-                        cell.append(item.value, $('<br />'));                        
+                        cell.append(item.value, $('<br />'));
                     });
+                    cells.push(cell);
                 }
                 var value, valueType;
                 // Handle empty values in case of OPTIONAL clauses
