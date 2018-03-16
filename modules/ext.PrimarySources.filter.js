@@ -346,7 +346,7 @@
                 : subject + '\t' + property + '\t' + value + '\t' + referenceProperty + '\t' + referenceValue;
 
                 // Generate the preview button only if we have a reference URL
-                if (referenceValue.startsWith('http')) {
+                if (referenceProperty !== undefined && referenceProperty.endsWith('P854')) {
                     var previewButton = new OO.ui.ButtonWidget({
                         label: 'Preview',
                         flags: ['primary', 'progressive'],
