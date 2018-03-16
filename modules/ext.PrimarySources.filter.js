@@ -250,6 +250,13 @@
             // BEGIN: data cells
             config.headers.forEach(function (header) {
                 var cell = $('<td>');
+                // Multiple references
+                if (config.bindings.hasOwnProperty(header) && typeof(config.bindings[header]) === 'array') {
+                    // cell.attr('rowspan', config.bindings[header].length)
+                    config.bindings[header].forEach(function (item) {
+                        cell.append(item.value, $('<br />'));                        
+                    });
+                }
                 var value, valueType;
                 // Handle empty values in case of OPTIONAL clauses
                 if (config.bindings.hasOwnProperty(header)) {
