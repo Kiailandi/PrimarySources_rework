@@ -259,12 +259,8 @@
             binding.forEach(function (value) {
                 var cell = $('<td>');
                 // TODO Handle multiple references in a single row
-                // Handle empty values in case of OPTIONAL clauses
-                if (value === '') {
-                    cells.push(cell);
-                }
                 // Entities: format linked labels
-                else if (/[QP]\d+$/.test(value)) {
+                if (/[QP]\d+$/.test(value)) {
                     ps.commons.getEntityLabel(value.split('/').pop())
                         .then(function (label) {
                             cell.append(
@@ -1367,7 +1363,8 @@
                         lines.pop();
                         var headers = lines.shift();
                         var bindings = lines.map(function(line) {
-                            return line.split(',');
+                            var items = line.split(',');
+                            return items.filter(function(item) { return item !== ''});
                         })
                         return {headers: headers.split(','), bindings: bindings};
                     }},
@@ -1546,10 +1543,7 @@
                 widget.initSearchTable(headers);
             }
             // Merge statements on common statement_node
-            var triples = bindings.filter(function(binding) {
-
-                return binding.length === 3
-            });
+            var triples = bindings.filter(function(binding) {return binding.length === 3});
             var full =  bindings.filter(function(binding) {return binding.length > 3});
             var merged = triples.map(function(triple) {
                 var toReturn;
