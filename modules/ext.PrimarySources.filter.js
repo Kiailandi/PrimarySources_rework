@@ -1173,7 +1173,7 @@
                 }
                 this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
                 this.sparqlOffset = 0;
-                this.sparqlLimit = 200;
+                this.sparqlLimit = 500;
                 this.datasetUri = datasetUri;
                 this.filteredProperty = filteredProperty;
                 this.filteredItemValue = filteredItemValue;
@@ -1362,17 +1362,19 @@
                         var lines = result.split('\n');
                         lines.pop();
                         var headers = lines.shift();
+                        // FIXME this doesn't filter out empty items (but it works on console)
                         var bindings = lines.map(function(line) {
                             var items = line.split(',');
-                            return items.filter(function(item) { return item !== ''});
-                        })
+                            var nonEmpty = items.filter(function(item) { return item !== ''});
+                            return nonEmpty;
+                        });
                         return {headers: headers.split(','), bindings: bindings};
                     }},
                     dataType: 'csv'
                 }
             )
             .done(function(data) {
-                console.log("RISULTATI SPARQL:", data);
+                console.log("BINDINGS PARSATI:", data);
                 progressBar.$element.remove();
                     // Handle empty results
                     if (data.bindings.length === 0) {
@@ -1543,8 +1545,11 @@
                 widget.initSearchTable(headers);
             }
             // Merge statements on common statement_node
-            var triples = bindings.filter(function(binding) {return binding.length === 3});
-            var full =  bindings.filter(function(binding) {return binding.length > 3});
+            // FIXME filter out empty bindings
+            //var triples = bindings.filter(function(binding) {return binding.length === 4});
+            var triples = bindings.filter(binding => binding[4] === '');
+            //var full =  bindings.filter(function(binding) {return binding.length > 4});
+            var full =  bindings.filter(function(binding) {return binding[4] !== ''});
             var merged = triples.map(function(triple) {
                 var toReturn;
                 $.each(full, function(k, fullStatement) {
