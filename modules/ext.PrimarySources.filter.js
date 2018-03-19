@@ -1177,7 +1177,7 @@
                 }
                 this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
                 this.sparqlOffset = 0;
-                this.sparqlLimit = 100;
+                this.sparqlLimit = 200;
                 this.datasetUri = datasetUri;
                 this.filteredProperty = filteredProperty;
                 this.filteredItemValue = filteredItemValue;
@@ -1357,16 +1357,19 @@
             $.ajax(
                 ps.globals.API_ENDPOINTS.SPARQL_SERVICE,
                 {
-                    data: { query: widget.sparql },
+                    data: { query: widget.sparql
+                            .replace('{{OFFSET}}', widget.sparqlOffset)
+                            .replace('{{LIMIT}}', widget.sparqlLimit)
+                    },
                     accepts: { csv: 'text/csv' },
                     converters: { 'text csv': function(result){
                         var lines = result.split('\n');
                         lines.pop();
                         var headers = lines.shift();
-                        lines.forEach(function(line) {
-                            line.split(',');
+                        var bindings = lines.map(function(line) {
+                            return line.split(',');
                         })
-                        return {headers: headers.split(','), bindings: lines};
+                        return {headers: headers.split(','), bindings: bindings};
                     }},
                     dataType: 'csv'
                 }
@@ -1527,15 +1530,14 @@
              *   [0]      [1]          [2]              [3]                [4]               [5]          [6]
              */
             // In case of defined filters, add headers and bindings accordingly
-            console.log('HEADERS & BINDINGS BEFORE:', headers, bindings);            
             if (filteredProperty) {
-                headers.splice(1, 0, filteredProperty);
+                headers.splice(1, 0, 'property');
                 bindings.forEach(function(binding) {
                     binding.splice(1, 0, filteredProperty);
                 })
             }
             if (filteredItemValue) {
-                headers.splice(3, 0, filteredItemValue);
+                headers.splice(3, 0, 'statement_value');
                 bindings.forEach(function(binding) {
                     binding.splice(3, 0, filteredItemValue);
                 })
@@ -1543,9 +1545,11 @@
             if (widget.table === null) {
                 widget.initSearchTable(headers);
             }
-            console.log('HEADERS & BINDINGS AFTER:', headers, bindings);
             // Merge statements on common statement_node
-            var triples = bindings.filter(function(binding) {return binding.length === 3});
+            var triples = bindings.filter(function(binding) {
+
+                return binding.length === 3
+            });
             var full =  bindings.filter(function(binding) {return binding.length > 3});
             var merged = triples.map(function(triple) {
                 var toReturn;
@@ -1560,7 +1564,7 @@
                 return toReturn;
             })
             console.log('TRIPLES:', triples);
-            console.log('FULL:', triples);
+            console.log('FULL:', full);
             console.log('MERGED: ', merged);
             merged.forEach(function (binding) {
                 var row = new SearchResultRow(headers, binding);
