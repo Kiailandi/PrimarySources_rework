@@ -1357,16 +1357,17 @@
                     },
                     accepts: { csv: 'text/csv' },
                     converters: { 'text csv': function(result){
-                        var lines = result.split('\n');
+                        var lines = result.split('\r\n');
                         lines.pop();
                         var headers = lines.shift();
-                        var bindings = lines.map(line => line.split(','));
+                        var bindings = lines.map(line => line.split(',').filter(String));
                         return {headers: headers.split(','), bindings: bindings};
                     }},
                     dataType: 'csv'
                 }
             )
             .done(function(data) {
+                console.log("BINDINGS PARSATI:", data.bindings);
                 progressBar.$element.remove();
                     // Handle empty results
                     if (data.bindings.length === 0) {
@@ -1380,10 +1381,7 @@
                     } else {
                         // Paging
                         widget.sparqlOffset += widget.sparqlLimit;
-                        // Filter empty bindings
-                        var actualBindings = data.bindings.filter(String);
-                        console.log("BINDINGS PARSATI:", actualBindings);                        
-                        widget.displaySearchResult(data.headers, actualBindings);
+                        widget.displaySearchResult(data.headers, data.bindings);
                         if (data.bindings.length > 0) {
                             widget.nextStatementsButton = new OO.ui.ButtonWidget({
                                 label: 'Load more'
