@@ -283,7 +283,7 @@
         }
         container = container.querySelector('.wikibase-listview');
         container.appendChild(fragment);
-	console.log("container: ", container, "fragment: ", fragment);
+	      console.log(document.getElementById(property), container.lastChild);
         ps.referencePreview.appendPreviewButton($(container).children().last());
       });
     },
