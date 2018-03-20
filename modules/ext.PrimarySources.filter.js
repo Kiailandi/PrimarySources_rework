@@ -299,7 +299,6 @@
                     cells.push(cell);
                 }
             });
-            console.log('CELLS:', cells);
             // END: data cells
             
             // BEGIN: action buttons
@@ -328,7 +327,7 @@
             : filteredProperty;
             var actualValue = filteredItemValue ? binding[3] : filteredItemValue;
             var referenceProperty, referenceValue;
-            if (binding[4] !== '' && binding[4].startsWith(uriPrefix + 'prop/reference')) {
+            if (binding[4].startsWith(uriPrefix + 'prop/reference')) {
                 referenceProperty = binding[4].substring(uriPrefix + 'prop/reference'.length).replace('P', 'S');
                 referenceValue = binding[5].startsWith(uriPrefix + 'entity/')
                 ? binding[5].substring(uriPrefix + 'entity/'.length)
@@ -341,6 +340,7 @@
             this.quickStatement = referenceProperty
             ? subject + '\t' + actualProperty + '\t' + actualValue + '\t' + referenceProperty + '\t' + referenceValue
             : subject + '\t' + actualProperty + '\t' + actualValue;
+            console.log(subject, actualProperty, actualValue, referenceProperty, referenceValue);
             // Generate the preview button only if we have a reference URL
             if (referenceProperty === 'S854') {
                 var previewButton = new OO.ui.ButtonWidget({
@@ -1554,10 +1554,6 @@
                 return toReturn;
             });
             var finalBindings = merged.filter(Boolean); // Filter undefined values
-            console.log('TRIPLES:', triples);
-            console.log('FULL:', full);
-            console.log('MERGED: ', merged);
-            console.log('FINAL: ', finalBindings);
             finalBindings.forEach(function (binding) {
                 var row = new SearchResultRow(binding);
                 widget.table.append(row.$element);
