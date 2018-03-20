@@ -1538,11 +1538,8 @@
                 widget.initSearchTable(headers);
             }
             // Merge statements on common statement_node
-            // FIXME filter out empty bindings
-            //var triples = bindings.filter(function(binding) {return binding.length === 4});
-            var triples = bindings.filter(binding => binding[4] === '');
-            //var full =  bindings.filter(function(binding) {return binding.length > 4});
-            var full =  bindings.filter(function(binding) {return binding[4] !== ''});
+            var triples = bindings.filter(binding => binding.length === 4);
+            var full =  bindings.filter(binding => binding.length > 4);
             var merged = triples.map(function(triple) {
                 var toReturn;
                 $.each(full, function(k, fullStatement) {
