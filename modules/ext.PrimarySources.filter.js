@@ -241,13 +241,10 @@
         OO.inheritClass(StatementRow, OO.ui.Widget);
         StatementRow.static.tagName = 'tbody';
 
-        function SearchResultRow(binding) {
+        function SearchResultRow(binding, filteredProperty, filteredItemValue, filteredDataset) {
             SearchResultRow.super.call(this, binding);
                         
             var widget = this;
-            var filteredProperty = widget.filteredProperty;
-            var filteredItemValue = widget.filteredItemValue;
-            var filteredDataset = widget.filteredDataset;
             /*
              * Subject, property, statement_node, statement_value, reference_property, reference_value, dataset
              *   [0]      [1]          [2]              [3]                [4]               [5]          [6]
@@ -321,16 +318,16 @@
                 ]
             });
             // Build the QuickStatement needed for the /curate service
-            var subject = binding[0].substring(uriPrefix + 'entity/'.length);
-            var actualProperty = filteredProperty
-            ? binding[1].substring(uriPrefix + 'prop/'.length)
+            var subject = binding[0].substring((uriPrefix + 'entity/').length);
+            var actualProperty = filteredProperty === undefined
+            ? binding[1].substring((uriPrefix + 'prop/').length)
             : filteredProperty;
-            var actualValue = filteredItemValue ? binding[3] : filteredItemValue;
+            var actualValue = filteredItemValue === undefined ? binding[3] : filteredItemValue;
             var referenceProperty, referenceValue;
-            if (binding[4].startsWith(uriPrefix + 'prop/reference')) {
-                referenceProperty = binding[4].substring(uriPrefix + 'prop/reference'.length).replace('P', 'S');
+            if (binding[4].startsWith(uriPrefix + 'prop/reference/')) {
+                referenceProperty = binding[4].substring((uriPrefix + 'prop/reference/').length).replace('P', 'S');
                 referenceValue = binding[5].startsWith(uriPrefix + 'entity/')
-                ? binding[5].substring(uriPrefix + 'entity/'.length)
+                ? binding[5].substring((uriPrefix + 'entity/').length)
                 : binding[5]
                 this.statementType = 'reference';
             } else {
@@ -340,7 +337,6 @@
             this.quickStatement = referenceProperty
             ? subject + '\t' + actualProperty + '\t' + actualValue + '\t' + referenceProperty + '\t' + referenceValue
             : subject + '\t' + actualProperty + '\t' + actualValue;
-            console.log(subject, actualProperty, actualValue, referenceProperty, referenceValue);
             // Generate the preview button only if we have a reference URL
             if (referenceProperty === 'S854') {
                 var previewButton = new OO.ui.ButtonWidget({
@@ -1518,6 +1514,7 @@
             var widget = this;
             var filteredProperty = widget.filteredProperty;
             var filteredItemValue = widget.filteredItemValue;
+            var filteredDataset = widget.filteredDataset;
             /*
              * Subject, property, statement_node, statement_value, reference_property, reference_value, dataset
              *   [0]      [1]          [2]              [3]                [4]               [5]          [6]
@@ -1555,7 +1552,7 @@
             });
             var finalBindings = merged.filter(Boolean); // Filter undefined values
             finalBindings.forEach(function (binding) {
-                var row = new SearchResultRow(binding);
+                var row = new SearchResultRow(binding, filteredProperty, filteredItemValue, filteredDataset);
                 widget.table.append(row.$element);
             });
         };
