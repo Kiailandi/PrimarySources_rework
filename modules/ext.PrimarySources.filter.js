@@ -478,9 +478,7 @@
 
                 // Build the QuickStatement needed for the /curate service
                 var subject = config.bindings.subject.value.substring('http://www.wikidata.org/entity/'.length);
-                // FIXME get rid of the URI prefix
                 var property = config.property === '' ? config.bindings.property.value : config.property;
-                // FIXME for a reference row, the value is always a reified reference node, not the actual value: find a way to group the rows on the subject
                 var value = config.value === '' ? config.bindings.statement_value.value : config.value;
                 var datasetUri, referenceProperty, referenceValue, statementType;
                 if (config.bindings.hasOwnProperty('reference_property')) {
@@ -1362,11 +1360,9 @@
                         var lines = result.split('\n');
                         lines.pop();
                         var headers = lines.shift();
-                        // FIXME this doesn't filter out empty items (but it works on console)
                         var bindings = lines.map(function(line) {
                             var items = line.split(',');
-                            var nonEmpty = items.filter(function(item) { return item !== ''});
-                            return nonEmpty;
+                            return items.filter(String);
                         });
                         return {headers: headers.split(','), bindings: bindings};
                     }},
