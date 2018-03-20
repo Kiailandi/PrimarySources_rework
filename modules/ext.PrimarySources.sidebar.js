@@ -141,7 +141,7 @@
     }
 
     // BEGIN: sidebar links - self invoking
-    (function createSidebarLinks() {
+    mw.loader.using( ['mediawiki.util'], function createSidebarLinks() {
 
         console.log("Create sidebar links");
 
@@ -197,11 +197,11 @@
                 // Bind filter link to filter modal window (function in filter module)
                 ps.filter.init(windowManager, listButton);
             });
-    })();
+    });
     // END: sidebar links
 
     // BEGIN: browse suggested claims - self invoking
-    (function generateNav() {
+    mw.loader.using( ['mediawiki.util'], function generateNav() {
         $('#mw-panel').append('<div class="portal" role="navigation" id="p-ps-navigation" aria-labelledby="p-ps-navigation-label"><h3 id="p-ps-navigation-label">Browse Primary Sources</h3></div>');
         var navigation =  $('#p-ps-navigation');
         navigation.append('<div class="body"><ul id="p-ps-nav-list"></ul></div>');
@@ -213,7 +213,7 @@
             }, 0);
         });
         scrollFollowTop(navigation);
-    })();
+    });
     // END: browse suggested claims
 
     mw.ps = ps;
