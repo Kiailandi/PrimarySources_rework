@@ -653,9 +653,12 @@
         };
 
         SearchResultRow.prototype.reject = function() {
+            console.log('QS TO SEND:', widget.quickStatement);
+            console.log('DATASET:', widget.dataset);
+            console.log('QS TYPE:', widget.statementType);
             var widget = this;
             widget.showProgressBar();
-            ps.commons.setStatementState(widget.quickStatement, ps.globals.STATEMENT_STATES.rejected, widget.datasetUri, widget.statementType)
+            ps.commons.setStatementState(widget.quickStatement, ps.globals.STATEMENT_STATES.rejected, widget.dataset, widget.statementType)
             .done(function() {
                 var message = widget.statementType === 'claim'
                 ? 'Rejected claim with no reference [' + widget.quickStatement + ']'
@@ -664,6 +667,17 @@
                 widget.toggle(false).setDisabled(true);                
             });
         }
+
+        SearchResultRow.prototype.showProgressBar = function () {
+            var progressBar = new OO.ui.ProgressBarWidget();
+            progressBar.$element.css('max-width', '100%');
+            this.$element.empty()
+                .append(
+                    $('<td>')
+                        .attr('colspan', 7)
+                        .append(progressBar.$element)
+                );
+        };
 
         SparqlResultRow.prototype.showProgressBar = function () {
             var progressBar = new OO.ui.ProgressBarWidget();
