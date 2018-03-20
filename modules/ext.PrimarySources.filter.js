@@ -1171,7 +1171,7 @@
                 }
                 this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
                 this.sparqlOffset = 0;
-                this.sparqlLimit = 500;
+                this.sparqlLimit = 300;
                 this.filteredDataset = filteredDataset;
                 this.filteredProperty = filteredProperty;
                 this.filteredItemValue = filteredItemValue;
