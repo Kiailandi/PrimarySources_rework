@@ -1551,11 +1551,13 @@
                     }      
                 });
                 return toReturn;
-            })
+            });
+            var finalBindings = merged.filter(Boolean); // Filter undefined values
             console.log('TRIPLES:', triples);
             console.log('FULL:', full);
             console.log('MERGED: ', merged);
-            merged.forEach(function (binding) {
+            console.log('FINAL: ', finalBindings);
+            finalBindings.forEach(function (binding) {
                 var row = new SearchResultRow(binding);
                 widget.table.append(row.$element);
             });
