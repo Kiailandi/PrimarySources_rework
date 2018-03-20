@@ -96,7 +96,7 @@
       return anchorList.length;
     },
     appendToNav: function appendToNav(container){
-      var firstNewObj = $(container).find('.new-object')[0];
+      var firstNewObj = $(container).find('.new-object')[0] || $(container).find('.new-source')[0];
       if (firstNewObj) {
         var anchor = {
           title : $(container).find('.wikibase-statementgroupview-property-label'),
