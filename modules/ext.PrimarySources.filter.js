@@ -1265,7 +1265,7 @@
 
         ListDialog.prototype.onNextButtonSubmitSearch = function () {
             this.nextStatementsButton.$element.remove();
-            this.executeSearch();
+            this.executeSearch(true);
         };
 
         ListDialog.prototype.onNextButtonSubmit = function () {
@@ -1343,7 +1343,7 @@
             return window.innerHeight - 100;
         };
 
-        ListDialog.prototype.executeSearch = function () {
+        ListDialog.prototype.executeSearch = function (more=false) {
             var widget = this;
             var progressBar = new OO.ui.ProgressBarWidget();
             progressBar.$element.css('max-width', '100%');
@@ -1371,11 +1371,12 @@
                 progressBar.$element.remove();
                     // Handle empty results
                     if (data.bindings.length === 0) {
+                        var label = more ? 'No more statements' : 'No statements found'
                         var noticeIcon = new OO.ui.IconWidget({
                             icon: 'notice'
                         });
                         var noStatements = new OO.ui.LabelWidget({
-                            label: 'No statements found.'
+                            label: label
                         });
                         widget.mainPanel.$element.append(noticeIcon.$element, noStatements.$element);
                     } else {
@@ -1540,11 +1541,11 @@
             // Merge statements on common statement_node
             var triples = bindings.filter(binding => binding.length === 4);
             var full =  bindings.filter(binding => binding.length > 4);
-            var merged = triples.map(function(triple) {
+            var merged = full.map(function(statement) {
                 var toReturn;
-                $.each(full, function(k, fullStatement) {
-                    if (fullStatement[2] === triple[2]) {
-                        toReturn = $.extend([], fullStatement, triple);
+                $.each(triples, function(k, triple) {
+                    if (triple[2] === statement[2]) {
+                        toReturn = $.extend([], triple, statement);
                         // Keep the triple statement value
                         toReturn[3] = triple[3];
                         return false;
