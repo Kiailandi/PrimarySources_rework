@@ -326,7 +326,7 @@
             var actualProperty = filteredProperty
             ? binding[1].substring(uriPrefix + 'prop/'.length)
             : filteredProperty;
-            var actualValue = filteredValue ? binding[3] : filteredValue;
+            var actualValue = filteredItemValue ? binding[3] : filteredItemValue;
             var referenceProperty, referenceValue;
             if (binding[4] !== '' && binding[4].startsWith(uriPrefix + 'prop/reference')) {
                 referenceProperty = binding[4].substring(uriPrefix + 'prop/reference'.length).replace('P', 'S');
@@ -337,7 +337,7 @@
             } else {
                 this.statementType = 'claim';
             }
-            this.datasetUri = config.datasetUri === '' ? binding[6] : config.datasetUri;
+            this.dataset = filteredDataset === '' ? binding[6] : filteredDataset;
             this.quickStatement = referenceProperty
             ? subject + '\t' + actualProperty + '\t' + actualValue + '\t' + referenceProperty + '\t' + referenceValue
             : subject + '\t' + actualProperty + '\t' + actualValue;
@@ -1098,7 +1098,7 @@
             this.mainPanel.$element.empty();
             this.table = null;
             // The dataset field is needed for all filters but the arbitrary SPARQL query
-            var datasetUri = this.datasetInput.getValue();
+            var filteredDataset = this.datasetInput.getValue();
 
             // Baked filters
             if (!this.bakedFilters.isDisabled()) {
@@ -1133,7 +1133,7 @@
                         .replace('{{PROPERTY}}', 'p:' + baked);
                         filledQuery = datasetUri === ''
                         ? filledQuery.replace('{{DATASET}}', '?dataset')
-                        : filledQuery.replace('{{DATASET}}', '<' + datasetUri + '>');
+                        : filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>');
                         this.sparql = filledQuery;
                         this.sparqlOffset = 0;
                         this.sparqlLimit = 100;
@@ -1163,16 +1163,16 @@
                     filledQuery = filledQuery.replace('{{PROPERTY}}', 'p:' + filteredProperty);
                     bindings = bindings.replace('{{PROPERTY}}', '');
                 }
-                if (datasetUri === '') {
+                if (filteredDataset === '') {
                     filledQuery = filledQuery.replace('{{DATASET}}', '?dataset');
                     bindings += ' ?dataset';
                 } else {
-                    filledQuery = filledQuery.replace('{{DATASET}}', '<' + datasetUri + '>')
+                    filledQuery = filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>')
                 }
                 this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
                 this.sparqlOffset = 0;
                 this.sparqlLimit = 500;
-                this.datasetUri = datasetUri;
+                this.filteredDataset = filteredDataset;
                 this.filteredProperty = filteredProperty;
                 this.filteredItemValue = filteredItemValue;
                 console.log('QUERY: ', this.sparql);
@@ -1556,7 +1556,7 @@
             console.log('FULL:', full);
             console.log('MERGED: ', merged);
             merged.forEach(function (binding) {
-                var row = new SearchResultRow(headers, binding);
+                var row = new SearchResultRow(binding);
                 widget.table.append(row.$element);
             });
         };
