@@ -653,9 +653,6 @@
         };
 
         SearchResultRow.prototype.reject = function() {
-            console.log('QS TO SEND:', widget.quickStatement);
-            console.log('DATASET:', widget.dataset);
-            console.log('QS TYPE:', widget.statementType);
             var widget = this;
             widget.showProgressBar();
             ps.commons.setStatementState(widget.quickStatement, ps.globals.STATEMENT_STATES.rejected, widget.dataset, widget.statementType)
@@ -1185,7 +1182,6 @@
                 this.filteredDataset = filteredDataset;
                 this.filteredProperty = filteredProperty;
                 this.filteredItemValue = filteredItemValue;
-                console.log('QUERY: ', this.sparql);
                 this.executeSearch();
             }
         };
@@ -1377,7 +1373,6 @@
                 }
             )
             .done(function(data) {
-                console.log("BINDINGS PARSATI:", data.bindings);
                 progressBar.$element.remove();
                     // Handle empty results
                     if (data.bindings.length === 0) {
