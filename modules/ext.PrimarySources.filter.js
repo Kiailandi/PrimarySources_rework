@@ -363,7 +363,7 @@
                     if (filteredItemValue) {
                         previewParams.push(filteredItemValue);
                     } else {
-                        previewParams.push(cells[2].text());
+                        previewParams.push(cells[3].text());
                     }
                     previewParams.push(referenceValue);
                     console.log('PREVIEW PARAMS:', previewParams);
