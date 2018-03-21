@@ -547,7 +547,7 @@
                 ps.commons.createClaimWithReference(qid, predicate, object, qualifiers,
                     source)
                   .fail(function(error) {
-                    return mw.ps.commons.reportError(error);
+                    return ps.commons.reportError(error);
                   })
                   .done(function(data) {
                     // The back end approves everything

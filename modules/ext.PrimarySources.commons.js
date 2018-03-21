@@ -676,6 +676,8 @@
 
         getEntityLabel: _getEntityLabel,
 
+        tsvValuetoJson: _tsvValueToJson,        
+
         buildValueKeysFromWikidataStatement: function buildValueKeysFromWikidataStatement(statement) {
             var mainSnak = statement.mainsnak;
             if (mainSnak.snaktype !== 'value') {

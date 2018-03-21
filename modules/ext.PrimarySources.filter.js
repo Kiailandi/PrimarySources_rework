@@ -633,23 +633,118 @@
         };
 
         SearchResultRow.prototype.approve = function() {
-            // var widget = this;
-            // ps.commons.createClaim(
-            //     this.statement.subject,
-            //     this.statement.predicate,
-            //     this.statement.object,
-            //     this.statement.qualifiers
-            // ).fail(function(error) {
-            //     return reportError(error);
-            // }).done(function() {
-            //     if (this.statement.source.length > 0) {
-            //         return; // TODO add support of source review
-            //     }
-            //     setStatementState(widget.statement.id, STATEMENT_STATES.approved)
-            //     .done(function() {
-            //         widget.toggle(false).setDisabled(true);
-            //     });
-            // });
+            var widget = this;
+            var qs = widget.quickStatement;
+            var length = qs.length;
+            var parts = qs.split('\t');
+            var subject = parts[0];
+            var property = parts[1];
+            var object = parts[2];
+            var qualifiers = []
+            var references = [];
+            for (var i = 3; i < length; i += 2) {
+                if (i === length - 1) {
+                    ps.commons.debug.log('Malformed qualifier/source pieces');
+                    break;
+                }
+                if (/^P\d+$/.exec(line[i])) {
+                    qualifiers.push({
+                        qualifierProperty: line[i],
+                        qualifierObject: line[i + 1]
+                    });
+                } else if (/^S\d+$/.exec(line[i])) {
+                    references.push({
+                        sourceProperty: line[i].replace(/^S/, 'P'),
+                        sourceObject: line[i + 1],
+                        sourceType: (ps.commons.tsvValueToJson(line[i + 1])).type
+                    });
+                }
+
+                // Filter out blacklisted source URLs
+                references = references.filter(function (source) {
+                    if (source.sourceType === 'url') {
+                        var url = source.sourceObject.replace(/^"/, '').replace(/"$/, '');
+                        var blacklisted = isBlacklisted(url);
+                        if (blacklisted) {
+                            ps.commons.debug.log('Encountered blacklisted reference URL ' + url);
+                            var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.key;
+                            (function (currentId, currentUrl) {
+                                ps.commons.setStatementState(currentId, ps.commons.STATEMENT_STATES.blacklisted, dataset, 'reference')
+                                    .done(function () {
+                                        ps.commons.debug.log('Automatically blacklisted statement ' +
+                                            currentId + ' with blacklisted reference URL ' +
+                                            currentUrl);
+                                    });
+                            })(sourceQuickStatement, url);
+                        }
+                        // Return the opposite, i.e., the whitelisted URLs
+                        return !blacklisted;
+                    }
+                    return true;
+                });
+            }
+            widget.showProgressBar();
+            ps.commons.getClaims(subject, property, function(err, claims) {
+                var objectExists = false;
+                for (var i = 0, lenI = claims.length; i < lenI; i++) {
+                  var claim = claims[i];
+                  if (
+                    claim.mainsnak.snaktype === 'value' &&
+                    ps.commons.jsonToTsvValue(claim.mainsnak.datavalue) === object
+                  ) {
+                    objectExists = true;
+                    break;
+                  }
+                }
+                // The claim is already in Wikidata: only add the reference, don't add if no reference
+                if (objectExists) {
+                    if (widget.statementType === 'reference') {
+                        ps.commons.createReference(subject, property, object, references,
+                            function(error, data) {
+                                if (error) {
+                                  return ps.commons.reportError(error);
+                                }
+                                // The back end approves everything
+                                ps.commons.setStatementState(qs, ps.globals.STATEMENT_STATES.approved, widget.dataset, widget.statementType)
+                                .done(function() {
+                                    ps.commons.debug.log('Approved referenced claim [' + qs + ']');
+                                    widget.toggle(false).setDisabled(true);
+                                });
+                            }
+                        );
+                    }
+                }
+                else {
+                    // Add a new referenced claim
+                    if (widget.statementType === 'reference') {
+                        ps.commons.createClaimWithReference(subject, property, object, qualifiers, references)
+                        .fail(function(error) {
+                            return ps.commons.reportError(error);
+                        })
+                        .done(function() {
+                            ps.commons.setStatementState(qs, ps.globals.STATEMENT_STATES.approved, widget.dataset, widget.statementType)
+                            .done(function() {
+                                ps.commons.debug.log('Approved referenced claim [' + qs + ']');
+                                widget.toggle(false).setDisabled(true);                
+                            });
+                        });
+                    }
+                    // Add a new unreferenced claim
+                    else {
+                        ps.commons.createClaim(subject, property, object, qualifiers)
+                        .fail(function(error) {
+                            return ps.commons.reportError(error);
+                        })
+                        .done(function() {
+                            ps.commons.setStatementState(qs, ps.globals.STATEMENT_STATES.approved, widget.dataset, widget.statementType)
+                            .done(function() {
+                                ps.commons.debug.log('Approved claim with no reference [' + qs + ']');
+                                widget.toggle(false).setDisabled(true);                
+                            });
+                        });
+                    }
+                }
+            });
         };
 
         SearchResultRow.prototype.reject = function() {
