@@ -308,7 +308,9 @@
     }
 
     function _createClaim(subject, predicate, object, qualifiers) {
+        console.log('OGGETTO TSV:', object);
         var value = (_tsvValueToJson(object)).value;
+        console.log('OGGETTO JSON:', value);
         var api = new mw.Api();
         return api.postWithToken('csrf', {
             action: 'wbcreateclaim',
@@ -821,9 +823,9 @@
             } else if (timeRegEx.test(value)) {
                 var match = timeRegEx.exec(value);
                 // Guess precision based on '01' values
-                if (parseInt(match[1] > 1)) return value + '/11';
-                else if (parseInt(match[0] > 1)) return value + '/10';
-                else return value + '/9';
+                if (parseInt(match[2]) > 1) return '+' + value + '/11';
+                else if (parseInt(match[1]) > 1) return '+' + value + '/10';
+                else return '+' + value + '/9';
             } else if (quantityRegEx.test(value)) {
                 return value;
             } else {

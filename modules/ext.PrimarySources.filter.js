@@ -690,7 +690,6 @@
                 //    return true;
                 //});
             }
-            console.log(subject, property, object, references);
             widget.showProgressBar();
             ps.commons.getClaims(subject, property, function(err, claims) {
                 var objectExists = false;
@@ -698,7 +697,7 @@
                   var claim = claims[i];
                   if (
                     claim.mainsnak.snaktype === 'value' &&
-                    ps.commons.jsonToRdfValue(claim.mainsnak.datavalue) === object
+                    ps.commons.jsonToTsvValue(claim.mainsnak.datavalue) === object
                   ) {
                     objectExists = true;
                     break;
