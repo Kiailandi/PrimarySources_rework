@@ -647,16 +647,16 @@
                     ps.commons.debug.log('Malformed qualifier/source pieces');
                     break;
                 }
-                if (/^P\d+$/.exec(line[i])) {
+                if (/^P\d+$/.exec(qs[i])) {
                     qualifiers.push({
-                        qualifierProperty: line[i],
-                        qualifierObject: line[i + 1]
+                        qualifierProperty: qs[i],
+                        qualifierObject: qs[i + 1]
                     });
-                } else if (/^S\d+$/.exec(line[i])) {
+                } else if (/^S\d+$/.exec(qs[i])) {
                     references.push({
-                        sourceProperty: line[i].replace(/^S/, 'P'),
-                        sourceObject: line[i + 1],
-                        sourceType: (ps.commons.tsvValueToJson(line[i + 1])).type
+                        sourceProperty: qs[i].replace(/^S/, 'P'),
+                        sourceObject: qs[i + 1],
+                        sourceType: (ps.commons.tsvValueToJson(qs[i + 1])).type
                     });
                 }
 
@@ -664,10 +664,10 @@
                 references = references.filter(function (source) {
                     if (source.sourceType === 'url') {
                         var url = source.sourceObject.replace(/^"/, '').replace(/"$/, '');
-                        var blacklisted = isBlacklisted(url);
+                        var blacklisted = ps.commons.isBlacklisted(url);
                         if (blacklisted) {
                             ps.commons.debug.log('Encountered blacklisted reference URL ' + url);
-                            var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.key;
+                            var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.sourceProperty + '\t' + source.sourceObject;
                             (function (currentId, currentUrl) {
                                 ps.commons.setStatementState(currentId, ps.commons.STATEMENT_STATES.blacklisted, dataset, 'reference')
                                     .done(function () {
