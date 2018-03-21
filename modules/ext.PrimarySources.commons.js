@@ -307,6 +307,39 @@
         }
     }
 
+    function _createClaim(subject, predicate, object, qualifiers) {
+        var value = (_tsvValueToJson(object)).value;
+        var api = new mw.Api();
+        return api.postWithToken('csrf', {
+            action: 'wbcreateclaim',
+            entity: subject,
+            property: predicate,
+            snaktype: 'value',
+            value: JSON.stringify(value),
+            summary: ps.globals.WIKIDATA_API_COMMENT
+        }).then(function (data) {
+            // We save the qualifiers sequentially in order to avoid edit conflict
+            var saveQualifiers = function () {
+                var qualifier = qualifiers.pop();
+                if (qualifier === undefined) {
+                    return data;
+                }
+
+                var value = (_tsvValueToJson(qualifier.qualifierObject)).value;
+                return api.postWithToken('csrf', {
+                    action: 'wbsetqualifier',
+                    claim: data.claim.id,
+                    property: qualifier.qualifierProperty,
+                    snaktype: 'value',
+                    value: JSON.stringify(value),
+                    summary: ps.globals.WIKIDATA_API_COMMENT
+                }).then(saveQualifiers);
+            };
+
+            return saveQualifiers();
+        });
+    }
+
     // Public methods
     ps.commons = {
         /**
@@ -562,38 +595,7 @@
         /* BEGIN: Wikibase API calls */
         // BEGIN: post approved claims to Wikidata
         // https://www.wikidata.org/w/api.php?action=help&modules=wbcreateclaim
-        createClaim: function createClaim(subject, predicate, object, qualifiers) {
-            var value = (_tsvValueToJson(object)).value;
-            var api = new mw.Api();
-            return api.postWithToken('csrf', {
-                action: 'wbcreateclaim',
-                entity: subject,
-                property: predicate,
-                snaktype: 'value',
-                value: JSON.stringify(value),
-                summary: ps.globals.WIKIDATA_API_COMMENT
-            }).then(function (data) {
-                // We save the qualifiers sequentially in order to avoid edit conflict
-                var saveQualifiers = function () {
-                    var qualifier = qualifiers.pop();
-                    if (qualifier === undefined) {
-                        return data;
-                    }
-
-                    var value = (_tsvValueToJson(qualifier.qualifierObject)).value;
-                    return api.postWithToken('csrf', {
-                        action: 'wbsetqualifier',
-                        claim: data.claim.id,
-                        property: qualifier.qualifierProperty,
-                        snaktype: 'value',
-                        value: JSON.stringify(value),
-                        summary: ps.globals.WIKIDATA_API_COMMENT
-                    }).then(saveQualifiers);
-                };
-
-                return saveQualifiers();
-            });
-        },
+        createClaim: _createClaim,
 
         // https://www.wikidata.org/w/api.php?action=help&modules=wbsetreference
         createReference: function createReference(subject, predicate, object, sourceSnaks, callback) {
