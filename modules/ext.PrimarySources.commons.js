@@ -782,6 +782,55 @@
             }
         },
 
+        rdfValueToTsv: function rdfValueToTsv(value) {
+            // Q666
+            var itemRegEx = /^Q\d+$/;
+    
+            // P1269
+            var propertyRegEx = /^P\d+$/;
+    
+            // Point(28.050277777778 -26.145)
+            // longitude latitude
+            var coordinatesRegEx = /^Point\(([\s]+)\s([\)]+)\)$/;
+    
+            // "Douglas Adams"@en
+            var languageStringRegEx = /^("[^"\\]*(?:\\.[^"\\]*)*")@(\w+)$/;
+    
+            // 2018-02-07T00:00:00Z
+            /* jshint maxlen: false */
+            var timeRegEx = /^\d{4}-(\d{2})-(\d{2})T\d{2}:\d{2}:\d{2}Z$/;
+            /* jshint maxlen: 80 */
+    
+            // +/-1234.4567
+            var quantityRegEx = /^[+-]\d+(\.\d+)?$/;
+    
+            if (itemRegEx.test(value)) {
+                return value;
+            } else if (propertyRegEx.test(value)) {
+                return value;
+            } else if (coordinatesRegEx.test(value)) {
+                var longitude = value.replace(coordinatesRegEx, '$1');
+                var latitude = value.replace(coordinatesRegEx, '$2');
+                // @43.3111/-16.6655
+                return '@' + latitude + '/' + longitude;
+            } else if (languageStringRegEx.test(value)) {
+                var text = value.replace(languageStringRegEx, '$1');
+                var language = value.replace(languageStringRegEx, '$2');
+                // en:"Douglas Adams"
+                return language + ':"' + text + '"';
+            } else if (timeRegEx.test(value)) {
+                var match = timeRegEx.exec(value);
+                // Guess precision based on '01' values
+                if (parseInt(match[1] > 1)) return value + '/11';
+                else if (parseInt(match[0] > 1)) return value + '/10';
+                else return value + '/9';
+            } else if (quantityRegEx.test(value)) {
+                return value;
+            } else {
+                return '"' + value + '"';
+            }
+        },
+
         buildValueKeysFromWikidataStatement: function buildValueKeysFromWikidataStatement(statement) {
             var mainSnak = statement.mainsnak;
             if (mainSnak.snaktype !== 'value') {

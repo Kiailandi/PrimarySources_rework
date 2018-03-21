@@ -646,7 +646,7 @@
             var length = parts.length;
             var subject = parts[0];
             var property = parts[1];
-            var object = parts[2];
+            var object = ps.commons.rdfValueToTsv(parts[2]);
             var qualifiers = [];
             var references = [];
             for (var i = 3; i < length; i += 2) {
@@ -657,13 +657,13 @@
                 if (/^P\d+$/.exec(parts[i])) {
                     qualifiers.push({
                         qualifierProperty: parts[i],
-                        qualifierObject: parts[i + 1]
+                        qualifierObject: ps.commons.rdfValueToTsv(parts[i + 1])
                     });
                 } else if (/^S\d+$/.exec(parts[i])) {
                     references.push({
                         sourceProperty: parts[i].replace(/^S/, 'P'),
-                        sourceObject: parts[i + 1],
-                        sourceType: (ps.commons.rdfValueToJson(parts[i + 1])).type
+                        sourceObject: ps.commons.rdfValueToTsv(parts[i + 1]),
+                        sourceType: ps.commons.rdfValueToJson(parts[i + 1]).type
                     });
                 }
 
