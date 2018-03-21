@@ -642,28 +642,28 @@
         SearchResultRow.prototype.approve = function() {
             var widget = this;
             var qs = widget.quickStatement;
-            var length = qs.length;
             var parts = qs.split('\t');
+            var length = parts.length;
             var subject = parts[0];
             var property = parts[1];
             var object = parts[2];
-            var qualifiers = []
+            var qualifiers = [];
             var references = [];
             for (var i = 3; i < length; i += 2) {
-//                if (i === length - 1) {
-//                    ps.commons.debug.log('Malformed qualifier/source pieces');
-//                    break;
-//                }
-                if (/^P\d+$/.exec(qs[i])) {
+                if (i === length - 1) {
+                    ps.commons.debug.log('Malformed qualifier/source pieces');
+                    break;
+                }
+                if (/^P\d+$/.exec(parts[i])) {
                     qualifiers.push({
-                        qualifierProperty: qs[i],
-                        qualifierObject: qs[i + 1]
+                        qualifierProperty: parts[i],
+                        qualifierObject: parts[i + 1]
                     });
-                } else if (/^S\d+$/.exec(qs[i])) {
+                } else if (/^S\d+$/.exec(parts[i])) {
                     references.push({
-                        sourceProperty: qs[i].replace(/^S/, 'P'),
-                        sourceObject: qs[i + 1],
-                        sourceType: (ps.commons.tsvValueToJson(qs[i + 1])).type
+                        sourceProperty: parts[i].replace(/^S/, 'P'),
+                        sourceObject: parts[i + 1],
+                        sourceType: (ps.commons.tsvValueToJson(parts[i + 1])).type
                     });
                 }
 
@@ -690,6 +690,7 @@
                 //    return true;
                 //});
             }
+            console.log(subject, property, object, references);
             widget.showProgressBar();
             ps.commons.getClaims(subject, property, function(err, claims) {
                 var objectExists = false;
@@ -706,11 +707,9 @@
                 // The claim is already in Wikidata: only add the reference, don't add if no reference
                 if (objectExists) {
                     if (widget.statementType === 'reference') {
-                        console.log(subject, property, object, references);
                         ps.commons.createReference(subject, property, object, references,
                             function(error, data) {
                                 if (error) {
-                                    console.log(data);
                                   return ps.commons.reportError(error);
                                 }
                                 // The back end approves everything
