@@ -678,7 +678,109 @@
 
         getEntityLabel: _getEntityLabel,
 
-        tsvValuetoJson: _tsvValueToJson,        
+        tsvValueToJson: _tsvValueToJson,
+
+        rdfValueToJson: function rdfValueToJson(value) {
+            // Q666
+            var itemRegEx = /^Q\d+$/;
+    
+            // P1269
+            var propertyRegEx = /^P\d+$/;
+    
+            // Point(28.050277777778 -26.145)
+            // longitude latitude
+            var coordinatesRegEx = /^Point\(([\s]+)\s([\)]+)\)$/;
+    
+            // "Douglas Adams"@en
+            var languageStringRegEx = /^("[^"\\]*(?:\\.[^"\\]*)*")@(\w+)$/;
+    
+            // 2018-02-07T00:00:00Z
+            /* jshint maxlen: false */
+            var timeRegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
+            /* jshint maxlen: 80 */
+    
+            // +/-1234.4567
+            var quantityRegEx = /^[+-]\d+(\.\d+)?$/;
+    
+            if (itemRegEx.test(value)) {
+                return {
+                    type: 'wikibase-item',
+                    value: {
+                        'entity-type': 'item',
+                        'numeric-id': parseInt(value.replace(/^Q/, ''))
+                    }
+                };
+            } else if (propertyRegEx.test(value)) {
+                return {
+                    type: 'wikibase-property',
+                    value: {
+                        'entity-type': 'property',
+                        'numeric-id': parseInt(value.replace(/^P/, ''))
+                    }
+                };
+            } else if (coordinatesRegEx.test(value)) {
+                var longitude = value.replace(coordinatesRegEx, '$1');
+                var latitude = value.replace(coordinatesRegEx, '$2');
+                return {
+                    type: 'globe-coordinate',
+                    value: {
+                        latitude: parseFloat(latitude),
+                        longitude: parseFloat(longitude),
+                        altitude: null,
+                        precision: computeCoordinatesPrecision(latitude, longitude),
+                        globe: 'http://www.wikidata.org/entity/Q2'
+                    }
+                };
+            } else if (languageStringRegEx.test(value)) {
+                return {
+                    type: 'monolingualtext',
+                    value: {
+                        language: value.replace(languageStringRegEx, '$2'),
+                        text: JSON.parse(value.replace(languageStringRegEx, '$1'))
+                    }
+                };
+            } else if (timeRegEx.test(value)) {
+                var parts = value.split('/');
+                return {
+                    type: 'time',
+                    value: {
+                        time: parts[0],
+                        timezone: 0,
+                        before: 0,
+                        after: 0,
+                        precision: parseInt(parts[1]),
+                        calendarmodel: 'http://www.wikidata.org/entity/Q1985727'
+                    }
+                };
+            } else if (quantityRegEx.test(value)) {
+                return {
+                    type: 'quantity',
+                    value: {
+                        amount: value,
+                        unit: '1'
+                    }
+                };
+            } else {
+                try {
+                    value = JSON.parse(value);
+                } catch (e) { //If it is an invalid JSON we assume it is the value
+                    if (!(e instanceof SyntaxError)) {
+                        throw e;
+                    }
+                }
+                if (_isUrl(value)) {
+                    return {
+                        type: 'url',
+                        value: _normalizeUrl(value)
+                    };
+                } else {
+                    return {
+                        type: 'string',
+                        value: '"' + value + '"'
+                    };
+                }
+            }
+        },
 
         buildValueKeysFromWikidataStatement: function buildValueKeysFromWikidataStatement(statement) {
             var mainSnak = statement.mainsnak;
@@ -727,6 +829,45 @@
                     return '@' + dataValue.value.latitude + '/' + dataValue.value.longitude;
                 case 'monolingualtext':
                     return dataValue.value.language + ':' + JSON.stringify(dataValue.value.text);
+                case 'string':
+                    var str = (dataType === 'url') ? _normalizeUrl(dataValue.value)
+                        : dataValue.value;
+                    return JSON.stringify(str);
+                case 'wikibase-entityid':
+                    switch (dataValue.value['entity-type']) {
+                        case 'item':
+                            return 'Q' + dataValue.value['numeric-id'];
+                        case 'property':
+                            return 'P' + dataValue.value['numeric-id'];
+                    }
+            }
+            ps.commons.debug.log('Unknown data value type ' + dataValue.type);
+            return dataValue.value;
+        },
+
+        jsonToRdfValue: function jsonToRdfValue(dataValue, dataType) {
+            if (!dataValue.type) {
+                ps.commons.debug.log('No data value type given');
+                return dataValue.value;
+            }
+            switch (dataValue.type) {
+                case 'quantity':
+                    return dataValue.value.amount;
+                case 'time':
+                    // 2018-02-07T00:00:00Z
+                    var time = dataValue.value.time;
+                    var precision = dataValue.value.precision;
+                    if (precision < 11) {
+                        time = time.replace('-00T', '-01T');
+                    }
+                    if (precision < 10) {
+                        time = time.replace('-00-', '-01-');
+                    }
+                    return time.replace(/[+-]/, '');
+                case 'globecoordinate':
+                    return 'Point(' + dataValue.value.longitude + ' ' + dataValue.value.latitude + ')';
+                case 'monolingualtext':
+                    return JSON.stringify(dataValue.value.text) + '@' + dataValue.value.language;
                 case 'string':
                     var str = (dataType === 'url') ? _normalizeUrl(dataValue.value)
                         : dataValue.value;

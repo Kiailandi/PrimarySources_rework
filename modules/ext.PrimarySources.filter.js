@@ -663,7 +663,7 @@
                     references.push({
                         sourceProperty: parts[i].replace(/^S/, 'P'),
                         sourceObject: parts[i + 1],
-                        sourceType: (ps.commons.tsvValueToJson(parts[i + 1])).type
+                        sourceType: (ps.commons.rdfValueToJson(parts[i + 1])).type
                     });
                 }
 
@@ -698,7 +698,7 @@
                   var claim = claims[i];
                   if (
                     claim.mainsnak.snaktype === 'value' &&
-                    ps.commons.jsonToTsvValue(claim.mainsnak.datavalue) === object
+                    ps.commons.jsonToRdfValue(claim.mainsnak.datavalue) === object
                   ) {
                     objectExists = true;
                     break;
