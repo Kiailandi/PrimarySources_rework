@@ -322,7 +322,14 @@
             var actualProperty = filteredProperty === undefined
             ? binding[1].substring((uriPrefix + 'prop/').length)
             : filteredProperty;
-            var actualValue = filteredItemValue === undefined ? binding[3] : filteredItemValue;
+            var actualValue;
+            if (filteredItemValue) {
+                actualValue = filteredItemValue;
+            } else {
+                actualValue = binding[3].startsWith(uriPrefix + 'entity/')
+                ? binding[3].substring((uriPrefix + 'entity/').length)
+                : binding[3]
+            }
             var referenceProperty, referenceValue;
             if (binding[4].startsWith(uriPrefix + 'prop/reference/')) {
                 referenceProperty = binding[4].substring((uriPrefix + 'prop/reference/').length).replace('P', 'S');
@@ -643,10 +650,10 @@
             var qualifiers = []
             var references = [];
             for (var i = 3; i < length; i += 2) {
-                if (i === length - 1) {
-                    ps.commons.debug.log('Malformed qualifier/source pieces');
-                    break;
-                }
+//                if (i === length - 1) {
+//                    ps.commons.debug.log('Malformed qualifier/source pieces');
+//                    break;
+//                }
                 if (/^P\d+$/.exec(qs[i])) {
                     qualifiers.push({
                         qualifierProperty: qs[i],
@@ -661,27 +668,27 @@
                 }
 
                 // Filter out blacklisted source URLs
-                references = references.filter(function (source) {
-                    if (source.sourceType === 'url') {
-                        var url = source.sourceObject.replace(/^"/, '').replace(/"$/, '');
-                        var blacklisted = ps.commons.isBlacklisted(url);
-                        if (blacklisted) {
-                            ps.commons.debug.log('Encountered blacklisted reference URL ' + url);
-                            var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.sourceProperty + '\t' + source.sourceObject;
-                            (function (currentId, currentUrl) {
-                                ps.commons.setStatementState(currentId, ps.commons.STATEMENT_STATES.blacklisted, dataset, 'reference')
-                                    .done(function () {
-                                        ps.commons.debug.log('Automatically blacklisted statement ' +
-                                            currentId + ' with blacklisted reference URL ' +
-                                            currentUrl);
-                                    });
-                            })(sourceQuickStatement, url);
-                        }
-                        // Return the opposite, i.e., the whitelisted URLs
-                        return !blacklisted;
-                    }
-                    return true;
-                });
+                //references = references.filter(function (source) {
+                //    if (source.sourceType === 'url') {
+                //        var url = source.sourceObject.replace(/^"/, '').replace(/"$/, '');
+                //        var blacklisted = ps.commons.isBlacklisted(url);
+                //        if (blacklisted) {
+                //            ps.commons.debug.log('Encountered blacklisted reference URL ' + url);
+                //            var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.sourceProperty + '\t' + source.sourceObject;
+                //            (function (currentId, currentUrl) {
+                //                ps.commons.setStatementState(currentId, ps.commons.STATEMENT_STATES.blacklisted, dataset, 'reference')
+                //                    .done(function () {
+                //                        ps.commons.debug.log('Automatically blacklisted statement ' +
+                //                            currentId + ' with blacklisted reference URL ' +
+                //                            currentUrl);
+                //                    });
+                //            })(sourceQuickStatement, url);
+                //        }
+                //        // Return the opposite, i.e., the whitelisted URLs
+                //        return !blacklisted;
+                //    }
+                //    return true;
+                //});
             }
             widget.showProgressBar();
             ps.commons.getClaims(subject, property, function(err, claims) {
@@ -699,9 +706,11 @@
                 // The claim is already in Wikidata: only add the reference, don't add if no reference
                 if (objectExists) {
                     if (widget.statementType === 'reference') {
+                        console.log(subject, property, object, references);
                         ps.commons.createReference(subject, property, object, references,
                             function(error, data) {
                                 if (error) {
+                                    console.log(data);
                                   return ps.commons.reportError(error);
                                 }
                                 // The back end approves everything

@@ -630,7 +630,7 @@
         // combines the 2 functions above
         createClaimWithReference: function createClaimWithReference(subject, predicate, object, qualifiers, sourceSnaks) {
             var api = new mw.Api();
-            return createClaim(subject, predicate, object, qualifiers).then(function (data) {
+            return _createClaim(subject, predicate, object, qualifiers).then(function (data) {
                 return api.postWithToken('csrf', {
                     action: 'wbsetreference',
                     statement: data.claim.id,
