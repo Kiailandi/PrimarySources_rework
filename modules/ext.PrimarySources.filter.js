@@ -269,13 +269,11 @@
                 }
                 // URLs: make a link
                 else if (ps.commons.isUrl(value)) {
-                    console.log(value);
                     cell.append(
                         $('<a>')
                             .attr('href', value)
                             .text(value)
                     );
-                    console.log(cell);
                     cells.push(cell);
                 }
                 // Literals: return as is
@@ -284,7 +282,6 @@
                     cells.push(cell);
                 }
             });
-            console.log(cells);
             // END: data cells
             
             // BEGIN: action buttons
@@ -1452,15 +1449,21 @@
                             .replace('{{OFFSET}}', widget.sparqlOffset)
                             .replace('{{LIMIT}}', widget.sparqlLimit)
                     },
-                    accepts: { csv: 'text/csv' },
-                    converters: { 'text csv': function(result){
+                    accepts: { tsv: 'text/tab-separated-values' },
+                    converters: { 'text tsv': function(result){
                         var lines = result.split('\r\n');
                         lines.pop();
                         var headers = lines.shift();
-                        var bindings = lines.map(line => line.split(',').filter(String));
-                        return {headers: headers.split(','), bindings: bindings};
+                        var bindings = lines.map(function (line) {
+                            var clean = line.replace(/[<>"]/g, '');
+                            return clean
+                                .split('\t')
+                                .filter(String)
+                                .map(binding => binding.split('^^')[0]);
+                        });
+                        return {headers: headers.replace(/\?/g, '').split('\t'), bindings: bindings};
                     }},
-                    dataType: 'csv'
+                    dataType: 'tsv'
                 }
             )
             .done(function(data) {
