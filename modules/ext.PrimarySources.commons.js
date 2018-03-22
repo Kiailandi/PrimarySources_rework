@@ -183,9 +183,7 @@
     function _isUrl(url) {
         if (typeof URL !== 'function') {
             return url.indexOf('http') === 0;
-            // TODO: very bad fallback hack
         }
-
         try {
             url = new URL(url.toString());
             return url.protocol.indexOf('http') === 0 && url.host;
@@ -671,7 +669,7 @@
 
         reportError: function reportError(error) {
             mw.notify(error, {
-                autoHide: false,
+                autoHide: true,
                 tag: 'ps-error'
             });
         },

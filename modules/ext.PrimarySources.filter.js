@@ -255,7 +255,6 @@
             // BEGIN: data cells
             binding.forEach(function (value) {
                 var cell = $('<td>');
-                // TODO Handle multiple references in a single row
                 // Entities: format linked labels
                 if (/[QP]\d+$/.test(value)) {
                     ps.commons.getEntityLabel(value.split('/').pop())
@@ -268,26 +267,15 @@
                         });
                     cells.push(cell);
                 }
-                // URIs: make a link
-                else if (value.startsWith('http')) {
-                    var label;
-                    // Mint readable labels based on expected namespaces
-                    if (value === 'http://www.w3.org/ns/prov#wasDerivedFrom') {
-                        label = 'RDF reference property';
-                    } else if (value === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type') {
-                        label = 'RDF type';
-                    } else if (value.startsWith(uriPrefix + 'entity/statement/')) {
-                        label = 'RDF statement node';
-                    } else if (value.startsWith(uriPrefix + 'reference/')) {
-                        label = 'RDF reference node';
-                    } else {
-                        label = value;
-                    }
+                // URLs: make a link
+                else if (ps.commons.isUrl(value)) {
+                    console.log(value);
                     cell.append(
                         $('<a>')
                             .attr('href', value)
-                            .text(label)
+                            .text(value)
                     );
+                    console.log(cell);
                     cells.push(cell);
                 }
                 // Literals: return as is
@@ -296,6 +284,7 @@
                     cells.push(cell);
                 }
             });
+            console.log(cells);
             // END: data cells
             
             // BEGIN: action buttons
