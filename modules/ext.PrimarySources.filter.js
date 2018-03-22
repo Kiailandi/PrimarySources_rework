@@ -246,8 +246,8 @@
                         
             var widget = this;
             /*
-             * Subject, property, statement_node, statement_value, reference_property, reference_value, dataset
-             *   [0]      [1]          [2]              [3]                [4]               [5]          [6]
+             * Subject, property, statement_value, reference_property, reference_value, dataset
+             *   [0]      [1]           [2]                [3]               [4]          [5]
              */
             var cells = [];
             var uriPrefix = 'http://www.wikidata.org/';
@@ -326,21 +326,21 @@
             if (filteredItemValue) {
                 actualValue = filteredItemValue;
             } else {
-                actualValue = binding[3].startsWith(uriPrefix + 'entity/')
-                ? binding[3].substring((uriPrefix + 'entity/').length)
-                : binding[3]
+                actualValue = binding[2].startsWith(uriPrefix + 'entity/')
+                ? binding[2].substring((uriPrefix + 'entity/').length)
+                : binding[2]
             }
             var referenceProperty, referenceValue;
-            if (binding[4].startsWith(uriPrefix + 'prop/reference/')) {
-                referenceProperty = binding[4].substring((uriPrefix + 'prop/reference/').length).replace('P', 'S');
-                referenceValue = binding[5].startsWith(uriPrefix + 'entity/')
-                ? binding[5].substring((uriPrefix + 'entity/').length)
-                : binding[5]
+            if (binding[3].startsWith(uriPrefix + 'prop/reference/')) {
+                referenceProperty = binding[3].substring((uriPrefix + 'prop/reference/').length).replace('P', 'S');
+                referenceValue = binding[4].startsWith(uriPrefix + 'entity/')
+                ? binding[4].substring((uriPrefix + 'entity/').length)
+                : binding[4]
                 this.statementType = 'reference';
             } else {
                 this.statementType = 'claim';
             }
-            this.dataset = filteredDataset === '' ? binding[6] : filteredDataset;
+            this.dataset = filteredDataset === '' ? binding[5] : filteredDataset;
             this.quickStatement = referenceProperty
             ? subject + '\t' + actualProperty + '\t' + actualValue + '\t' + referenceProperty + '\t' + referenceValue
             : subject + '\t' + actualProperty + '\t' + actualValue;
@@ -363,7 +363,7 @@
                     if (filteredItemValue) {
                         previewParams.push(filteredItemValue);
                     } else {
-                        previewParams.push(cells[3].text());
+                        previewParams.push(cells[2].text());
                     }
                     previewParams.push(referenceValue);
                     console.log('PREVIEW PARAMS:', previewParams);
@@ -1644,6 +1644,7 @@
                 })
             }
             if (widget.table === null) {
+                headers.splice(2, 1); // Get rid of statement_node
                 widget.initSearchTable(headers);
             }
             // Merge statements on common statement_node
@@ -1663,6 +1664,7 @@
             });
             var finalBindings = merged.filter(Boolean); // Filter undefined values
             finalBindings.forEach(function (binding) {
+                binding.splice(2, 1); // Get rid of statement_node
                 var row = new SearchResultRow(binding, filteredProperty, filteredItemValue, filteredDataset);
                 widget.table.append(row.$element);
             });
