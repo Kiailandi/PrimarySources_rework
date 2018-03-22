@@ -1707,7 +1707,10 @@
         ListDialog.prototype.initSearchTable = function (headers) {
             var htmlHeaders = [];
             headers.forEach(function (header) {
-                htmlHeaders.push($('<th>').text(header));
+                var formatted = header
+                .replace('_', ' ')
+                .replace(/\w+/, word => word.charAt(0).toUpperCase() + word.substr(1));
+                htmlHeaders.push($('<th>').text(formatted));
             });
             this.table = $('<table>')
             .addClass('wikitable')
