@@ -5,12 +5,11 @@
     var ps = mw.ps || {};
     
     ps.referencePreview = {
-        opened : false,
         openNav : function openNav(itemLabel, propertyLabel, propertyValue, referenceURL, buttons) {
 
             //console.log("Preview - button args");
             //console.log(arguments);
-            mw.ps.referencePreview.opened = true;
+        
             $('#myNav').width('100%');
 
             var blackboard = $('#blackboard');
@@ -75,7 +74,6 @@
             });
         },
         closeNav : function closeNav() {
-            mw.ps.referencePreview.opened = false;
             $('#myNav').width('0%');
             $('#blackboard').html('');
         },
@@ -99,13 +97,13 @@
 
     (function appendOverlay (){
         $("#content").append('<div id="myNav" class="overlay">'+
-                             '<a href="javascript:void(0)" class="closebtn" onclick="mw.ps.referencePreview.closeNav()">&times;</a>'+
+                             '<a href="javascript:void(0)" class="closebtn" onclick="mw.ps.referencePreview.closeNav()">&times;<br><small>press q to exit</small></a>'+
                              '<div id="blackboard" class="overlay-content"></div>'+
                              '</div>');
     })();
 
     $(document).keypress(function(e){
-        if(e.keyCode === 27 && mw.ps.referencePreview.opened){
+        if(e.keyCode === 113){
             mw.ps.referencePreview.closeNav();
         }
     });
