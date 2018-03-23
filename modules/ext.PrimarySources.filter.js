@@ -1144,12 +1144,12 @@
                 classes: ['container']
             });
             fieldset.addItems([
-                new OO.ui.FieldLayout(this.datasetInput, { label: 'Dataset', align: 'inline' }),
-                new OO.ui.FieldLayout(this.bakedFilters, { label: 'Baked filters' }),
-                new OO.ui.FieldLayout(this.itemValueInput, { label: 'Entity of interest' }),
-                new OO.ui.FieldLayout(this.propertyInput, { label: 'Property of interest' }),
-                new OO.ui.FieldLayout(this.sparqlQuery, { label: 'SPARQL query' }),
-                new OO.ui.FieldLayout(this.loadButton)
+                new OO.ui.FieldLayout(this.datasetInput, { label: 'Dataset', align: 'right' }),
+                new OO.ui.FieldLayout(this.bakedFilters, { label: 'Baked filters', align: 'right' }),
+                new OO.ui.FieldLayout(this.itemValueInput, { label: 'Entity of interest', align: 'right' }),
+                new OO.ui.FieldLayout(this.propertyInput, { label: 'Property of interest', align: 'right' }),
+                new OO.ui.FieldLayout(this.sparqlQuery, { label: 'SPARQL query', align: 'right' }),
+                new OO.ui.FieldLayout(this.loadButton, { label: ' ', align: 'right' }) // Hack to place the button under the other fields
             ])
             var formPanel = new OO.ui.PanelLayout({
                 padded: true,
