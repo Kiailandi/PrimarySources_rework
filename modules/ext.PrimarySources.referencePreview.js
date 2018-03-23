@@ -97,7 +97,8 @@
 
     (function appendOverlay (){
         $("#content").append('<div id="myNav" class="overlay">'+
-                             '<a href="javascript:void(0)" class="closebtn" onclick="mw.ps.referencePreview.closeNav()">&times;<br><small>press q to exit</small></a>'+
+                             '<a href="javascript:void(0)" class="closebtn" onclick="mw.ps.referencePreview.closeNav()">&times;</a>'+
+                             '<p class="closebtn">press q to exit</p>'+
                              '<div id="blackboard" class="overlay-content"></div>'+
                              '</div>');
     })();
