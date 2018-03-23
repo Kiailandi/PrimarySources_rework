@@ -5,6 +5,7 @@
     var ps = mw.ps || {};
     
     ps.referencePreview = {
+        opened : false,
         openNav : function openNav(itemLabel, propertyLabel, propertyValue, referenceURL, buttons) {
 
             //console.log("Preview - button args");
