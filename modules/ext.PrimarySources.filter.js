@@ -1194,8 +1194,26 @@
             // The dataset field is needed for all filters but the arbitrary SPARQL query
             var filteredDataset = this.datasetInput.getValue();
 
+            // Default search
+            if (!this.bakedFilters.isDisabled()
+            && !this.propertyInput.isDisabled()
+            && !this.itemValueInput.isDisabled()
+            && !this.sparqlQuery.isDisabled()) {
+                var filledQuery;
+                var bindings = '?subject ?property ?statement_node ?value ?reference_property ?reference_value';
+                if (filteredDataset === '') {
+                    filledQuery = filledQuery.replace('{{DATASET}}', '?dataset');
+                    bindings += ' ?dataset';
+                } else {
+                    filledQuery = filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>')
+                }
+                this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
+                this.sparqlOffset = 0;
+                this.sparqlLimit = 300;
+                this.executeSearch();
+            }
             // Baked filters
-            if (!this.bakedFilters.isDisabled()) {
+            else if (!this.bakedFilters.isDisabled()) {
                 var bakedFiltersMenu = this.bakedFilters.getMenu();
                 var bakedSelection = bakedFiltersMenu.findSelectedItem();
                 var baked = bakedSelection.getData();
