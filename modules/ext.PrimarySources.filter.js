@@ -1209,7 +1209,7 @@
                 }
                 this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
                 this.sparqlOffset = 0;
-                this.sparqlLimit = 300;
+                this.sparqlLimit = 100;
                 this.executeSearch();
             }
             // Baked filters
