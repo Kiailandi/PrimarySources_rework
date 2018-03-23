@@ -20,8 +20,8 @@
     '  GRAPH {{DATASET}} {' +
     '    ?subject a wikibase:Item ;' +
     '             {{PROPERTY}} ?statement_node .' +
-    '    ?statement_node ?statement_property ?statement_value .' +
-    '    OPTIONAL { ?statement_value ?reference_property ?reference_value . }' +
+    '    ?statement_node ?statement_property ?value .' +
+    '    OPTIONAL { ?value ?reference_property ?reference_value . }' +
     '  } ' +
     '} ' +
     'OFFSET {{OFFSET}} ' +
@@ -34,8 +34,8 @@
     '    ?subject a wikibase:Item ;' +
     '             {{PROPERTY}} ?statement_node .' +
     '    { SELECT ?statement_node WHERE { ?statement_node ?statement_property wd:{{VALUE}} . } }' +
-    '    ?statement_node ?statement_property ?statement_value .  ' +
-    '    OPTIONAL { ?statement_value ?reference_property ?reference_value . }' +
+    '    ?statement_node ?statement_property ?value .  ' +
+    '    OPTIONAL { ?value ?reference_property ?reference_value . }' +
     '  } ' +
     '} ' +
     'OFFSET {{OFFSET}} ' +
@@ -246,7 +246,7 @@
                         
             var widget = this;
             /*
-             * Subject, property, statement_value, reference_property, reference_value, dataset
+             * Subject, property, value, reference_property, reference_value, dataset
              *   [0]      [1]           [2]                [3]               [4]          [5]
              */
             var cells = [];
@@ -468,7 +468,7 @@
                 // Build the QuickStatement needed for the /curate service
                 var subject = config.bindings.subject.value.substring('http://www.wikidata.org/entity/'.length);
                 var property = config.property === '' ? config.bindings.property.value : config.property;
-                var value = config.value === '' ? config.bindings.statement_value.value : config.value;
+                var value = config.value === '' ? config.bindings.value.value : config.value;
                 var datasetUri, referenceProperty, referenceValue, statementType;
                 if (config.bindings.hasOwnProperty('reference_property')) {
                     referenceProperty = config.bindings.reference_property.value;
@@ -1224,7 +1224,7 @@
                         .replace('{{PROPERTY}}', '?property')
                         .replace('{{VALUE}}', baked)
                         : searchSparqlQuery
-                        .replace('{{BINDINGS}}', '?subject (?statement_value AS ?value) ?reference_property ?reference_value')
+                        .replace('{{BINDINGS}}', '?subject ?value ?reference_property ?reference_value')
                         .replace('{{PROPERTY}}', 'p:' + baked);
                         filledQuery = datasetUri === ''
                         ? filledQuery.replace('{{DATASET}}', '?dataset')
@@ -1246,7 +1246,7 @@
                 var bindings = '?subject {{PROPERTY}} ?statement_node {{VALUE}} ?reference_property ?reference_value';
                 if (filteredItemValue === undefined) {
                     filledQuery = searchSparqlQuery;
-                    bindings = bindings.replace('{{VALUE}}', '?statement_value');
+                    bindings = bindings.replace('{{VALUE}}', '?value');
                 } else {
                     filledQuery = searchWithValueSparqlQuery.replace('{{VALUE}}', filteredItemValue);
                     bindings = bindings.replace('{{VALUE}}', '');
@@ -1619,7 +1619,7 @@
             var filteredItemValue = widget.filteredItemValue;
             var filteredDataset = widget.filteredDataset;
             /*
-             * Subject, property, statement_node, statement_value, reference_property, reference_value, dataset
+             * Subject, property, statement_node, value, reference_property, reference_value, dataset
              *   [0]      [1]          [2]              [3]                [4]               [5]          [6]
              */
             // In case of defined filters, add headers and bindings accordingly
@@ -1630,7 +1630,7 @@
                 })
             }
             if (filteredItemValue) {
-                headers.splice(3, 0, 'statement_value');
+                headers.splice(3, 0, 'value');
                 bindings.forEach(function(binding) {
                     binding.splice(3, 0, filteredItemValue);
                 })
