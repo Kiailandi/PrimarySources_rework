@@ -798,7 +798,7 @@
     
             // 2018-02-07T00:00:00Z
             /* jshint maxlen: false */
-            var timeRegEx = /^\d{4}-(\d{2})-(\d{2})T\d{2}:\d{2}:\d{2}Z$/;
+            var timeRegEx = /^(-?)\d{3,4}-(\d{2})-(\d{2})T\d{2}:\d{2}:\d{2}Z$/;
             /* jshint maxlen: 80 */
     
             // +/-1234.4567
@@ -820,10 +820,11 @@
                 return language + ':"' + text + '"';
             } else if (timeRegEx.test(value)) {
                 var match = timeRegEx.exec(value);
+                var era = match[1] ? match[1] : '+'; // No initial '-' means '+'
                 // Guess precision based on '01' values
-                if (parseInt(match[2]) > 1) return '+' + value + '/11';
-                else if (parseInt(match[1]) > 1) return '+' + value + '/10';
-                else return '+' + value + '/9';
+                if (parseInt(match[3]) > 1) return era + value + '/11';
+                else if (parseInt(match[2]) > 1) return era + value + '/10';
+                else return era + value + '/9';
             } else if (quantityRegEx.test(value)) {
                 return value;
             } else {
