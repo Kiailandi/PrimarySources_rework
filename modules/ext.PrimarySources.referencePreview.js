@@ -103,7 +103,7 @@
     })();
 
     $(document).keypress(function(e){
-        if(e.keyCode === 81){
+        if(e.key === 'q'){
             mw.ps.referencePreview.closeNav();
         }
     });
