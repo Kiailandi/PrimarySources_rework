@@ -1155,7 +1155,7 @@
                         : searchSparqlQuery
                         .replace('{{BINDINGS}}', '?subject ?value ?reference_property ?reference_value')
                         .replace('{{PROPERTY}}', 'p:' + baked);
-                        filledQuery = datasetUri === ''
+                        filledQuery = filteredDataset === ''
                         ? filledQuery.replace('{{DATASET}}', '?dataset')
                         : filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>');
                         this.sparql = filledQuery;
