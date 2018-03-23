@@ -1165,35 +1165,39 @@
                         break;
                 }
             }
+            // Arbitrary SPARQL query
             else if (!this.sparqlQuery.isDisabled()) {
                 this.sparql = this.sparqlQuery.getValue();
                 this.executeSparqlQuery();
-            } else {
+            }
+            // Property / item value autocompletion
+            else {
                 var filteredItemValue = this.itemValueInput.getData();
                 var filteredProperty = this.propertyInput.getData();
                 var filledQuery;
                 var bindings = '?subject {{PROPERTY}} ?statement_node {{VALUE}} ?reference_property ?reference_value';
-                if (filteredItemValue === undefined) {
-                    filledQuery = searchSparqlQuery;
-                    bindings = bindings.replace('{{VALUE}}', '?value');
-                } else {
+                if (filteredItemValue) {
                     filledQuery = searchWithValueSparqlQuery.replace('{{VALUE}}', filteredItemValue);
                     bindings = bindings.replace('{{VALUE}}', '');
-                }
-                if (filteredProperty === undefined) {
-                    filledQuery = filledQuery.replace('{{PROPERTY}}', '?property');
-                    bindings = bindings.replace('{{PROPERTY}}', '?property');
                 } else {
+                    filledQuery = searchSparqlQuery;
+                    bindings = bindings.replace('{{VALUE}}', '?value');
+                }
+                if (filteredProperty) {
                     filledQuery = filledQuery.replace('{{PROPERTY}}', 'p:' + filteredProperty);
                     bindings = bindings.replace('{{PROPERTY}}', '');
+                } else {
+                    filledQuery = filledQuery.replace('{{PROPERTY}}', '?property');
+                    bindings = bindings.replace('{{PROPERTY}}', '?property');
                 }
-                if (filteredDataset === '') {
+                if (filteredDataset) {
+                    filledQuery = filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>')
+                } else {
                     filledQuery = filledQuery.replace('{{DATASET}}', '?dataset');
                     bindings += ' ?dataset';
-                } else {
-                    filledQuery = filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>')
                 }
                 this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
+                console.log(this.sparql);
                 this.sparqlOffset = 0;
                 this.sparqlLimit = 300;
                 this.filteredDataset = filteredDataset;
