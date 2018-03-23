@@ -105,7 +105,6 @@
 
     $(document).keypress(function(e){
         if(e.keyCode === 27 && mw.ps.referencePreview.opened){
-            e.stopImmediatePropagation();
             mw.ps.referencePreview.closeNav();
         }
     });
