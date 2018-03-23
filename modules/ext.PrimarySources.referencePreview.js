@@ -5,11 +5,12 @@
     var ps = mw.ps || {};
     
     ps.referencePreview = {
+        opened : false,
         openNav : function openNav(itemLabel, propertyLabel, propertyValue, referenceURL, buttons) {
 
-            console.log("Preview - button args");
-            console.log(arguments);
-
+            //console.log("Preview - button args");
+            //console.log(arguments);
+            mw.ps.referencePreview.opened = true;
             $('#myNav').width('100%');
 
             var blackboard = $('#blackboard');
@@ -74,6 +75,7 @@
             });
         },
         closeNav : function closeNav() {
+            mw.ps.referencePreview.opened = false;
             $('#myNav').width('0%');
             $('#blackboard').html('');
         },
@@ -102,8 +104,8 @@
                              '</div>');
     })();
 
-    $(document).keyup(function(e){
-        if(e.keyCode === 27){
+    $(document).keypress(function(e){
+        if(e.keyCode === 27 && mw.ps.referencePreview.opened){
             mw.ps.referencePreview.closeNav();
         }
     });
