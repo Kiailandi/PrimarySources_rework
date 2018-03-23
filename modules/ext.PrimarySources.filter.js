@@ -987,11 +987,11 @@
             })
             .connect(this, {
                 change: function() {
-                    if (this.itemValueInput.getValue() !== '' || this.propertyInput.getValue() !== '') {
+                    if (this.itemValueInput.getValue() || this.propertyInput.getValue()) {
                         this.bakedFilters.setDisabled(true);
                         this.sparqlQuery.setDisabled(true);
                     } else {
-                        this.itemValueInput.setData();
+                        this.itemValueInput.setData('');
                         this.bakedFilters.setDisabled(false);
                         this.sparqlQuery.setDisabled(false);
                     }
@@ -1008,11 +1008,11 @@
             })
             .connect(this, {
                 change: function() {
-                    if (this.propertyInput.getValue() !== '' || this.itemValueInput.getValue() !== '') {
+                    if (this.propertyInput.getValue() || this.itemValueInput.getValue()) {
                         this.bakedFilters.setDisabled(true);
                         this.sparqlQuery.setDisabled(true);
                     } else {
-                        this.propertyInput.setData();
+                        this.propertyInput.setData('');
                         this.bakedFilters.setDisabled(false);
                         this.sparqlQuery.setDisabled(false);
                     }
