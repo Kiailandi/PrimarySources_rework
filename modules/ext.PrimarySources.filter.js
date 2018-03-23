@@ -372,28 +372,16 @@
         OO.inheritClass(SearchResultRow, OO.ui.Widget);
         SearchResultRow.static.tagName = 'tbody';
 
-        // FIXME revert to previous version
-        function SparqlResultRow(config) {
-            SparqlResultRow.super.call(this, config);
-                        
-            var widget = this;
+        function SparqlResultRow(headers, bindings) {
+            SparqlResultRow.super.call(this, headers, bindings);
             var cells = [];
-
-            // BEGIN: data cells
-            config.headers.forEach(function (header) {
+            headers.forEach(function (header) {
                 var cell = $('<td>');
-                // Multiple references
-                if (config.bindings.hasOwnProperty(header) && typeof(config.bindings[header]) === 'array') {
-                    // cell.attr('rowspan', config.bindings[header].length)
-                    config.bindings[header].forEach(function (item) {
-                        cell.append(item.value, $('<br />'));                        
-                    });
-                }
                 var value, valueType;
                 // Handle empty values in case of OPTIONAL clauses
-                if (config.bindings.hasOwnProperty(header)) {
-                    value = config.bindings[header].value;
-                    valueType = config.bindings[header].type;
+                if (bindings.hasOwnProperty(header)) {
+                    value = bindings[header].value;
+                    valueType = bindings[header].type;
                 } else {
                     value = null;
                     valueType = null;
@@ -442,82 +430,6 @@
                     cells.push(cell);
                 }
             });
-            // END: data cells
-            
-            // BEGIN: action buttons
-            if (config.showButtons) {
-                var curationButtons = new OO.ui.ButtonGroupWidget({
-                    items: [
-                        new OO.ui.ButtonWidget({
-                            label: 'Approve',
-                            flags: 'progressive',
-                            icon: 'add',
-                            disabled: true
-                        })
-                        .connect(widget, { click: 'approve' }),
-                        new OO.ui.ButtonWidget({
-                            label: 'Reject',
-                            flags: 'destructive',
-                            icon: 'trash',
-                            disabled: true
-                        })
-                        .connect(widget, { click: 'reject' })
-                    ]
-                });
-
-                // Build the QuickStatement needed for the /curate service
-                var subject = config.bindings.subject.value.substring('http://www.wikidata.org/entity/'.length);
-                var property = config.property === '' ? config.bindings.property.value : config.property;
-                var value = config.value === '' ? config.bindings.value.value : config.value;
-                var datasetUri, referenceProperty, referenceValue, statementType;
-                if (config.bindings.hasOwnProperty('reference_property')) {
-                    referenceProperty = config.bindings.reference_property.value;
-                    referenceValue = config.bindings.reference_value.value;
-                    this.statementType = 'reference';
-                } else {
-                    this.statementType = 'claim';
-                }
-                this.datasetUri = config.datasetUri === ''
-                ? config.bindings.dataset.value
-                : config.datasetUri;
-                this.quickStatement = referenceProperty === undefined
-                ? subject + '\t' + property + '\t' + value
-                : subject + '\t' + property + '\t' + value + '\t' + referenceProperty + '\t' + referenceValue;
-
-                // Generate the preview button only if we have a reference URL
-                if (referenceProperty !== undefined && referenceProperty.endsWith('P854')) {
-                    var previewButton = new OO.ui.ButtonWidget({
-                        label: 'Preview',
-                        flags: ['primary', 'progressive'],
-                        icon: 'articleSearch'
-                    })
-                    .connect(widget, { click: function() {
-                        curationButtons.getItems().forEach(function (item) { item.setDisabled(false); });
-                        previewParams = [cells[0].text()];
-                        if (config.property === '') {
-                            previewParams.push(cells[1].text());
-                        } else {
-                            previewParams.push(config.property);
-                        }
-                        if (config.value === '') {
-                            previewParams.push(cells[2].text());
-                        } else {
-                            previewParams.push(config.value);
-                        }
-                        previewParams.push(referenceValue);
-                        ps.referencePreview.openNav(
-                            previewParams[0], previewParams[1], previewParams[2], previewParams[3],
-                            $(curationButtons.$element)
-                        )}
-                    });
-                    cells.push($('<td>').append(previewButton.$element));
-                } else {
-                    curationButtons.getItems().forEach(function (item) { item.setDisabled(false); });
-                }
-                cells.push($('<td>').append(curationButtons.$element));
-            }
-            // END: action buttons
-
             this.$element.append(
                 $('<tr>').append(cells)
             );
@@ -1199,19 +1111,17 @@
             && !this.propertyInput.isDisabled()
             && !this.itemValueInput.isDisabled()
             && !this.sparqlQuery.isDisabled()) {
-                var filledQuery = searchSparqlQuery
-                    .replace('{{PROPERTY}}', '?property');
-                    .replace('{{VALUE}}', '?value');
+                var filledQuery = searchSparqlQuery.replace('{{PROPERTY}}', '?property');
                 var bindings = '?subject ?property ?statement_node ?value ?reference_property ?reference_value';
                 if (filteredDataset === '') {
-                    filledQuery = searchSparqlQuery.replace('{{DATASET}}', '?dataset');
+                    filledQuery = filledQuery.replace('{{DATASET}}', '?dataset');
                     bindings += ' ?dataset';
                 } else {
-                    filledQuery = searchSparqlQuery.replace('{{DATASET}}', '<' + filteredDataset + '>')
+                    filledQuery = filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>')
                 }
                 this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
                 this.sparqlOffset = 0;
-                this.sparqlLimit = 300;
+                this.sparqlLimit = 100;
                 this.executeSearch();
             }
             // Baked filters
@@ -1245,7 +1155,7 @@
                         : searchSparqlQuery
                         .replace('{{BINDINGS}}', '?subject ?value ?reference_property ?reference_value')
                         .replace('{{PROPERTY}}', 'p:' + baked);
-                        filledQuery = datasetUri === ''
+                        filledQuery = filteredDataset === ''
                         ? filledQuery.replace('{{DATASET}}', '?dataset')
                         : filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>');
                         this.sparql = filledQuery;
@@ -1537,8 +1447,7 @@
         };
 
 
-        // FIXME revert to old function
-        ListDialog.prototype.executeSparqlQuery = function (mergeOnSubject=false, showButtons=false, filteredDataset='', filteredProperty='', filteredValue='') {
+        ListDialog.prototype.executeSparqlQuery = function () {
             var widget = this;
             var progressBar = new OO.ui.ProgressBarWidget();
             progressBar.$element.css('max-width', '100%');
@@ -1553,39 +1462,20 @@
                 },
                 function (data) {
                     progressBar.$element.remove();
-                    // Handle empty results
-                    if (data.results.bindings.length === 0) {
-                        var noticeIcon = new OO.ui.IconWidget({
-                            icon: 'notice'
+                    // paging
+                    widget.sparqlOffset += widget.sparqlLimit;
+                    widget.displaySparqlResult(data.head.vars, data.results.bindings);
+                    if (data.hasOwnProperty('results')) {
+                        widget.nextStatementsButton = new OO.ui.ButtonWidget({
+                            label: 'Load more'
                         });
-                        var noStatements = new OO.ui.LabelWidget({
-                            label: 'No statements found.'
-                        });
-                        widget.mainPanel.$element.append(noticeIcon.$element, noStatements.$element);
-                    } else {
-                        // Paging
-                        widget.sparqlOffset += widget.sparqlLimit;
-                        widget.displaySparqlResult({
-                            headers: data.head.vars,
-                            bindings: data.results.bindings,
-                            mergeOnSubject: mergeOnSubject,
-                            showButtons: showButtons,
-                            datasetUri: filteredDataset,
-                            property: filteredProperty,
-                            value: filteredValue
-                        });
-                        if (data.hasOwnProperty('results')) {
-                            widget.nextStatementsButton = new OO.ui.ButtonWidget({
-                                label: 'Load more'
-                            });
-                            widget.nextStatementsButton.connect(
-                                widget,
-                                { click: 'onNextButtonSubmit' }
-                            );
-                            widget.mainPanel.$element.append(
-                                widget.nextStatementsButton.$element
-                            );
-                        }
+                        widget.nextStatementsButton.connect(
+                            widget,
+                            { click: 'onNextButtonSubmit' }
+                        );
+                        widget.mainPanel.$element.append(
+                            widget.nextStatementsButton.$element
+                        );
                     }
                 },
                 'json'
@@ -1681,39 +1571,15 @@
             });
         };
 
-        // FIXME revert to old arbitary sparql
-        ListDialog.prototype.displaySparqlResult = function (config) {
+        ListDialog.prototype.displaySparqlResult = function (headers, bindings) {
             var widget = this;
             if (this.table === null) {
-                this.initResultTable(config.headers, config.showButtons);
+                this.initResultTable(headers);
             }
-            if (config.mergeOnSubject) {
-                var triples
-                var merged = 
-                merged.forEach(function (binding) {
-                    var row = new SparqlResultRow({
-                        headers: config.headers,
-                        bindings: binding,
-                        showButtons: config.showButtons,
-                        datasetUri: config.datasetUri,
-                        property: config.property,
-                        value: config.value
-                    });
-                    widget.table.append(row.$element);
-                });
-            } else {
-                config.bindings.forEach(function (binding) {
-                    var row = new SparqlResultRow({
-                        headers: config.headers,
-                        bindings: binding,
-                        showButtons: config.showButtons,
-                        datasetUri: config.datasetUri,
-                        property: config.property,
-                        value: config.value
-                    });
-                    widget.table.append(row.$element);
-                });
-            }
+            bindings.forEach(function (binding) {
+                var row = new SparqlResultRow(headers, binding);
+                widget.table.append(row.$element);
+            });
 
         };
 
@@ -1741,36 +1607,21 @@
             this.mainPanel.$element.append(this.table);
         };
 
-        // FIXME revert to previous version
-        ListDialog.prototype.initResultTable = function (headers, showButtons) {
+        ListDialog.prototype.initResultTable = function (headers) {
             var htmlHeaders = [];
             headers.forEach(function (header) {
                 htmlHeaders.push($('<th>').text(header));
             });
-            this.table = showButtons
-            ? $('<table>')
-            .addClass('wikitable')
-            .css('width', '100%')
-            .append(
-                $('<thead>').append(
-                    $('<tr>').append(
-                        htmlHeaders,
-                        $('<th>')
-                        .text('Actions')
-                        .attr('colspan', 2)   
+            this.table = $('<table>')
+                .addClass('wikitable')
+                .css('width', '100%')
+                .append(
+                    $('<thead>').append(
+                        $('<tr>').append(
+                            htmlHeaders
+                        )
                     )
-                )
-            )
-            : $('<table>')
-            .addClass('wikitable')
-            .css('width', '100%')
-            .append(
-                $('<thead>').append(
-                    $('<tr>').append(
-                        htmlHeaders
-                    )
-                )
-            )
+                );
             this.mainPanel.$element.append(this.table);
         };
 
