@@ -103,7 +103,7 @@
     })();
 
     $(document).keypress(function(e){
-        if(e.keyCode === 113){
+        if(e.keyCode === 81){
             mw.ps.referencePreview.closeNav();
         }
     });
