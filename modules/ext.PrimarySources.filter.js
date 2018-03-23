@@ -1199,15 +1199,13 @@
             && !this.propertyInput.isDisabled()
             && !this.itemValueInput.isDisabled()
             && !this.sparqlQuery.isDisabled()) {
-                var filledQuery = searchSparqlQuery
-                    .replace('{{PROPERTY}}', '?property');
-                    .replace('{{VALUE}}', '?value');
+                var filledQuery = searchSparqlQuery.replace('{{PROPERTY}}', '?property');
                 var bindings = '?subject ?property ?statement_node ?value ?reference_property ?reference_value';
                 if (filteredDataset === '') {
-                    filledQuery = searchSparqlQuery.replace('{{DATASET}}', '?dataset');
+                    filledQuery = filledQuery.replace('{{DATASET}}', '?dataset');
                     bindings += ' ?dataset';
                 } else {
-                    filledQuery = searchSparqlQuery.replace('{{DATASET}}', '<' + filteredDataset + '>')
+                    filledQuery = filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>')
                 }
                 this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
                 this.sparqlOffset = 0;
