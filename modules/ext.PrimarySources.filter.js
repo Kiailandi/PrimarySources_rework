@@ -923,7 +923,7 @@
         OO.inheritClass(ListDialog, OO.ui.ProcessDialog);
         ListDialog.static.name = 'ps-list';
         ListDialog.static.title = 'primary sources filter';
-        ListDialog.static.size = 'larger';
+        ListDialog.static.size = 'full';
         ListDialog.static.actions = [
             { label: 'Close', flags: 'safe' }
         ];
@@ -1133,24 +1133,23 @@
                 enter: 'onOptionSubmit'
             });
 
-            var loadButton = new OO.ui.ButtonInputWidget({
-                label: 'Load',
+            this.loadButton = new OO.ui.ButtonInputWidget({
+                label: 'Run',
                 flags: 'progressive',
                 type: 'submit'
-            });
-            loadButton.connect(this, { click: 'onOptionSubmit' });
+            })
+            .connect(this, { click: 'onOptionSubmit' });
 
             var fieldset = new OO.ui.FieldsetLayout({
-                label: 'Filters',
                 classes: ['container']
             });
             fieldset.addItems([
-                new OO.ui.FieldLayout(this.datasetInput, { label: 'Dataset' }),
+                new OO.ui.FieldLayout(this.datasetInput, { label: 'Dataset', align: 'inline' }),
                 new OO.ui.FieldLayout(this.bakedFilters, { label: 'Baked filters' }),
                 new OO.ui.FieldLayout(this.itemValueInput, { label: 'Entity of interest' }),
                 new OO.ui.FieldLayout(this.propertyInput, { label: 'Property of interest' }),
                 new OO.ui.FieldLayout(this.sparqlQuery, { label: 'SPARQL query' }),
-                new OO.ui.FieldLayout(loadButton)
+                new OO.ui.FieldLayout(this.loadButton)
             ])
             var formPanel = new OO.ui.PanelLayout({
                 padded: true,
