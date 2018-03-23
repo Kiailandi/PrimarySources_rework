@@ -1199,13 +1199,15 @@
             && !this.propertyInput.isDisabled()
             && !this.itemValueInput.isDisabled()
             && !this.sparqlQuery.isDisabled()) {
-                var filledQuery;
+                var filledQuery = searchSparqlQuery
+                    .replace('{{PROPERTY}}', '?property');
+                    .replace('{{VALUE}}', '?value');
                 var bindings = '?subject ?property ?statement_node ?value ?reference_property ?reference_value';
                 if (filteredDataset === '') {
-                    filledQuery = filledQuery.replace('{{DATASET}}', '?dataset');
+                    filledQuery = searchSparqlQuery.replace('{{DATASET}}', '?dataset');
                     bindings += ' ?dataset';
                 } else {
-                    filledQuery = filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>')
+                    filledQuery = searchSparqlQuery.replace('{{DATASET}}', '<' + filteredDataset + '>')
                 }
                 this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
                 this.sparqlOffset = 0;
@@ -1725,7 +1727,7 @@
             });
             this.table = $('<table>')
             .addClass('wikitable')
-            .css('width', '100%')
+            .css('max-width', '100%')
             .append(
                 $('<thead>').append(
                     $('<tr>').append(
