@@ -991,7 +991,6 @@
                         this.bakedFilters.setDisabled(true);
                         this.sparqlQuery.setDisabled(true);
                     } else {
-                        this.itemValueInput.setData('');
                         this.bakedFilters.setDisabled(false);
                         this.sparqlQuery.setDisabled(false);
                     }
@@ -1012,7 +1011,6 @@
                         this.bakedFilters.setDisabled(true);
                         this.sparqlQuery.setDisabled(true);
                     } else {
-                        this.propertyInput.setData('');
                         this.bakedFilters.setDisabled(false);
                         this.sparqlQuery.setDisabled(false);
                     }
@@ -1030,7 +1028,7 @@
             })
             .connect(this, {
                 change: function() {
-                    if (this.sparqlQuery.getValue() !== '') {
+                    if (this.sparqlQuery.getValue()) {
                         this.datasetInput.setDisabled(true);
                         this.bakedFilters.setDisabled(true);
                         this.itemValueInput.setDisabled(true);
@@ -1092,7 +1090,7 @@
          */
         OO.ui.MultilineTextInputWidget.prototype.onKeyPress = function ( e ) {
             if (
-                ( this.getValue() !== '' && e.which === OO.ui.Keys.ENTER && ( e.ctrlKey || e.metaKey ) ) ||
+                ( this.getValue() && e.which === OO.ui.Keys.ENTER && ( e.ctrlKey || e.metaKey ) ) ||
                 // Some platforms emit keycode 10 for ctrl+enter in a textarea
                 e.which === 10
             ) {
@@ -1122,6 +1120,7 @@
                 this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
                 this.sparqlOffset = 0;
                 this.sparqlLimit = 100;
+                console.log(this.sparql);
                 this.executeSearch();
             }
             // Baked filters
@@ -1172,8 +1171,10 @@
             }
             // Property / item value autocompletion
             else {
-                var filteredItemValue = this.itemValueInput.getData();
-                var filteredProperty = this.propertyInput.getData();
+                var filteredItemValue = this.itemValueInput.getValue() ? this.itemValueInput.getData() : null;
+                var filteredProperty = this.propertyInput.getValue() ? this.propertyInput.getData() : null;
+                console.log('ENTITY FILTER', this.itemValueInput);
+                console.log('PROPERTY FILTER', this.propertyInput);
                 var filledQuery;
                 var bindings = '?subject {{PROPERTY}} ?statement_node {{VALUE}} ?reference_property ?reference_value';
                 if (filteredItemValue) {
@@ -1197,12 +1198,14 @@
                     bindings += ' ?dataset';
                 }
                 this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
-                console.log(this.sparql);
+                console.log('SPARQL:', this.sparql);
                 this.sparqlOffset = 0;
                 this.sparqlLimit = 300;
                 this.filteredDataset = filteredDataset;
                 this.filteredProperty = filteredProperty;
                 this.filteredItemValue = filteredItemValue;
+                console.log('ENTITY ATTRIBUTE:', this.filteredItemValue);
+                console.log('PROPERTY ATTRIBUTE:', this.filteredProperty);
                 this.executeSearch();
             }
         };
