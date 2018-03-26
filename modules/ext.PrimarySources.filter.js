@@ -242,7 +242,7 @@
         StatementRow.static.tagName = 'tbody';
 
         function SearchResultRow(binding, filteredProperty, filteredItemValue, filteredDataset) {
-            SearchResultRow.super.call(this, binding);
+            SearchResultRow.super.call(this, binding, filteredProperty, filteredItemValue, filteredDataset);
                         
             var widget = this;
             /*
@@ -1120,7 +1120,10 @@
                 this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
                 this.sparqlOffset = 0;
                 this.sparqlLimit = 100;
-                console.log(this.sparql);
+                this.filteredDataset = filteredDataset;
+                this.filteredProperty = null;
+                this.filteredItemValue = null;
+                //console.log('SEARCH:', this.sparql);
                 this.executeSearch();
             }
             // Baked filters
@@ -1173,8 +1176,6 @@
             else {
                 var filteredItemValue = this.itemValueInput.getValue() ? this.itemValueInput.getData() : null;
                 var filteredProperty = this.propertyInput.getValue() ? this.propertyInput.getData() : null;
-                console.log('ENTITY FILTER', this.itemValueInput);
-                console.log('PROPERTY FILTER', this.propertyInput);
                 var filledQuery;
                 var bindings = '?subject {{PROPERTY}} ?statement_node {{VALUE}} ?reference_property ?reference_value';
                 if (filteredItemValue) {
@@ -1198,14 +1199,12 @@
                     bindings += ' ?dataset';
                 }
                 this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
-                console.log('SPARQL:', this.sparql);
+                //console.log('AUTOCOMPLETION:', this.sparql);
                 this.sparqlOffset = 0;
                 this.sparqlLimit = 300;
                 this.filteredDataset = filteredDataset;
                 this.filteredProperty = filteredProperty;
                 this.filteredItemValue = filteredItemValue;
-                console.log('ENTITY ATTRIBUTE:', this.filteredItemValue);
-                console.log('PROPERTY ATTRIBUTE:', this.filteredProperty);
                 this.executeSearch();
             }
         };
@@ -1534,6 +1533,7 @@
             var filteredProperty = widget.filteredProperty;
             var filteredItemValue = widget.filteredItemValue;
             var filteredDataset = widget.filteredDataset;
+            //console.log('FILTER ATTRIBUTES', filteredProperty, filteredItemValue, filteredDataset);
             /*
              * Subject, property, statement_node, value, reference_property, reference_value, dataset
              *   [0]      [1]          [2]              [3]                [4]               [5]          [6]
@@ -1555,9 +1555,10 @@
                 headers.splice(2, 1); // Get rid of statement_node
                 widget.initSearchTable(headers);
             }
+            var threshold = filteredDataset ? 4 : 5; // Handle dataset binding
             // Merge statements on common statement_node
-            var triples = bindings.filter(binding => binding.length === 4);
-            var full =  bindings.filter(binding => binding.length > 4);
+            var triples = bindings.filter(binding => binding.length === threshold);
+            var full =  bindings.filter(binding => binding.length > threshold);
             var merged = full.map(function(statement) {
                 var toReturn;
                 $.each(triples, function(k, triple) {
@@ -1571,6 +1572,7 @@
                 return toReturn;
             });
             var finalBindings = merged.filter(Boolean); // Filter undefined values
+            //console.log('MERGED BINDINGS', finalBindings);
             finalBindings.forEach(function (binding) {
                 binding.splice(2, 1); // Get rid of statement_node
                 var row = new SearchResultRow(binding, filteredProperty, filteredItemValue, filteredDataset);
