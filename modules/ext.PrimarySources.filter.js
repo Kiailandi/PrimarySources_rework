@@ -966,7 +966,7 @@
             })
             .connect(this, {
                 labelChange: function() {
-                    if (this.bakedFilters.getMenu().findSelectedItem() !== null) {
+                    if (this.bakedFilters.getMenu().findSelectedItem()) {
                         this.itemValueInput.setDisabled(true);
                         this.propertyInput.setDisabled(true);
                         this.sparqlQuery.setDisabled(true);
@@ -975,7 +975,8 @@
                         this.propertyInput.setDisabled(false);
                         this.sparqlQuery.setDisabled(false);
                     }
-                }
+                },
+                enter: 'onOptionSubmit'
             });
 
             /**
