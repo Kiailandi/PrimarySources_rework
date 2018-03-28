@@ -975,9 +975,9 @@
                         this.propertyInput.setDisabled(false);
                         this.sparqlQuery.setDisabled(false);
                     }
-                },
-                enter: 'onOptionSubmit'
+                }
             });
+            this.bakedFilters.getMenu().connect(this, {choose: 'onOptionSubmit'});
 
             /**
              * Entity value autocompletion
@@ -1132,9 +1132,9 @@
                 var bakedFiltersMenu = this.bakedFilters.getMenu();
                 var bakedSelection = bakedFiltersMenu.findSelectedItem();
                 var baked = bakedSelection.getData();
-                // Reset selection and default label
+                // Reset selection and meaningful label
                 bakedFiltersMenu.selectItem();
-                this.bakedFilters.setLabel('Pick one');
+                this.bakedFilters.setLabel(new OO.ui.HtmlSnippet('Pick one (was <i>' + bakedSelection.getLabel() + '</i>)'));
                 switch (baked) {
                     case 'subjects':
                         this.sparql = subjectsSparqlQuery;
