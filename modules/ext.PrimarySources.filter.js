@@ -1156,6 +1156,9 @@
                             .replace('{{BINDINGS}}', 'DISTINCT (?subject AS ?' + bakedSelection.getLabel() + ')')
                             .replace('{{PROPERTY}}', '?property')
                             .replace('{{VALUE}}', baked);
+                            filledQuery = filteredDataset
+                            ? filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>')
+                            : filledQuery.replace('{{DATASET}}', '?dataset');
                             this.sparql = filledQuery;
                             this.sparqlOffset = 0;
                             this.sparqlLimit = 100;
