@@ -23,6 +23,7 @@
     '    ?statement_node ?statement_property ?value .' +
     '    OPTIONAL { ?value ?reference_property ?reference_value . }' +
     '  } ' +
+    '{{FILTER}}' +
     '} ' +
     'OFFSET {{OFFSET}} ' +
     'LIMIT {{LIMIT}}';
@@ -37,9 +38,12 @@
     '    ?statement_node ?statement_property ?value .  ' +
     '    OPTIONAL { ?value ?reference_property ?reference_value . }' +
     '  } ' +
+    '{{FILTER}}' +
     '} ' +
     'OFFSET {{OFFSET}} ' +
     'LIMIT {{LIMIT}}';
+    var datasetFilter = 'FILTER STRENDS(str(?dataset), "new") . ';
+
     var subjectsSparqlQuery = "SELECT ?subject WHERE { ?subject a wikibase:Item } OFFSET {{OFFSET}} LIMIT {{LIMIT}}";
     /* END: baked SPARQL queries */
 
@@ -1112,11 +1116,13 @@
             && !this.sparqlQuery.isDisabled()) {
                 var filledQuery = searchSparqlQuery.replace('{{PROPERTY}}', '?property');
                 var bindings = '?subject ?property ?statement_node ?value ?reference_property ?reference_value';
-                if (filteredDataset === '') {
-                    filledQuery = filledQuery.replace('{{DATASET}}', '?dataset');
-                    bindings += ' ?dataset';
+                if (filteredDataset) {
+                    filledQuery = filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>');
                 } else {
-                    filledQuery = filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>')
+                    filledQuery = filledQuery
+                    .replace('{{DATASET}}', '?dataset')
+                    .replace('{{FILTER}}', datasetFilter);
+                    bindings += ' ?dataset';
                 }
                 this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
                 this.sparqlOffset = 0;
@@ -1171,11 +1177,13 @@
                             if (filteredDataset) {
                                 filledQuery = filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>');
                             } else {
-                                filledQuery = filledQuery.replace('{{DATASET}}', '?dataset');
+                                filledQuery = filledQuery
+                                .replace('{{DATASET}}', '?dataset')
+                                .replace('{{FILTER}}', datasetFilter);
                                 bindings += ' ?dataset';
                             }
                             this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
-                            console.log('BAKED FILTER WITH PROPERTY:', this.sparql);
+                            // console.log('BAKED FILTER WITH PROPERTY:', this.sparql);
                             this.sparqlOffset = 0;
                             this.sparqlLimit = 300;
                             this.filteredDataset = filteredDataset;
@@ -1214,7 +1222,9 @@
                 if (filteredDataset) {
                     filledQuery = filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>')
                 } else {
-                    filledQuery = filledQuery.replace('{{DATASET}}', '?dataset');
+                    filledQuery = filledQuery
+                    .replace('{{DATASET}}', '?dataset')
+                    .replace('{{FILTER}}', datasetFilter);
                     bindings += ' ?dataset';
                 }
                 this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
