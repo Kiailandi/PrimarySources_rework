@@ -1148,24 +1148,39 @@
                     case 'values':
                         this.executeServiceCall(ps.globals.API_ENDPOINTS.VALUES_SERVICE);
                         break;
-                    // QID
                     default:
-                        var filledQuery = baked.startsWith('Q')
-                        ? searchWithValueSparqlQuery
-                        .replace('{{BINDINGS}}', 'DISTINCT (?subject AS ?' + bakedSelection.getLabel() + ')')
-                        .replace('{{PROPERTY}}', '?property')
-                        .replace('{{VALUE}}', baked)
-                        : searchSparqlQuery
-                        .replace('{{BINDINGS}}', '?subject ?value ?reference_property ?reference_value')
-                        .replace('{{PROPERTY}}', 'p:' + baked);
-                        filledQuery = filteredDataset === ''
-                        ? filledQuery.replace('{{DATASET}}', '?dataset')
-                        : filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>');
-                        this.sparql = filledQuery;
-                        this.sparqlOffset = 0;
-                        this.sparqlLimit = 100;
-                        this.executeSparqlQuery();
-                        break;
+                        var filledQuery;
+                        // QIDs, just display the subjects
+                        if (baked.startsWith('Q')) {
+                            filledQuery = searchWithValueSparqlQuery
+                            .replace('{{BINDINGS}}', 'DISTINCT (?subject AS ?' + bakedSelection.getLabel() + ')')
+                            .replace('{{PROPERTY}}', '?property')
+                            .replace('{{VALUE}}', baked);
+                            this.sparql = filledQuery;
+                            this.sparqlOffset = 0;
+                            this.sparqlLimit = 100;
+                            this.executeSparqlQuery();
+                        }
+                        // PIDs, perform a search query
+                        else {
+                            var bindings = '?subject ?statement_node ? value ?reference_property ?reference_value';
+                            filledQuery = searchSparqlQuery.replace('{{PROPERTY}}', 'p:' + baked);
+                            if (filteredDataset) {
+                                filledQuery = filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>');
+                            } else {
+                                filledQuery = filledQuery.replace('{{DATASET}}', '?dataset');
+                                bindings += ' ?dataset';
+                            }
+                            this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
+                            console.log('BAKED FILTER WITH PROPERTY:', this.sparql);
+                            this.sparqlOffset = 0;
+                            this.sparqlLimit = 300;
+                            this.filteredDataset = filteredDataset;
+                            this.filteredProperty = baked;
+                            this.filteredItemValue = null;
+                            this.executeSearch();
+                            break;
+                        }
                 }
             }
             // Arbitrary SPARQL query
