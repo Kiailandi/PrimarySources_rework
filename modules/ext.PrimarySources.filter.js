@@ -1117,7 +1117,9 @@
                 var filledQuery = searchSparqlQuery.replace('{{PROPERTY}}', '?property');
                 var bindings = '?subject ?property ?statement_node ?value ?reference_property ?reference_value';
                 if (filteredDataset) {
-                    filledQuery = filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>');
+                    filledQuery = filledQuery
+                    .replace('{{DATASET}}', '<' + filteredDataset + '>')
+                    .replace('{{FILTER}}', '');
                 } else {
                     filledQuery = filledQuery
                     .replace('{{DATASET}}', '?dataset')
@@ -1130,7 +1132,7 @@
                 this.filteredDataset = filteredDataset;
                 this.filteredProperty = null;
                 this.filteredItemValue = null;
-                //console.log('SEARCH:', this.sparql);
+                console.log('SEARCH:', this.sparql);
                 this.executeSearch();
             }
             // Baked filters
@@ -1144,6 +1146,7 @@
                 switch (baked) {
                     case 'subjects':
                         this.sparql = subjectsSparqlQuery;
+                        console.log('BAKED FILTER SUBJECT ONLY:', this.sparql);
                         this.sparqlOffset = 0;
                         this.sparqlLimit = 100;
                         this.executeSparqlQuery();
@@ -1162,10 +1165,17 @@
                             .replace('{{BINDINGS}}', 'DISTINCT (?subject AS ?' + bakedSelection.getLabel() + ')')
                             .replace('{{PROPERTY}}', '?property')
                             .replace('{{VALUE}}', baked);
-                            filledQuery = filteredDataset
-                            ? filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>')
-                            : filledQuery.replace('{{DATASET}}', '?dataset');
+                            if (filteredDataset) {
+                                filledQuery = filledQuery
+                                .replace('{{DATASET}}', '<' + filteredDataset + '>')
+                                .replace('{{FILTER}}', '');
+                            } else {
+                                filledQuery = filledQuery
+                                .replace('{{DATASET}}', '?dataset')
+                                .replace('{{FILTER}}', datasetFilter);
+                            }
                             this.sparql = filledQuery;
+                            console.log('BAKED FILTER WITH VALUE:', this.sparql);
                             this.sparqlOffset = 0;
                             this.sparqlLimit = 100;
                             this.executeSparqlQuery();
@@ -1175,7 +1185,9 @@
                             var bindings = '?subject ?statement_node ?value ?reference_property ?reference_value';
                             filledQuery = searchSparqlQuery.replace('{{PROPERTY}}', 'p:' + baked);
                             if (filteredDataset) {
-                                filledQuery = filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>');
+                                filledQuery = filledQuery
+                                .replace('{{DATASET}}', '<' + filteredDataset + '>')
+                                .replace('{{FILTER}}', '');
                             } else {
                                 filledQuery = filledQuery
                                 .replace('{{DATASET}}', '?dataset')
@@ -1183,7 +1195,7 @@
                                 bindings += ' ?dataset';
                             }
                             this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
-                            // console.log('BAKED FILTER WITH PROPERTY:', this.sparql);
+                            console.log('BAKED FILTER WITH PROPERTY:', this.sparql);
                             this.sparqlOffset = 0;
                             this.sparqlLimit = 300;
                             this.filteredDataset = filteredDataset;
@@ -1220,7 +1232,9 @@
                     bindings = bindings.replace('{{PROPERTY}}', '?property');
                 }
                 if (filteredDataset) {
-                    filledQuery = filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>')
+                    filledQuery = filledQuery
+                    .replace('{{DATASET}}', '<' + filteredDataset + '>')
+                    .replace('{{FILTER}}', '');
                 } else {
                     filledQuery = filledQuery
                     .replace('{{DATASET}}', '?dataset')
@@ -1228,7 +1242,7 @@
                     bindings += ' ?dataset';
                 }
                 this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
-                //console.log('AUTOCOMPLETION:', this.sparql);
+                console.log('AUTOCOMPLETION:', this.sparql);
                 this.sparqlOffset = 0;
                 this.sparqlLimit = 300;
                 this.filteredDataset = filteredDataset;
