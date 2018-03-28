@@ -309,9 +309,9 @@
             });
             // Build the QuickStatement needed for the /curate service
             var subject = binding[0].substring((uriPrefix + 'entity/').length);
-            var actualProperty = filteredProperty === undefined
-            ? binding[1].substring((uriPrefix + 'prop/').length)
-            : filteredProperty;
+            var actualProperty = filteredProperty
+            ? filteredProperty
+            : binding[1].substring((uriPrefix + 'prop/').length);
             var actualValue;
             if (filteredItemValue) {
                 actualValue = filteredItemValue;
