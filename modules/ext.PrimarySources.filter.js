@@ -1300,7 +1300,7 @@
 
         ListDialog.prototype.onNextButtonSubmit = function () {
             this.nextStatementsButton.$element.remove();
-            this.executeSparqlQuery();
+            this.executeSparqlQuery(true);
         };
 
         /**
@@ -1454,7 +1454,7 @@
         };
 
 
-        ListDialog.prototype.executeSparqlQuery = function () {
+        ListDialog.prototype.executeSparqlQuery = function (more=false) {
             var widget = this;
             var progressBar = new OO.ui.ProgressBarWidget();
             progressBar.$element.css('max-width', '100%');
@@ -1469,20 +1469,32 @@
                 },
                 function (data) {
                     progressBar.$element.remove();
-                    // paging
-                    widget.sparqlOffset += widget.sparqlLimit;
-                    widget.displaySparqlResult(data.head.vars, data.results.bindings);
-                    if (data.hasOwnProperty('results')) {
-                        widget.nextStatementsButton = new OO.ui.ButtonWidget({
-                            label: 'Load more'
+                    // Handle empty results
+                    if (data.bindings.length === 0) {
+                        var label = more ? 'No more statements' : 'No statements found'
+                        var noticeIcon = new OO.ui.IconWidget({
+                            icon: 'notice'
                         });
-                        widget.nextStatementsButton.connect(
-                            widget,
-                            { click: 'onNextButtonSubmit' }
-                        );
-                        widget.mainPanel.$element.append(
-                            widget.nextStatementsButton.$element
-                        );
+                        var noStatements = new OO.ui.LabelWidget({
+                            label: label
+                        });
+                        widget.mainPanel.$element.append(noticeIcon.$element, noStatements.$element);
+                    } else {
+                        // Paging
+                        widget.sparqlOffset += widget.sparqlLimit;
+                        widget.displaySparqlResult(data.head.vars, data.results.bindings);
+                        if (data.hasOwnProperty('results')) {
+                            widget.nextStatementsButton = new OO.ui.ButtonWidget({
+                                label: 'Load more'
+                            });
+                            widget.nextStatementsButton.connect(
+                                widget,
+                                { click: 'onNextButtonSubmit' }
+                            );
+                            widget.mainPanel.$element.append(
+                                widget.nextStatementsButton.$element
+                            );
+                        }
                     }
                 },
                 'json'
