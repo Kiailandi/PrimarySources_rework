@@ -1166,7 +1166,7 @@
                         }
                         // PIDs, perform a search query
                         else {
-                            var bindings = '?subject ?statement_node ? value ?reference_property ?reference_value';
+                            var bindings = '?subject ?statement_node ?value ?reference_property ?reference_value';
                             filledQuery = searchSparqlQuery.replace('{{PROPERTY}}', 'p:' + baked);
                             if (filteredDataset) {
                                 filledQuery = filledQuery.replace('{{DATASET}}', '<' + filteredDataset + '>');
