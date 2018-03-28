@@ -592,7 +592,7 @@
                 //    return true;
                 //});
             }
-            widget.showProgressBar();
+            var progressBar = widget.showProgressBar();
             ps.commons.getClaims(subject, property, function(err, claims) {
                 var objectExists = false;
                 for (var i = 0, lenI = claims.length; i < lenI; i++) {
@@ -611,7 +611,8 @@
                         ps.commons.createReference(subject, property, object, references,
                             function(error, data) {
                                 if (error) {
-                                  return ps.commons.reportError(error);
+                                    progressBar.$element.remove();
+                                    return ps.commons.reportError(error);
                                 }
                                 // The back end approves everything
                                 ps.commons.setStatementState(qs, ps.globals.STATEMENT_STATES.approved, widget.dataset, widget.statementType)
@@ -660,6 +661,9 @@
             var widget = this;
             widget.showProgressBar();
             ps.commons.setStatementState(widget.quickStatement, ps.globals.STATEMENT_STATES.rejected, widget.dataset, widget.statementType)
+            .fail(function() {
+                progressBar.$element.remove();
+            })
             .done(function() {
                 var message = widget.statementType === 'claim'
                 ? 'Rejected claim with no reference [' + widget.quickStatement + ']'
@@ -678,6 +682,7 @@
                         .attr('colspan', 7)
                         .append(progressBar.$element)
                 );
+            return progressBar;
         };
 
         SparqlResultRow.prototype.showProgressBar = function () {
