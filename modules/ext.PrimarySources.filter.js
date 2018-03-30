@@ -592,7 +592,7 @@
                 //    return true;
                 //});
             }
-            var progressBar = widget.showProgressBar();
+            widget.showProgressBar();
             ps.commons.getClaims(subject, property, function(err, claims) {
                 var objectExists = false;
                 for (var i = 0, lenI = claims.length; i < lenI; i++) {
@@ -611,11 +611,14 @@
                         ps.commons.createReference(subject, property, object, references,
                             function(error, data) {
                                 if (error) {
-                                    progressBar.$element.remove();
+                                    widget.toggle(false).setDisabled(true);
                                     return ps.commons.reportError(error);
                                 }
                                 // The back end approves everything
                                 ps.commons.setStatementState(qs, ps.globals.STATEMENT_STATES.approved, widget.dataset, widget.statementType)
+                                .fail(function() {
+                                    widget.toggle(false).setDisabled(true);
+                                })
                                 .done(function() {
                                     ps.commons.debug.log('Approved referenced claim [' + qs + ']');
                                     widget.toggle(false).setDisabled(true);
@@ -629,10 +632,14 @@
                     if (widget.statementType === 'reference') {
                         ps.commons.createClaimWithReference(subject, property, object, qualifiers, references)
                         .fail(function(error) {
+                            widget.toggle(false).setDisabled(true);
                             return ps.commons.reportError(error);
                         })
                         .done(function() {
                             ps.commons.setStatementState(qs, ps.globals.STATEMENT_STATES.approved, widget.dataset, widget.statementType)
+                            .fail(function() {
+                                widget.toggle(false).setDisabled(true);
+                            })
                             .done(function() {
                                 ps.commons.debug.log('Approved referenced claim [' + qs + ']');
                                 widget.toggle(false).setDisabled(true);                
@@ -643,10 +650,14 @@
                     else {
                         ps.commons.createClaim(subject, property, object, qualifiers)
                         .fail(function(error) {
+                            widget.toggle(false).setDisabled(true);
                             return ps.commons.reportError(error);
                         })
                         .done(function() {
                             ps.commons.setStatementState(qs, ps.globals.STATEMENT_STATES.approved, widget.dataset, widget.statementType)
+                            .fail(function() {
+                                widget.toggle(false).setDisabled(true);
+                            })
                             .done(function() {
                                 ps.commons.debug.log('Approved claim with no reference [' + qs + ']');
                                 widget.toggle(false).setDisabled(true);                
@@ -662,7 +673,7 @@
             widget.showProgressBar();
             ps.commons.setStatementState(widget.quickStatement, ps.globals.STATEMENT_STATES.rejected, widget.dataset, widget.statementType)
             .fail(function() {
-                progressBar.$element.remove();
+                widget.toggle(false).setDisabled(true);
             })
             .done(function() {
                 var message = widget.statementType === 'claim'
@@ -682,7 +693,6 @@
                         .attr('colspan', 7)
                         .append(progressBar.$element)
                 );
-            return progressBar;
         };
 
         SparqlResultRow.prototype.showProgressBar = function () {
