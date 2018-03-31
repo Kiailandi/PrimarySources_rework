@@ -475,31 +475,34 @@
         AutocompleteWidget.prototype.getLookupRequest = function () {
             var value = this.getValue();
             var deferred = $.Deferred();
-            var suggestions = {};
-
-            $.get(
-                this.service,
-                function (data) {
-                    for (var ds in data) {
-                        if (data.hasOwnProperty(ds)) {
-                            var entities = data[ds];
-                            entities.forEach(function (id) {
-                                ps.commons.getEntityLabel(id)
-                                    .then(function (label) {
-                                        if (label.includes(value)) {
-                                            suggestions[id] = label;
-                                        }
-                                    });
-                            });
+            // {id: label} cache
+            if (this.cache) {
+                deferred.resolve(this.cache);
+            } else {
+                this.cache = {};
+                $.get(
+                    this.service,
+                    function (data) {
+                        for (var dataset in data) {
+                            if (data.hasOwnProperty(dataset)) {
+                                this.cache = $.extend(this.cache, ps.commons.getEntityLabels(data[dataset]));
+                                console.log('LABEL CACHE:', this.cache);
+                                // labels.forEach(function (label) {
+                                //     if (label.toLowerCase().includes(value.toLowerCase())) {
+                                //         this.cache[id] = label;
+                                //     }
+                                // });
+                            }
                         }
+                        deferred.resolve(this.cache);
                     }
-                    deferred.resolve(suggestions);
-                }
-            )
-                .fail(function (xhr, textStatus) {
-                    reportError('Could not retrieve suggestions for autocompletion');
-                    deferred.reject(textStatus);
-                })
+                )
+                    .fail(function (xhr, textStatus) {
+                        reportError('Could not retrieve suggestions for autocompletion');
+                        deferred.reject(textStatus);
+                    })
+            }
+
             return deferred.promise({ abort: function () { } });
         };
 
