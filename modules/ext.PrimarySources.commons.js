@@ -8,9 +8,9 @@
 
     var ps = mw.ps || {};
 
-    var entityLabelCache = {};
-    var valueHtmlCache = {};
-    var urlFormatterCache = {};
+    var ENTITY_LABEL_CACHE = {};
+    var VALUE_HTML_CACHE = {};
+    var URL_FORMATTER_CACHE = {};
 
     // Private methods
     function computeCoordinatesPrecision(latitude, longitude) {
@@ -83,12 +83,12 @@
     }
 
     function getUrlFormatter(property) {
-        if (property in urlFormatterCache) {
-          return urlFormatterCache[property];
+        if (property in URL_FORMATTER_CACHE) {
+          return URL_FORMATTER_CACHE[property];
         }
     
         var api = new mw.Api();
-        urlFormatterCache[property] = api.get({
+        URL_FORMATTER_CACHE[property] = api.get({
           action: 'wbgetentities',
           ids: property,
           props: 'claims'
@@ -101,35 +101,35 @@
           });
           return urlFormatter;
         });
-        return urlFormatterCache[property];
+        return URL_FORMATTER_CACHE[property];
     }    
 
     function _getEntityLabel(entityId) {
-        if (!(entityId in entityLabelCache)) {
+        if (!(entityId in ENTITY_LABEL_CACHE)) {
             loadEntityLabels([entityId]);
         }
 
-        return entityLabelCache[entityId];
+        return ENTITY_LABEL_CACHE[entityId];
     }
 
     // The 2 functions below are only called by preloadEntityLabels
     function loadEntityLabels(entityIds) {
         entityIds = entityIds.filter(function (entityId) {
-            return !(entityId in entityLabelCache);
+            return !(entityId in ENTITY_LABEL_CACHE);
         });
         if (entityIds.length === 0) {
             return;
         }
 
-        var promise = getEntityLabels(entityIds);
+        var promise = _getEntityLabels(entityIds);
         entityIds.forEach(function (entityId) {
-            entityLabelCache[entityId] = promise.then(function (labels) {
+            ENTITY_LABEL_CACHE[entityId] = promise.then(function (labels) {
                 return labels[entityId];
             });
         });
     }
 
-    function getEntityLabels(entityIds) {
+    function _getEntityLabels(entityIds) {
         //Split entityIds per bucket in order to match limits
         var buckets = [];
         var currentBucket = [];
@@ -497,8 +497,8 @@
         },
         getValueHtml: function getValueHtml(value, property) {
             var cacheKey = property + '\t' + value;
-            if (cacheKey in valueHtmlCache) {
-                return valueHtmlCache[cacheKey];
+            if (cacheKey in VALUE_HTML_CACHE) {
+                return VALUE_HTML_CACHE[cacheKey];
             }
             var parsed = _tsvValueToJson(value);
             var dataValue = {
@@ -511,7 +511,7 @@
 
             if (parsed.type === 'string') {
                 // Link to external database
-                valueHtmlCache[cacheKey] = getUrlFormatter(property).then(function (urlFormatter) {
+                VALUE_HTML_CACHE[cacheKey] = getUrlFormatter(property).then(function (urlFormatter) {
                     if (urlFormatter === '') {
                         return parsed.value;
                     } else {
@@ -520,7 +520,7 @@
                     }
                 });
             } else if (parsed.type === 'url') {
-                valueHtmlCache[cacheKey] = $.Deferred().resolve('<a rel="nofollow" class="external free" href="' + parsed.value + '">' + parsed.value + '</a>');
+                VALUE_HTML_CACHE[cacheKey] = $.Deferred().resolve('<a rel="nofollow" class="external free" href="' + parsed.value + '">' + parsed.value + '</a>');
             } else if (parsed.type === 'wikibase-item' || parsed.type === 'wikibase-property') {
                 return _getEntityLabel(value).then(function (label) {
                     return '<a href="/entity/' + value + '">' + label + '</a>';
@@ -528,7 +528,7 @@
                 });
             } else {
                 var api = new mw.Api();
-                valueHtmlCache[cacheKey] = api.get({
+                VALUE_HTML_CACHE[cacheKey] = api.get({
                     action: 'wbformatvalue',
                     generate: 'text/html',
                     datavalue: JSON.stringify(dataValue),
@@ -545,7 +545,7 @@
                 });
             }
 
-            return valueHtmlCache[cacheKey];
+            return VALUE_HTML_CACHE[cacheKey];
         },
 
         // BEGIN: Primary sources tool API calls
@@ -677,6 +677,8 @@
         isUrl: _isUrl,
 
         getEntityLabel: _getEntityLabel,
+
+        getEntityLabels: _getEntityLabels,
 
         tsvValueToJson: _tsvValueToJson,
 
