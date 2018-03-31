@@ -473,20 +473,25 @@
          * @inheritdoc
          */
         AutocompleteWidget.prototype.getLookupRequest = function () {
-            var value = this.getValue();
+            var widget = this;
+            var value = widget.getValue();
             var deferred = $.Deferred();
             // {id: label} cache
-            if (this.cache) {
-                deferred.resolve(this.cache);
+            if (widget.cache) {
+                deferred.resolve(widget.cache);
             } else {
-                this.cache = {};
+                widget.cache = {};
                 $.get(
                     this.service,
                     function (data) {
                         for (var dataset in data) {
                             if (data.hasOwnProperty(dataset)) {
-                                this.cache = $.extend(this.cache, ps.commons.getEntityLabels(data[dataset]));
-                                console.log('LABEL CACHE:', this.cache);
+                                console.log('IDs:', data[dataset]);
+                                ps.commons.getEntityLabels(data[dataset])
+                                    .then(function (labels) {
+                                        console.log('LABELS:', labels);
+                                        widget.cache = $.extend(widget.cache, labels); 
+                                    });
                                 // labels.forEach(function (label) {
                                 //     if (label.toLowerCase().includes(value.toLowerCase())) {
                                 //         this.cache[id] = label;
@@ -494,7 +499,7 @@
                                 // });
                             }
                         }
-                        deferred.resolve(this.cache);
+                        deferred.resolve(widget.cache);
                     }
                 )
                     .fail(function (xhr, textStatus) {
@@ -503,6 +508,7 @@
                     })
             }
 
+            console.log('LABEL CACHE:', widget.cache);
             return deferred.promise({ abort: function () { } });
         };
 
