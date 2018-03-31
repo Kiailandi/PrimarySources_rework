@@ -471,44 +471,50 @@
 
         /**
          * @inheritdoc
+         * TODO currently disregards the dataset choice
          */
         AutocompleteWidget.prototype.getLookupRequest = function () {
             var widget = this;
-            var value = widget.getValue();
+            var userInput = widget.getValue();
             var deferred = $.Deferred();
-            // {id: label} cache
+            var getSuggestions = function (input, cache) {
+                var suggestions = {};
+                for (var id in cache) {
+                    if (cache.hasOwnProperty(id)) {
+                        if (cache[id].toLowerCase().includes(input.toLowerCase())) {
+                            suggestions[id] = cache[id];
+                        }
+                    }
+                }
+                console.log('SUGGESTIONS:', suggestions);
+                return suggestions;
+            }
             if (widget.cache) {
-                deferred.resolve(widget.cache);
+                deferred.resolve(getSuggestions(userInput, widget.cache));
             } else {
                 widget.cache = {};
+                // Populate the cache
                 $.get(
                     this.service,
                     function (data) {
                         for (var dataset in data) {
                             if (data.hasOwnProperty(dataset)) {
-                                console.log('IDs:', data[dataset]);
                                 ps.commons.getEntityLabels(data[dataset])
                                     .then(function (labels) {
-                                        console.log('LABELS:', labels);
                                         widget.cache = $.extend(widget.cache, labels); 
                                     });
-                                // labels.forEach(function (label) {
-                                //     if (label.toLowerCase().includes(value.toLowerCase())) {
-                                //         this.cache[id] = label;
-                                //     }
-                                // });
                             }
                         }
-                        deferred.resolve(widget.cache);
                     }
                 )
-                    .fail(function (xhr, textStatus) {
-                        reportError('Could not retrieve suggestions for autocompletion');
-                        deferred.reject(textStatus);
-                    })
+                .fail(function (xhr, textStatus) {
+                    reportError('Could not retrieve suggestions for autocompletion');
+                    deferred.reject(textStatus);
+                });
+                
+                deferred.resolve(getSuggestions(userInput, widget.cache));
             }
 
-            console.log('LABEL CACHE:', widget.cache);
             return deferred.promise({ abort: function () { } });
         };
 
