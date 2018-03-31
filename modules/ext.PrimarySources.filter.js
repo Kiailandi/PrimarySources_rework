@@ -481,11 +481,13 @@
                 var suggestions = {};
                 for (var id in cache) {
                     if (cache.hasOwnProperty(id)) {
+                        console.log('CURRENT LABEL:', cache[id]);
                         if (cache[id].toLowerCase().includes(input.toLowerCase())) {
                             suggestions[id] = cache[id];
                         }
                     }
                 }
+                console.log('CACHE:', cache);
                 console.log('SUGGESTIONS:', suggestions);
                 return suggestions;
             }
