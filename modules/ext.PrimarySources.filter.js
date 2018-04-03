@@ -481,30 +481,36 @@
                 var suggestions = {};
                 for (var id in cache) {
                     if (cache.hasOwnProperty(id)) {
-                        console.log('CURRENT LABEL:', cache[id]);
                         if (cache[id].toLowerCase().includes(input.toLowerCase())) {
                             suggestions[id] = cache[id];
                         }
                     }
                 }
-                console.log('CACHE:', cache);
-                console.log('SUGGESTIONS:', suggestions);
                 return suggestions;
             }
             if (widget.cache) {
                 deferred.resolve(getSuggestions(userInput, widget.cache));
             } else {
-                widget.cache = {};
+                var cache = {};
                 // Populate the cache
                 $.get(
                     this.service,
                     function (data) {
                         for (var dataset in data) {
                             if (data.hasOwnProperty(dataset)) {
-                                ps.commons.getEntityLabels(data[dataset])
+                                var ids = data[dataset];
+                                // getEntityLabels return Window when the IDs are less than the threshold
+                                if (ids.length > 40) {
+                                    ps.commons.getEntityLabels(ids)
                                     .then(function (labels) {
-                                        widget.cache = $.extend(widget.cache, labels); 
+                                        cache = $.extend(cache, labels);
                                     });
+                                } else {
+                                    ps.commons.getFewEntityLabels(ids)
+                                    .then(function (labels) {
+                                        cache = $.extend(cache, labels);
+                                    });
+                                }
                             }
                         }
                     }
@@ -513,8 +519,8 @@
                     reportError('Could not retrieve suggestions for autocompletion');
                     deferred.reject(textStatus);
                 });
-                
-                deferred.resolve(getSuggestions(userInput, widget.cache));
+                deferred.resolve(getSuggestions(userInput, cache));
+                widget.cache = cache;
             }
 
             return deferred.promise({ abort: function () { } });
@@ -1020,7 +1026,7 @@
              */
             this.itemValueInput = new AutocompleteWidget({
                 service: ps.globals.API_ENDPOINTS.VALUES_SERVICE,
-                placeholder: 'Type something you are interested in, like "politician"',
+                placeholder: 'Type something you are interested in, like "politician"'
             })
             .connect(this, {
                 change: function() {
@@ -1040,7 +1046,7 @@
              */
             this.propertyInput = new AutocompleteWidget({
                 service: ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE,
-                placeholder: 'Type a property like "date of birth"',
+                placeholder: 'Type a property like "date of birth"'
             })
             .connect(this, {
                 change: function() {

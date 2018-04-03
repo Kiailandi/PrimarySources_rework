@@ -147,6 +147,7 @@
             return getFewEntityLabels(bucket);
         });
 
+
         return $.when.apply(this, promises).then(function () {
             return $.extend.apply(this, arguments);
         });
@@ -679,6 +680,8 @@
         getEntityLabel: _getEntityLabel,
 
         getEntityLabels: _getEntityLabels,
+
+        getFewEntityLabels: getFewEntityLabels,
 
         tsvValueToJson: _tsvValueToJson,
 
