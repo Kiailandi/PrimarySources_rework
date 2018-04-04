@@ -1759,7 +1759,7 @@
 
     // BEGIN: private functions
     function populateAutocompletionCache(service) {
-        var filteredDataset = this.datasetInput.getValue();
+        var filteredDataset = ps.globals.DATASET;
         var cache = {};
         var addLabels = function (ids, currentCache) {
             // getEntityLabels return Window when the IDs are less than the threshold
