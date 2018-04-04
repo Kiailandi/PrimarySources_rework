@@ -1,10 +1,10 @@
-f(function(mw, $) {
+(function(mw, $) {
   console.log("Primary sources tool - Sidebar facilities");
   
   var ps = mw.ps || {};
 
   // Used by filter and dataset selection modal windows 
-  var winMan;
+  var windowManager;
   // Used by the property browser
   var anchorList = [];
 
@@ -256,8 +256,8 @@ f(function(mw, $) {
 
         mw.loader.using(
             ['jquery.tipsy', 'oojs-ui', 'wikibase.dataTypeStore'], function() {
-                winMan = new OO.ui.WindowManager();
-                $('body').append(winMan.$element);
+                windowManager = new OO.ui.WindowManager();
+                $('body').append(windowManager.$element);
 
                 // Dataset selection gear icon
                 var configButton = $('<span>')
@@ -268,7 +268,7 @@ f(function(mw, $) {
                     .tipsy()
                     .appendTo(portletLink);
                 // Bind gear icon to dataset selection modal window (function in this module)
-                ps.sidebar.configDialog(winMan, configButton);
+                ps.sidebar.configDialog(windowManager, configButton);
 
                 // Filter link
                 var listButton = $(mw.util.addPortletLink(
@@ -279,7 +279,7 @@ f(function(mw, $) {
                     'List statements from primary sources'
                 ));
                 // Bind filter link to filter modal window (function in filter module)
-                ps.filter.init(winMan, listButton);
+                ps.filter.init(windowManager, listButton);
             });
     });
     // END: sidebar links
