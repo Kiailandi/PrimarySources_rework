@@ -41,7 +41,7 @@
             var uri = item['dataset'];
             availableDatasets.push(new OO.ui.RadioOptionWidget({
               data: uri,
-              label: datasetUriToLabel(uri),
+              label: ps.commons.datasetUriToLabel(uri),
             }));
           });
         });
