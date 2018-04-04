@@ -335,8 +335,9 @@
             ? subject + '\t' + actualProperty + '\t' + actualValue + '\t' + referenceProperty + '\t' + referenceValue
             : subject + '\t' + actualProperty + '\t' + actualValue;
             // Generate the preview button only if we have a reference URL
+            var previewButton;
             if (referenceProperty === 'S854') {
-                var previewButton = new OO.ui.ButtonWidget({
+                previewButton = new OO.ui.ButtonWidget({
                     label: 'Preview',
                     flags: ['primary', 'progressive'],
                     icon: 'articleSearch'
@@ -362,11 +363,14 @@
                         $(curationButtons.$element)
                     )}
                 });
-                cells.push($('<td>').append(previewButton.$element));
             } else {
                 curationButtons.getItems().forEach(function (item) { item.setDisabled(false); });
             }
-            cells.push($('<td>').append(curationButtons.$element));
+            if (previewButton) {
+                cells.push($('<td>').append(previewButton.$element, curationButtons.$element));
+            } else {
+                cells.push($('<td>').append(curationButtons.$element));
+            }
             // END: action buttons
 
             this.$element.append(
@@ -1728,7 +1732,6 @@
                         htmlHeaders,
                         $('<th>')
                         .text('Actions')
-                        .attr('colspan', 2)   
                     )
                 )
             )
