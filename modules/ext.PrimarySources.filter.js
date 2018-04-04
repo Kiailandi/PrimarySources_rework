@@ -1495,6 +1495,19 @@
                 }
             )
             .done(function(data) {
+                // Populate the result label cache
+                var ids = [];
+                data.bindings.forEach(function (binding) {
+                    binding.forEach(function (value) {
+                        var matchedId = /[QP]\d+$/.exec(value);
+                        if (matchedId) {
+                            ids.push(matchedId[0]);
+                        }
+                    });
+                });
+                console.log('SEARCH RESULT IDs:', ids);
+                ps.commons.loadEntityLabels(ids);
+
                 progressBar.$element.remove();
                     // Handle empty results
                     if (data.bindings.length === 0) {
@@ -1509,6 +1522,7 @@
                     } else {
                         // Paging
                         widget.sparqlOffset += widget.sparqlLimit;
+                        
                         widget.displaySearchResult(data.headers, data.bindings);
                         if (data.bindings.length > 0) {
                             widget.nextStatementsButton = new OO.ui.ButtonWidget({

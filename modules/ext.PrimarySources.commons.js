@@ -28,7 +28,7 @@
         return parts[1].length;
     }
 
-    function getFewEntityLabels(entityIds) {
+    function _getFewEntityLabels(entityIds) {
         if (entityIds.length === 0) {
             return $.Deferred().resolve({});
         }
@@ -106,14 +106,13 @@
 
     function _getEntityLabel(entityId) {
         if (!(entityId in ENTITY_LABEL_CACHE)) {
-            loadEntityLabels([entityId]);
+            _loadEntityLabels([entityId]);
         }
 
         return ENTITY_LABEL_CACHE[entityId];
     }
 
-    // The 2 functions below are only called by preloadEntityLabels
-    function loadEntityLabels(entityIds) {
+    function _loadEntityLabels(entityIds) {
         entityIds = entityIds.filter(function (entityId) {
             return !(entityId in ENTITY_LABEL_CACHE);
         });
@@ -144,7 +143,7 @@
         buckets.push(currentBucket);
 
         var promises = buckets.map(function (bucket) {
-            return getFewEntityLabels(bucket);
+            return _getFewEntityLabels(bucket);
         });
 
 
@@ -681,7 +680,9 @@
 
         getEntityLabels: _getEntityLabels,
 
-        getFewEntityLabels: getFewEntityLabels,
+        getFewEntityLabels: _getFewEntityLabels,
+
+        loadEntityLabels: _loadEntityLabels,
 
         tsvValueToJson: _tsvValueToJson,
 
@@ -1029,7 +1030,7 @@
             statements.forEach(function (statement) {
                 entityIds = entityIds.concat(extractEntityIdsFromStatement(statement));
             });
-            loadEntityLabels(entityIds);
+            _loadEntityLabels(entityIds);
         },
 
         datasetUriToLabel: function datasetUriToLabel(uri) {
