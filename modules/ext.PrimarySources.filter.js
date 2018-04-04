@@ -470,7 +470,6 @@
 
         /**
          * @inheritdoc
-         * TODO currently disregards the dataset choice
          */
         AutocompleteWidget.prototype.getLookupRequest = function () {
             var widget = this;
@@ -480,12 +479,7 @@
                 var suggestions = {};
                 for (var id in cache) {
                     if (cache.hasOwnProperty(id)) {
-                        console.log('CACHE ID:', id);
-                        console.log('CACHE LABEL:', cache[id]);
-                        console.log('LOWERCASED CACHE LABEL:', cache[id].toLowerCase());
-                        console.log('LOWERCASED USER INPUT:', input.toLowerCase());
                         if (cache[id].toLowerCase().includes(input.toLowerCase())) {
-                            console.log('USER INPUT INCLUDED IN CACHE LABEL');
                             suggestions[id] = cache[id];
                         }
                     }
@@ -493,10 +487,8 @@
                 return suggestions;
             }
             if (widget.cache) {
-                console.log('CACHE:', widget.cache);
                 deferred.resolve(getSuggestions(userInput, widget.cache));
             } else {
-                console.log('NO CACHE:', widget.cache);
                 deferred.resolve({});
             }
             return deferred.promise({ abort: function () { } });
@@ -1120,24 +1112,35 @@
         };
 
         ListDialog.prototype.populateAutocompletionCache = function(service) {
+            var filteredDataset = this.datasetInput.getValue();
             var cache = {};
+            var addLabels = function (ids, currentCache) {
+                // getEntityLabels return Window when the IDs are less than the threshold
+                if (ids.length > 40) {
+                    ps.commons.getEntityLabels(ids)
+                        .then(function (labels) {
+                            currentCache = $.extend(currentCache, labels);
+                        });
+                }
+                else {
+                    ps.commons.getFewEntityLabels(ids)
+                        .then(function (labels) {
+                            currentCache = $.extend(currentCache, labels);
+                        });
+                }
+                return currentCache;
+            }
+
             $.get(
                 service,
                 function (data) {
-                    for (var dataset in data) {
-                        if (data.hasOwnProperty(dataset)) {
-                            var ids = data[dataset];
-                            // getEntityLabels return Window when the IDs are less than the threshold
-                            if (ids.length > 40) {
-                                ps.commons.getEntityLabels(ids)
-                                .then(function (labels) {
-                                    cache = $.extend(cache, labels);
-                                });
-                            } else {
-                                ps.commons.getFewEntityLabels(ids)
-                                .then(function (labels) {
-                                    cache = $.extend(cache, labels);
-                                });
+                    if (filteredDataset) {
+                        cache = addLabels(data[filteredDataset], cache);
+                    } else {
+                        for (var dataset in data) {
+                            if (data.hasOwnProperty(dataset)) {
+                                var ids = data[dataset];
+                                cache = addLabels(ids, cache);
                             }
                         }
                     }
@@ -1742,6 +1745,7 @@
         button.click(function () {
             windowManager.openWindow('ps-list');
         });
+
     };
 
     // accessible object
