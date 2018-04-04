@@ -1721,7 +1721,7 @@
             });
             this.table = $('<table>')
             .addClass('wikitable')
-            .css('max-width', '100%')
+            .css('width', '100%')
             .append(
                 $('<thead>').append(
                     $('<tr>').append(
