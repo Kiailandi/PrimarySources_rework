@@ -374,7 +374,7 @@
             // END: action buttons
 
             this.$element.append(
-                $('<tr>').append(cells)
+                $('<tr>').css('text-align', 'center').append(cells)
             );
         }
         OO.inheritClass(SearchResultRow, OO.ui.Widget);
@@ -439,7 +439,7 @@
                 }
             });
             this.$element.append(
-                $('<tr>').append(cells)
+                $('<tr>').css('text-align', 'center').append(cells)
             );
         }
         OO.inheritClass(SparqlResultRow, OO.ui.Widget);
@@ -458,7 +458,7 @@
                     );
                 })
                     this.$element.append(
-                        $('<tr>').append(cell)
+                        $('<tr>').css('text-align', 'center').append(cell)
                     );
         }
         OO.inheritClass(ServiceResultRow, OO.ui.Widget);
