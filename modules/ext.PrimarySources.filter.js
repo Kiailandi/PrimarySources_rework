@@ -493,42 +493,11 @@
                 }
                 return suggestions;
             }
-
             if (widget.cache) {
                 deferred.resolve(getSuggestions(userInput, widget.cache));
             } else {
-                var cache = {};
-                // Populate the cache
-                $.get(
-                    this.service,
-                    function (data) {
-                        for (var dataset in data) {
-                            if (data.hasOwnProperty(dataset)) {
-                                var ids = data[dataset];
-                                // getEntityLabels return Window when the IDs are less than the threshold
-                                if (ids.length > 40) {
-                                    ps.commons.getEntityLabels(ids)
-                                    .then(function (labels) {
-                                        cache = $.extend(cache, labels);
-                                    });
-                                } else {
-                                    ps.commons.getFewEntityLabels(ids)
-                                    .then(function (labels) {
-                                        cache = $.extend(cache, labels);
-                                    });
-                                }
-                            }
-                        }
-                        deferred.resolve(getSuggestions(userInput, cache));
-                        widget.cache = cache;
-                    }
-                )
-                .fail(function (xhr, textStatus) {
-                    reportError('Could not retrieve suggestions for autocompletion');
-                    deferred.reject(textStatus);
-                });
+                deferred.resolve({});
             }
-
             return deferred.promise({ abort: function () { } });
         };
 
@@ -1030,9 +999,10 @@
             /**
              * Entity value autocompletion
              */
+            var itemValueCache = this.populateAutocompletionCache(ps.globals.API_ENDPOINTS.VALUES_SERVICE);
             this.itemValueInput = new AutocompleteWidget({
-                service: ps.globals.API_ENDPOINTS.VALUES_SERVICE,
-                placeholder: 'Type something you are interested in, like "politician"'
+                placeholder: 'Type something you are interested in, like "politician"',
+                cache: itemValueCache
             })
             .connect(this, {
                 change: function() {
@@ -1050,9 +1020,10 @@
             /**
              * Property autocompletion
              */
+            var propertyCache = this.populateAutocompletionCache(ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE);
             this.propertyInput = new AutocompleteWidget({
-                service: ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE,
-                placeholder: 'Type a property like "date of birth"'
+                placeholder: 'Type a property like "date of birth"',
+                cache: propertyCache
             })
             .connect(this, {
                 change: function() {
@@ -1146,6 +1117,37 @@
                 this.emit( 'enter', e );
             }
         };
+
+        ListDialog.prototype.populateAutocompletionCache = function(service) {
+            var cache = {};
+            $.get(
+                service,
+                function (data) {
+                    for (var dataset in data) {
+                        if (data.hasOwnProperty(dataset)) {
+                            var ids = data[dataset];
+                            // getEntityLabels return Window when the IDs are less than the threshold
+                            if (ids.length > 40) {
+                                ps.commons.getEntityLabels(ids)
+                                .then(function (labels) {
+                                    cache = $.extend(cache, labels);
+                                });
+                            } else {
+                                ps.commons.getFewEntityLabels(ids)
+                                .then(function (labels) {
+                                    cache = $.extend(cache, labels);
+                                });
+                            }
+                        }
+                    }
+                }
+            )
+            .fail(function (xhr, textStatus) {
+                ps.commons.debug.log('The call to ' + service + ' went wrong:', textStatus);
+                reportError('Could not cache suggestions for autocompletion');
+            });
+            return cache;
+        }
 
         ListDialog.prototype.onOptionSubmit = function () {
             this.mainPanel.$element.empty();
