@@ -481,13 +481,19 @@
                 var suggestions = {};
                 for (var id in cache) {
                     if (cache.hasOwnProperty(id)) {
+                        console.log('CACHE ID:', id);
+                        console.log('CACHE LABEL:', cache[id]);
+                        console.log('LOWERCASED CACHE LABEL:', cache[id].toLowerCase());
+                        console.log('LOWERCASED USER INPUT:', input.toLowerCase());
                         if (cache[id].toLowerCase().includes(input.toLowerCase())) {
+                            console.log('USER INPUT INCLUDED IN CACHE LABEL');
                             suggestions[id] = cache[id];
                         }
                     }
                 }
                 return suggestions;
             }
+
             if (widget.cache) {
                 deferred.resolve(getSuggestions(userInput, widget.cache));
             } else {
@@ -513,14 +519,14 @@
                                 }
                             }
                         }
+                        deferred.resolve(getSuggestions(userInput, cache));
+                        widget.cache = cache;
                     }
                 )
                 .fail(function (xhr, textStatus) {
                     reportError('Could not retrieve suggestions for autocompletion');
                     deferred.reject(textStatus);
                 });
-                deferred.resolve(getSuggestions(userInput, cache));
-                widget.cache = cache;
             }
 
             return deferred.promise({ abort: function () { } });
