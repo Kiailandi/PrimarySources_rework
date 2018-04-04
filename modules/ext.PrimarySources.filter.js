@@ -463,8 +463,7 @@
         function AutocompleteWidget(config) {
             OO.ui.SearchInputWidget.call(this, config);
             OO.ui.mixin.LookupElement.call(this, config);
-            // The Web service returning autocompletion suggestions
-            this.service = config.service;
+            this.cache = config.cache;
         };
         OO.inheritClass(AutocompleteWidget, OO.ui.SearchInputWidget);
         OO.mixinClass(AutocompleteWidget, OO.ui.mixin.LookupElement);
@@ -494,8 +493,10 @@
                 return suggestions;
             }
             if (widget.cache) {
+                console.log('CACHE:', widget.cache);
                 deferred.resolve(getSuggestions(userInput, widget.cache));
             } else {
+                console.log('NO CACHE:', widget.cache);
                 deferred.resolve({});
             }
             return deferred.promise({ abort: function () { } });
