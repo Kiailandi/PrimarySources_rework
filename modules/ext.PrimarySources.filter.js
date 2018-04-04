@@ -1496,17 +1496,17 @@
             )
             .done(function(data) {
                 // Populate the result label cache
-                var ids = [];
+                var ids = new Set();
                 data.bindings.forEach(function (binding) {
                     binding.forEach(function (value) {
                         var matchedId = /[QP]\d+$/.exec(value);
                         if (matchedId) {
-                            ids.push(matchedId[0]);
+                            ids.add(matchedId[0]);
                         }
                     });
                 });
                 console.log('SEARCH RESULT IDs:', ids);
-                ps.commons.loadEntityLabels(ids);
+                ps.commons.loadEntityLabels(Array.from(ids));
 
                 progressBar.$element.remove();
                     // Handle empty results
