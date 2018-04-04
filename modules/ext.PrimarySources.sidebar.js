@@ -1,10 +1,10 @@
-f(function(mw, $) {
+(function(mw, $) {
   console.log("Primary sources tool - Sidebar facilities");
   
   var ps = mw.ps || {};
 
   // Used by filter and dataset selection modal windows 
-  var winMan;
+  var windowManager;
   // Used by the property browser
   var anchorList = [];
 
@@ -12,157 +12,73 @@ f(function(mw, $) {
 
   // accessible object
   ps.sidebar = {
-    // BEGIN: dataset selection
+    // BEGIN: dataset selection 
     configDialog: function configDialog(winMan, button) {
       function ConfigDialog(config) {
         ConfigDialog.super.call(this, config);
       }
-      // Main dialog settings
       OO.inheritClass(ConfigDialog, OO.ui.ProcessDialog);
       ConfigDialog.static.name = 'ps-config';
-      ConfigDialog.static.title = 'Choose a primary sources dataset';
+      ConfigDialog.static.title = 'Primary sources datasets';
+      ConfigDialog.static.size = 'large';
       ConfigDialog.static.actions = [
         {action: 'save', label: 'Save', flags: ['primary', 'constructive']},
         {label: 'Cancel', flags: 'safe'}
       ];
-  
+
       ConfigDialog.prototype.initialize = function() {
         ConfigDialog.super.prototype.initialize.apply(this, arguments);
-  
-        // BEGIN: datasets as radio options
-        var allDatasets = new OO.ui.RadioOptionWidget({
-          data: '',
-          label: 'All'
+
+        this.dataset = new OO.ui.ButtonSelectWidget({
+          items: [new OO.ui.ButtonOptionWidget({
+            data: '',
+            label: 'All sources'
+          })]
         });
-        var availableDatasets = [allDatasets];
-        // Fill the options with the available datasets
+
+        var dialog = this;
         ps.commons.getDatasets(function(datasets) {
           datasets.forEach(function(item) {
             var uri = item['dataset'];
-            availableDatasets.push(new OO.ui.RadioOptionWidget({
+            dialog.dataset.addItems([new OO.ui.ButtonOptionWidget({
               data: uri,
-              label: datasetUriToLabel(uri),
-            }));
+              label: ps.commons.datasetUriToLabel(uri)
+            })]);
           });
         });
-        var datasetSelection = new OO.ui.RadioSelectWidget({
-          items: availableDatasets
-        })
-        .connect(this, {select: 'setDatasetInfo'});
-        this.datasetSelection = datasetSelection;
-        var datasetsPanel = new OO.ui.PanelLayout({
-          padded: true,
-          expanded: false,
-          scrollable: false
+
+        this.dataset.selectItemByData(dataset);
+
+        var fieldset = new OO.ui.FieldsetLayout({
+          label: 'Dataset to use'
         });
-        // END: datasets as radio options
-  
-        // BEGIN: selected dataset info
-        var datasetDescriptionWidget = new OO.ui.LabelWidget();
-        var missingStatementsWidget = new OO.ui.LabelWidget();
-        var totalStatementsWidget = new OO.ui.LabelWidget();
-        var uploaderWidget = new OO.ui.LabelWidget();
-        this.datasetDescriptionWidget = datasetDescriptionWidget;
-        this.missingStatementsWidget = missingStatementsWidget;
-        this.totalStatementsWidget = totalStatementsWidget;
-        this.uploaderWidget = uploaderWidget;
-        var infoFields = new OO.ui.FieldsetLayout();
-        infoFields.addItems([
-          new OO.ui.FieldLayout(datasetDescriptionWidget, {
-            align: 'top',
-            label: 'Description:'
-          }),
-          new OO.ui.FieldLayout(missingStatementsWidget, {
-            align: 'top',
-            label: 'Missing statements:'
-          }),
-          new OO.ui.FieldLayout(totalStatementsWidget, {
-            align: 'top',
-            label: 'Total statements:'
-          }),
-          new OO.ui.FieldLayout(uploaderWidget, {
-            align: 'top',
-            label: 'Author:'
-          })
-        ]);
-        var infoPanel = new OO.ui.PanelLayout({
+        fieldset.addItems([this.dataset]);
+
+        this.panel = new OO.ui.PanelLayout({
           padded: true,
-          expanded: false,
-          scrollable: false
-        })
-        this.infoPanel = infoPanel;
-        // END: selected dataset info
-  
-        // BEGIN: final result as a menu layout
-        // see https://doc.wikimedia.org/oojs-ui/master/js/#!/api/OO.ui.MenuLayout
-        var layout = new OO.ui.MenuLayout({
-          position: 'before',
           expanded: false
         });
-        // Add the radio options to the layout
-        layout.$menu.append(
-            datasetsPanel.$element.append(datasetSelection.$element)
-        );
-        // Add the selected dataset info to the layout
-        layout.$content.append(
-            infoPanel.$element.append(infoFields.$element)
-        );
-        // Add the the menu layout to the main dialog
-        this.$body.append(layout.$element);
-        // END: final result as a menu layout
+        this.panel.$element.append(fieldset.$element);
+        this.$body.append(this.panel.$element);
       };
-  
-      ConfigDialog.prototype.setDatasetInfo = function () {
-        var datasetDescriptionWidget = this.datasetDescriptionWidget;
-        var missingStatementsWidget = this.missingStatementsWidget;
-        var totalStatementsWidget = this.totalStatementsWidget;
-        var uploaderWidget = this.uploaderWidget;
-        var selected = this.datasetSelection.findSelectedItem();
-        /*
-          IF:
-          1. we switch off the info panel;
-          2. the user clicks on 'cancel';
-          3. the user reopens the dialog;
-          4. the user selects a dataset;
-          THEN the dialog height will not fit.
-  
-          Replace with empty labels instead.
-        */
-        if (selected.getLabel() === 'All') {
-          datasetDescriptionWidget.setLabel();
-          missingStatementsWidget.setLabel();
-          totalStatementsWidget.setLabel();
-          uploaderWidget.setLabel();
-        } else {
-          $.get(
-            ps.globals.API_ENDPOINTS.STATISTICS_SERVICE,
-            {dataset: selected.getData()},
-            function(data) {
-              var description = data.description == null
-              ? new OO.ui.HtmlSnippet('<i>Not available</i>')
-              : new OO.ui.HtmlSnippet('<i>' + data.description + '</i>');
-              datasetDescriptionWidget.setLabel(description);
-              missingStatementsWidget.setLabel(new OO.ui.HtmlSnippet('<b>' + data.missing_statements.toLocaleString() + '</b>'));
-              totalStatementsWidget.setLabel(new OO.ui.HtmlSnippet('<b>' + data.total_statements.toLocaleString() + '</b>'));
-              uploaderWidget.setLabel(new OO.ui.HtmlSnippet('<a href="' + data.uploader + '">' + data.uploader.split('User:')[1] + '</a>'));
-            }
-          );
-        }
-      }
-  
+
       ConfigDialog.prototype.getActionProcess = function(action) {
         if (action === 'save') {
-          mw.cookie.set('ps-dataset', this.datasetSelection.findSelectedItem().getData());
+          mw.cookie.set('ps-dataset', this.dataset.getSelectedItem().getData());
           return new OO.ui.Process(function() {
             location.reload();
           });
         }
-  
+
         return ConfigDialog.super.prototype.getActionProcess.call(this, action);
       };
-  
+
+      ConfigDialog.prototype.getBodyHeight = function() {
+        return this.panel.$element.outerHeight(true);
+      };
+
       winMan.addWindows([new ConfigDialog()]);
-  
+
       button.click(function() {
         winMan.openWindow('ps-config');
       });
@@ -256,8 +172,8 @@ f(function(mw, $) {
 
         mw.loader.using(
             ['jquery.tipsy', 'oojs-ui', 'wikibase.dataTypeStore'], function() {
-                winMan = new OO.ui.WindowManager();
-                $('body').append(winMan.$element);
+                windowManager = new OO.ui.WindowManager();
+                $('body').append(windowManager.$element);
 
                 // Dataset selection gear icon
                 var configButton = $('<span>')
@@ -268,7 +184,7 @@ f(function(mw, $) {
                     .tipsy()
                     .appendTo(portletLink);
                 // Bind gear icon to dataset selection modal window (function in this module)
-                ps.sidebar.configDialog(winMan, configButton);
+                ps.sidebar.configDialog(windowManager, configButton);
 
                 // Filter link
                 var listButton = $(mw.util.addPortletLink(
@@ -279,7 +195,7 @@ f(function(mw, $) {
                     'List statements from primary sources'
                 ));
                 // Bind filter link to filter modal window (function in filter module)
-                ps.filter.init(winMan, listButton);
+                ps.filter.init(windowManager, listButton);
             });
     });
     // END: sidebar links
