@@ -996,7 +996,7 @@
             /**
              * Entity value autocompletion
              */
-            var itemValueCache = this.populateAutocompletionCache(ps.globals.API_ENDPOINTS.VALUES_SERVICE);
+            var itemValueCache = populateAutocompletionCache(ps.globals.API_ENDPOINTS.VALUES_SERVICE);
             this.itemValueInput = new AutocompleteWidget({
                 placeholder: 'Type something you are interested in, like "politician"',
                 cache: itemValueCache
@@ -1017,7 +1017,7 @@
             /**
              * Property autocompletion
              */
-            var propertyCache = this.populateAutocompletionCache(ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE);
+            var propertyCache = populateAutocompletionCache(ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE);
             this.propertyInput = new AutocompleteWidget({
                 placeholder: 'Type a property like "date of birth"',
                 cache: propertyCache
@@ -1114,48 +1114,6 @@
                 this.emit( 'enter', e );
             }
         };
-
-        ListDialog.prototype.populateAutocompletionCache = function(service) {
-            var filteredDataset = this.datasetInput.getValue();
-            var cache = {};
-            var addLabels = function (ids, currentCache) {
-                // getEntityLabels return Window when the IDs are less than the threshold
-                if (ids.length > 40) {
-                    ps.commons.getEntityLabels(ids)
-                        .then(function (labels) {
-                            currentCache = $.extend(currentCache, labels);
-                        });
-                }
-                else {
-                    ps.commons.getFewEntityLabels(ids)
-                        .then(function (labels) {
-                            currentCache = $.extend(currentCache, labels);
-                        });
-                }
-                return currentCache;
-            }
-
-            $.get(
-                service,
-                function (data) {
-                    if (filteredDataset) {
-                        cache = addLabels(data[filteredDataset], cache);
-                    } else {
-                        for (var dataset in data) {
-                            if (data.hasOwnProperty(dataset)) {
-                                var ids = data[dataset];
-                                cache = addLabels(ids, cache);
-                            }
-                        }
-                    }
-                }
-            )
-            .fail(function (xhr, textStatus) {
-                ps.commons.debug.log('The call to ' + service + ' went wrong:', textStatus);
-                reportError('Could not cache suggestions for autocompletion');
-            });
-            return cache;
-        }
 
         ListDialog.prototype.onOptionSubmit = function () {
             this.mainPanel.$element.empty();
@@ -1320,7 +1278,17 @@
                 url,
                 function (data) {
                     progressBar.$element.remove();
-                    // TODO slice chunks of 100
+                    // Populate the result label cache
+                    var ids = new Set();
+                    for (var dataset in data) {
+                        if (data.hasOwnProperty(dataset)) {
+                            data[dataset].forEach(function (entity) {
+                                ids.add(entity);
+                            });
+                        }
+                    }
+                    console.log('IDs FROM SERVICE CALL RESULT:', ids);
+                    ps.commons.loadEntityLabels(Array.from(ids));
                     widget.displayServiceResult(data);
                 }
             )
@@ -1499,19 +1467,6 @@
                 }
             )
             .done(function(data) {
-                // Populate the result label cache
-                var ids = new Set();
-                data.bindings.forEach(function (binding) {
-                    binding.forEach(function (value) {
-                        var matchedId = /[QP]\d+$/.exec(value);
-                        if (matchedId) {
-                            ids.add(matchedId[0]);
-                        }
-                    });
-                });
-                console.log('SEARCH RESULT IDs:', ids);
-                ps.commons.loadEntityLabels(Array.from(ids));
-
                 progressBar.$element.remove();
                     // Handle empty results
                     if (data.bindings.length === 0) {
@@ -1524,6 +1479,18 @@
                         });
                         widget.mainPanel.$element.append(noticeIcon.$element, noStatements.$element);
                     } else {
+                        // Populate the result label cache
+                        var ids = new Set();
+                        data.bindings.forEach(function (binding) {
+                            binding.forEach(function (value) {
+                                var matchedId = /[QP]\d+$/.exec(value);
+                                if (matchedId) {
+                                    ids.add(matchedId[0]);
+                                }
+                            });
+                        });
+                        ps.commons.loadEntityLabels(Array.from(ids));
+
                         // Paging
                         widget.sparqlOffset += widget.sparqlLimit;
                         
@@ -1590,6 +1557,24 @@
                         });
                         widget.mainPanel.$element.append(noticeIcon.$element, noStatements.$element);
                     } else {
+                        // Populate the result label cache
+                        var ids = new Set();
+                        data.head.vars.forEach(function (header) {
+                            data.results.bindings.forEach(function (binding) {
+                                if (binding.hasOwnProperty(header)) {
+                                    var value = binding[header].value;
+                                    if (binding[header].type === 'uri') {
+                                        var matchedId = /[QP]\d+$/.exec(value);
+                                        if (matchedId) {
+                                            ids.add(matchedId[0]);
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                        console.log('IDs FROM SPARQL QUERY RESULT:', ids);
+                        ps.commons.loadEntityLabels(Array.from(ids));
+
                         // Paging
                         widget.sparqlOffset += widget.sparqlLimit;
                         widget.displaySparqlResult(data.head.vars, data.results.bindings);
@@ -1770,6 +1755,46 @@
         // BEGIN: filter modal window
         init: _listDialog
         // END: filter modal window
+    };
+
+    // BEGIN: private functions
+    function populateAutocompletionCache(service) {
+        var filteredDataset = this.datasetInput.getValue();
+        var cache = {};
+        var addLabels = function (ids, currentCache) {
+            // getEntityLabels return Window when the IDs are less than the threshold
+            if (ids.length > 40) {
+                ps.commons.getEntityLabels(ids)
+                    .then(function (labels) {
+                        currentCache = $.extend(currentCache, labels);
+                    });
+            }
+            else {
+                ps.commons.getFewEntityLabels(ids)
+                    .then(function (labels) {
+                        currentCache = $.extend(currentCache, labels);
+                    });
+            }
+            return currentCache;
+        };
+        $.get(service, function (data) {
+            if (filteredDataset) {
+                cache = addLabels(data[filteredDataset], cache);
+            }
+            else {
+                for (var dataset in data) {
+                    if (data.hasOwnProperty(dataset)) {
+                        var ids = data[dataset];
+                        cache = addLabels(ids, cache);
+                    }
+                }
+            }
+        })
+            .fail(function (xhr, textStatus) {
+                ps.commons.debug.log('The call to ' + service + ' went wrong:', textStatus);
+                reportError('Could not cache suggestions for autocompletion');
+            });
+        return cache;
     };
 
     /**
@@ -3201,6 +3226,7 @@
         // }
 
     }
+    // END: private functions
 
     mw.ps = ps;
 
