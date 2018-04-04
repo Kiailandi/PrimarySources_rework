@@ -19,6 +19,7 @@
     ps.globals = {
         API_ENDPOINTS: {
             DATASETS_SERVICE: BASE_URI + 'datasets',
+            STATISTICS_SERVICE: BASE_URI + 'statistics',
             RANDOM_SERVICE: BASE_URI + 'random',
             SUGGEST_SERVICE: BASE_URI + 'suggest?qid={{qid}}',
             CURATE_SERVICE: BASE_URI + 'curate',
