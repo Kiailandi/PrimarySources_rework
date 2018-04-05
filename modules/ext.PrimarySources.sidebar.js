@@ -1,18 +1,16 @@
 (function(mw, $) {
-  console.log("Primary sources tool - Sidebar facilities");
   
   var ps = mw.ps || {};
 
   // Used by filter and dataset selection modal windows 
-  var windowManager;
+  var WINDOW_MANAGER;
   // Used by the property browser
-  var anchorList = [];
-
-  var dataset = ps.globals.DATASET;
+  var ANCHOR_LIST = [];
 
   // accessible object
   ps.sidebar = {
     // BEGIN: dataset selection
+    // FIXME non si aggiorna la scritta del random col dataset sulla barra laterale
     configDialog: function configDialog(winMan, button) {
       function ConfigDialog(config) {
         ConfigDialog.super.call(this, config);
@@ -169,15 +167,15 @@
     },
     // END: dataset selection
     alphaPos: function alphaPos(text){
-      if(text <= anchorList[0]){
+      if(text <= ANCHOR_LIST[0]){
         return 0;
       }
-      for(var i = 0; i < anchorList.length -1; i++){
-        if(text > anchorList[i] && text < anchorList[i+1]){
+      for(var i = 0; i < ANCHOR_LIST.length -1; i++){
+        if(text > ANCHOR_LIST[i] && text < ANCHOR_LIST[i+1]){
           return i+1;
         }
       }
-      return anchorList.length;
+      return ANCHOR_LIST.length;
     },
     appendToNav: function appendToNav(container){
       var firstNewObj = $(container).find('.new-object')[0] || $(container).find('.new-source')[0];
@@ -188,14 +186,14 @@
         };
         var text_nospace = anchor.title.text().replace(/\W/g, '');
         var text_space = anchor.title.text().replace(/[^\w\s]/g, '');
-        if(anchorList.indexOf(text_nospace) == -1){
+        if(ANCHOR_LIST.indexOf(text_nospace) == -1){
           var pos = ps.sidebar.alphaPos(text_nospace);
-          anchorList.splice(pos, 0, text_nospace);
+          ANCHOR_LIST.splice(pos, 0, text_nospace);
           if(pos === 0){
             $('#p-ps-nav-list').prepend('<li id="n-ps-anchor-' + text_nospace + '"><a href="#" title="move to ' + text_space + '">' + text_space + '</a></li>');
           }
           else{
-            $('#n-ps-anchor-' + anchorList[pos-1]).after('<li id="n-ps-anchor-' + text_nospace + '"><a href="#" title="move to ' + text_space + '">' + text_space + '</a></li>');
+            $('#n-ps-anchor-' + ANCHOR_LIST[pos-1]).after('<li id="n-ps-anchor-' + text_nospace + '"><a href="#" title="move to ' + text_space + '">' + text_space + '</a></li>');
           }
           $('#n-ps-anchor-' + text_nospace).click(function(e) {
             e.preventDefault();
@@ -206,100 +204,100 @@
     }
   };
 
-    function scrollFollowTop($sidebar) {
-        var $window = $(window),
-            offset = $sidebar.offset(),
-            topPadding = 15;
+  function scrollFollowTop($sidebar) {
+      var $window = $(window),
+          offset = $sidebar.offset(),
+          topPadding = 15;
 
-        $window.scroll(function() {
-            if ($window.scrollTop() > offset.top) {
-                $sidebar.stop().animate({
-                    marginTop: $window.scrollTop() - offset.top + topPadding
-                }, 200);
-            } else {
-                $sidebar.stop().animate({
-                    marginTop: 0
-                }, 200);
-            }
-        });
-    }
+      $window.scroll(function() {
+          if ($window.scrollTop() > offset.top) {
+              $sidebar.stop().animate({
+                  marginTop: $window.scrollTop() - offset.top + topPadding
+              }, 200);
+          } else {
+              $sidebar.stop().animate({
+                  marginTop: 0
+              }, 200);
+          }
+      });
+  }
 
-    // BEGIN: sidebar links - self invoking
-    mw.loader.using( ['mediawiki.util'], function createSidebarLinks() {
+  // BEGIN: sidebar links - self invoking
+  mw.loader.using( ['mediawiki.util'], function createSidebarLinks() {
 
-        console.log("Create sidebar links");
+      // Random item link
+      var datasetLabel = ps.globals.DATASET ? ps.commons.datasetUriToLabel(ps.globals.DATASET) : 'primary sources';
+      var portletLink = $(mw.util.addPortletLink(
+          'p-navigation',
+          '#',
+          'Random ' + datasetLabel + ' item',
+          'n-random-ps',
+          'Go to a new random ' + datasetLabel + ' item',
+          '',
+          '#n-help'
+      ));
+      portletLink.children().click(function(e) {
+          e.preventDefault();
+          e.target.innerHTML = '<img src="https://upload.wikimedia.org/' +
+              'wikipedia/commons/f/f8/Ajax-loader%282%29.gif" class="ajax"/>';
+          $.ajax({
+              url: ps.globals.API_ENDPOINTS.RANDOM_SERVICE + '?dataset=' + ps.globals.DATASET
+          }).done(function(data) {
+              var newQid = data[0].statement.split(/\t/)[0];
+              document.location.href = document.location.origin + "/wiki/" + newQid;
+          }).fail(function() {
+              return ps.commons.reportError('Could not obtain random primary sources item');
+          });
+      });
 
-        // Random item link
-        var datasetLabel = (dataset === '') ? 'primary sources' : ps.commons.datasetUriToLabel(dataset);
-        var portletLink = $(mw.util.addPortletLink(
-            'p-navigation',
-            '#',
-            'Random ' + datasetLabel + ' item',
-            'n-random-ps',
-            'Load a new random ' + datasetLabel + ' item',
-            '',
-            '#n-help'
-        ));
-        portletLink.children().click(function(e) {
-            e.preventDefault();
-            e.target.innerHTML = '<img src="https://upload.wikimedia.org/' +
-                'wikipedia/commons/f/f8/Ajax-loader%282%29.gif" class="ajax"/>';
-            $.ajax({
-                url: ps.globals.API_ENDPOINTS.RANDOM_SERVICE + '?dataset=' + dataset
-            }).done(function(data) {
-                var newQid = data[0].statement.split(/\t/)[0];
-                document.location.href = document.location.origin + "/wiki/" + newQid;
-            }).fail(function() {
-                return ps.commons.reportError('Could not obtain random primary sources item');
-            });
-        });
+      mw.loader.using(
+          ['jquery.tipsy', 'oojs-ui', 'wikibase.dataTypeStore'], function() {
+              WINDOW_MANAGER = new OO.ui.WindowManager();
+              $('body').append(WINDOW_MANAGER.$element);
 
-        mw.loader.using(
-            ['jquery.tipsy', 'oojs-ui', 'wikibase.dataTypeStore'], function() {
-                windowManager = new OO.ui.WindowManager();
-                $('body').append(windowManager.$element);
+              // Dataset selection gear icon
+              var configButton = $('<span>')
+                  .attr({
+                      id: 'ps-config-button',
+                      title: 'Select primary sources datasets'
+                  })
+                  .tipsy()
+                  .appendTo(portletLink);
+              // Bind gear icon to dataset selection modal window (function in this module)
+              ps.sidebar.configDialog(WINDOW_MANAGER, configButton);
 
-                // Dataset selection gear icon
-                var configButton = $('<span>')
-                    .attr({
-                        id: 'ps-config-button',
-                        title: 'Select primary sources datasets'
-                    })
-                    .tipsy()
-                    .appendTo(portletLink);
-                // Bind gear icon to dataset selection modal window (function in this module)
-                ps.sidebar.configDialog(windowManager, configButton);
+              // Filter link
+              var listButton = $(mw.util.addPortletLink(
+                  'p-tb',
+                  '#',
+                  'Primary sources filter',
+                  'n-ps-list',
+                  'List statements from primary sources'
+              ));
+              // Bind filter link to filter modal window (function in filter module)
+              ps.filter.init(WINDOW_MANAGER, listButton);
+          });
+  });
+  // END: sidebar links
 
-                // Filter link
-                var listButton = $(mw.util.addPortletLink(
-                    'p-tb',
-                    '#',
-                    'Primary sources filter',
-                    'n-ps-list',
-                    'List statements from primary sources'
-                ));
-                // Bind filter link to filter modal window (function in filter module)
-                ps.filter.init(windowManager, listButton);
-            });
-    });
-    // END: sidebar links
+  // BEGIN: browse suggested claims - self invoking
+  mw.loader.using( ['mediawiki.util'], function generateNav() {
+      $('#mw-panel').append('<div class="portal" role="navigation" id="p-ps-navigation" aria-labelledby="p-ps-navigation-label"><h3 id="p-ps-navigation-label">Browse Primary Sources</h3></div>');
+      var navigation =  $('#p-ps-navigation');
+      navigation.append('<div class="body"><ul id="p-ps-nav-list"></ul></div>');
+      $('#p-ps-nav-list').before('<a href="#" id="n-ps-anchor-btt" title="move to top">&#x25B2 back to top &#x25B2</a>');
+      $('#n-ps-anchor-btt').click(function(e) {
+          e.preventDefault();
+          $('html,body').animate({
+              scrollTop: 0
+          }, 0);
+      });
+      scrollFollowTop(navigation);
+  });
+  // END: browse suggested claims
 
-    // BEGIN: browse suggested claims - self invoking
-    mw.loader.using( ['mediawiki.util'], function generateNav() {
-        $('#mw-panel').append('<div class="portal" role="navigation" id="p-ps-navigation" aria-labelledby="p-ps-navigation-label"><h3 id="p-ps-navigation-label">Browse Primary Sources</h3></div>');
-        var navigation =  $('#p-ps-navigation');
-        navigation.append('<div class="body"><ul id="p-ps-nav-list"></ul></div>');
-        $('#p-ps-nav-list').before('<a href="#" id="n-ps-anchor-btt" title="move to top">&#x25B2 back to top &#x25B2</a>');
-        $('#n-ps-anchor-btt').click(function(e) {
-            e.preventDefault();
-            $('html,body').animate({
-                scrollTop: 0
-            }, 0);
-        });
-        scrollFollowTop(navigation);
-    });
-    // END: browse suggested claims
+  mw.ps = ps;
 
-    mw.ps = ps;
-  
+  console.log("Primary sources tool - Sidebar facilities loaded");
+    
 })(mediaWiki, jQuery);

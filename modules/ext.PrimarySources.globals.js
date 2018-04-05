@@ -1,11 +1,10 @@
 (function (mw, $) {
-    console.log("Primary sources tool - globals module");
 
     var ps = mw.ps || {};
 
     // Get the selected dataset from a cookie
-    mw.loader.using(['mediawiki.cookie']).then(function () {
-        mw.ps.globals.DATASET = mw.cookie.get('ps-dataset', null, '');
+    mw.loader.using(['mediawiki.cookie'], function () {
+        ps.globals.DATASET = mw.cookie.get('ps-dataset', null, '');
     });
 
     var BASE_URI = 'https://pst.wmflabs.org/pst/';
@@ -56,4 +55,6 @@
 
     mw.ps = ps;
 
+    console.log("Primary sources tool - globals module loaded");
+    
 })(mediaWiki, jQuery);
