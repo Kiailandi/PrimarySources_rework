@@ -223,17 +223,20 @@
   // BEGIN: sidebar links - self invoking
   mw.loader.using( ['mediawiki.util', 'oojs-ui', 'wikibase.dataTypeStore'], function createSidebarLinks() {
       // Primary sources tool dedicated portlet
-      $('#mw-panel').append(
+      $('#p-ps-navigation').before(
         $('<div>')
         .addClass('portal')
         .attr({
-            id: 'p-pst',
             role: 'navigation',
-            'aria-labelledBy': 'p-pst-label'
+            id: 'p-pst',
+            'aria-labelledby': 'p-pst-label'
         })
         .append($('<h3>')
             .attr('id', 'p-pst-label')
             .text('Primary sources tool')
+            )
+        .append($('<div>')
+            .addClass('body')
             )
         );
 
@@ -241,17 +244,17 @@
       var filterLink = $(mw.util.addPortletLink(
         'p-pst',
         '#',
-        'Primary sources filter',
-        'n-ps-list',
-        'List statements from primary sources'
+        'Filter',
+        'n-pst-filter',
+        'Filter '
       ));
       
       // Random item
       var randomItemLink = $(mw.util.addPortletLink(
           'p-pst',
           '#',
-          'Random ' + ps.globals.DATASET + ' item',
-          'n-random-ps',
+          'Random ' + ps.commons.datasetUriToLabel(ps.globals.DATASET) + ' item',
+          'n-pst-random',
           'Go to a random ' + ps.globals.DATASET + ' item with statement suggestions'
       ));
       // Bind link click to /random service call
@@ -274,7 +277,7 @@
         'p-pst',
         '#',
         'Dataset selection',
-        'ps-config-button',
+        'n-pst-dataset',
         'Get info and select your primary sources datasets',
       ));
 
@@ -283,13 +286,13 @@
       // Bind filter link to filter modal window (function in filter module)
       ps.filter.init(windowManager, filterLink);
       // Bind dataset selection link to modal window (function in this module)
-      ps.sidebar.configDialog(windowManager, configButton);
+      ps.sidebar.configDialog(windowManager, datasetSelectionLink);
   });
   // END: sidebar links
 
   // BEGIN: browse suggested claims - self invoking
   mw.loader.using( ['mediawiki.util'], function generateNav() {
-      $('#mw-panel').append('<div class="portal" role="navigation" id="p-ps-navigation" aria-labelledby="p-ps-navigation-label"><h3 id="p-ps-navigation-label">Browse primary sources suggestions</h3></div>');
+      $('#mw-panel').append('<div class="portal" role="navigation" id="p-ps-navigation" aria-labelledby="p-ps-navigation-label"><h3 id="p-ps-navigation-label">Browse item suggestions</h3></div>');
       var navigation =  $('#p-ps-navigation');
       navigation.append('<div class="body"><ul id="p-ps-nav-list"></ul></div>');
       $('#p-ps-nav-list').before('<a href="#" id="n-ps-anchor-btt" title="move to top">&#x25B2 back to top &#x25B2</a>');
