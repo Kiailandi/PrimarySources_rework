@@ -222,7 +222,7 @@
 
   // BEGIN: sidebar links - self invoking
   mw.loader.using( ['mediawiki.util', 'oojs-ui', 'wikibase.dataTypeStore'], function createSidebarLinks() {
-      // Primary sources tool dedicated portlet
+      // Primary sources tool dedicated portlet, before the suggestion browser
       $('#p-ps-navigation').before(
         $('<div>')
         .addClass('portal')
@@ -235,6 +235,7 @@
             .attr('id', 'p-pst-label')
             .text('Primary sources tool')
             )
+        // Needed to style the links
         .append($('<div>')
             .addClass('body')
             )
@@ -246,7 +247,7 @@
         '#',
         'Filter',
         'n-pst-filter',
-        'Filter '
+        'Filter, navigate, curate available data'
       ));
       
       // Random item
@@ -255,7 +256,7 @@
           '#',
           'Random ' + ps.commons.datasetUriToLabel(ps.globals.DATASET) + ' item',
           'n-pst-random',
-          'Go to a random ' + ps.globals.DATASET + ' item with statement suggestions'
+          'Go to a random item with statement suggestions'
       ));
       // Bind link click to /random service call
       randomItemLink.children().click(function(e) {
@@ -277,7 +278,7 @@
         'p-pst',
         '#',
         'Dataset selection',
-        'n-pst-dataset',
+        'n-pst-datasets',
         'Get info and select your primary sources datasets',
       ));
 
