@@ -49,26 +49,19 @@
          * Subject, property, value, reference_property, reference_value, dataset
          *   [0]      [1]      [2]           [3]               [4]          [5]
          */
-        function SearchResultRow(binding, filteredProperty, filteredItemValue, filteredDataset) {
-            SearchResultRow.super.call(this, binding, filteredProperty, filteredItemValue, filteredDataset);
+        function SearchResultRow(binding, filteredProperty, filteredItemValue, filteredDataset, isBlacklisted) {
+            SearchResultRow.super.call(this, binding, filteredProperty, filteredItemValue, filteredDataset, isBlacklisted);
             
             /*
              * Do not show blacklisted URLs.
              * Statements will not be blacklisted in the back end.
              * The item curation module is responsible for that.
              */
-            ps.commons.getBlacklistedSourceUrls()
-            .done(function(blacklist){
-                var isBlacklisted = ps.commons.isBlackListedBuilder(blacklist);
-                var referenceValue = binding[4];
-                if (ps.commons.isUrl(referenceValue) && isBlacklisted(referenceValue)) {
-                    ps.commons.debug.log('Skipping statement with blacklisted reference URL ' + referenceValue);
-                    return;
-                }
-            })
-            .fail(function(){
-                ps.commons.debug.log('Could not obtain blacklisted source URLs');
-            });
+            var referenceValue = binding[4];
+            if (isBlacklisted && ps.commons.isUrl(referenceValue) && isBlacklisted(referenceValue)) {
+                ps.commons.debug.log('Skipping statement with blacklisted reference URL ' + referenceValue);
+                return;
+            }
 
             var widget = this;
             var cells = [];
@@ -1249,9 +1242,18 @@
             });
             var finalBindings = merged.filter(Boolean); // Filter undefined values
             //console.log('MERGED BINDINGS', finalBindings);
+            // Build the URL blacklist check
+            var isBlacklisted;
+            ps.commons.getBlacklistedSourceUrls()
+            .done(function(blacklist){
+                isBlacklisted = ps.commons.isBlackListedBuilder(blacklist);
+            })
+            .fail(function(){
+                ps.commons.debug.log('Could not obtain blacklisted source URLs');
+            });
             finalBindings.forEach(function (binding) {
                 binding.splice(2, 1); // Get rid of statement_node
-                var row = new SearchResultRow(binding, filteredProperty, filteredItemValue, filteredDataset);
+                var row = new SearchResultRow(binding, filteredProperty, filteredItemValue, filteredDataset, isBlacklisted);
                 console.log('SEARCH RESULT ROW OBJECT:', row);
                 if (row) {
                     widget.table.append(row.$element);
