@@ -250,10 +250,11 @@
       ));
       
       // Random item
+      var datasetLabel = ps.globals.DATASET ? ps.commons.datasetUriToLabel(ps.globals.DATASET) : '';
       var randomItemLink = $(mw.util.addPortletLink(
           'p-pst',
           '#',
-          'Random ' + ps.commons.datasetUriToLabel(ps.globals.DATASET) + ' item',
+          'Random ' + datasetLabel + ' item',
           'n-pst-random',
           'Go to a random item with statement suggestions'
       ));
