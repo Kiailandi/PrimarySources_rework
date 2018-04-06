@@ -364,27 +364,31 @@
                 }
 
                 // Filter out blacklisted source URLs
-                //references = references.filter(function (source) {
-                //    if (source.sourceType === 'url') {
-                //        var url = source.sourceObject.replace(/^"/, '').replace(/"$/, '');
-                //        var blacklisted = ps.commons.isBlacklisted(url);
-                //        if (blacklisted) {
-                //            ps.commons.debug.log('Encountered blacklisted reference URL ' + url);
-                //            var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.sourceProperty + '\t' + source.sourceObject;
-                //            (function (currentId, currentUrl) {
-                //                ps.commons.setStatementState(currentId, ps.commons.STATEMENT_STATES.blacklisted, dataset, 'reference')
-                //                    .done(function () {
-                //                        ps.commons.debug.log('Automatically blacklisted statement ' +
-                //                            currentId + ' with blacklisted reference URL ' +
-                //                            currentUrl);
-                //                    });
-                //            })(sourceQuickStatement, url);
-                //        }
-                //        // Return the opposite, i.e., the whitelisted URLs
-                //        return !blacklisted;
-                //    }
-                //    return true;
-                //});
+                references = references.filter(function (source) {
+                   if (source.sourceType === 'url') {
+                       var url = source.sourceObject.replace(/^"/, '').replace(/"$/, '');
+                       var blacklisted = ps.commons.isBlacklisted(url);
+                       if (blacklisted) {
+                           ps.commons.debug.log('Encountered blacklisted reference URL ' + url);
+                           var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.sourceProperty + '\t' + source.sourceObject;
+                           (function (currentId, currentUrl) {
+                               ps.commons.setStatementState(currentId, ps.globals.STATEMENT_STATES.blacklisted, widget.dataset, widget.statementType)
+                               .fail(function() {
+                                    widget.toggle(false).setDisabled(true);
+                                })
+                                .done(function () {
+                                    ps.commons.debug.log('Automatically blacklisted statement ' +
+                                    currentId + ' with blacklisted reference URL ' +
+                                    currentUrl);
+                                    widget.toggle(false).setDisabled(true);
+                                });
+                            })(sourceQuickStatement, url);
+                       }
+                       // Return the opposite, i.e., the whitelisted URLs
+                       return !blacklisted;
+                   }
+                   return true;
+                });
             }
             widget.showProgressBar();
             ps.commons.getClaims(subject, property, function(err, claims) {
