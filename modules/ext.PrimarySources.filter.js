@@ -1034,7 +1034,9 @@
                         }
                     }
             })
-            .fail(handleSparqlError(xhr, progressBar, widget));
+            .fail(function(xhr) {
+                handleSparqlError(xhr, progressBar, widget)
+            });
         };
 
         ListDialog.prototype.executeSparqlQuery = function (more=false) {
@@ -1100,7 +1102,9 @@
                 },
                 'json'
             )
-                .fail(handleSparqlError(xhr, progressBar, widget))
+                .fail(function(xhr) {
+                    handleSparqlError(xhr, progressBar, widget)
+                })
         };
 
         ListDialog.prototype.displayServiceResult = function (result) {
