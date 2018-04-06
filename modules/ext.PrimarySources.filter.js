@@ -1034,25 +1034,7 @@
                         }
                     }
             })
-            .fail(function (xhr) {
-                // A bad request means a bad query
-                if (xhr.status === 400) {
-                    // TODO can also yield other exceptions, so handle this better
-                    // java.util.concurrent.ExecutionException: org.openrdf.query.MalformedQueryException: Encountered " "a" "a "" at line 1, column 1.
-                    var exception = xhr.responseText.split('\n')[1].split('MalformedQueryException:')[1];
-                    progressBar.$element.remove();
-                    var alertIcon = new OO.ui.IconWidget({
-                        icon: 'alert'
-                    });
-                    var malformedMessage = new OO.ui.LabelWidget({
-                        label: new OO.ui.HtmlSnippet('<b>Malformed query. </b>')
-                    });
-                    var reasonMessage = new OO.ui.LabelWidget({
-                        label: exception
-                    });
-                    widget.mainPanel.$element.append(alertIcon.$element, malformedMessage.$element, reasonMessage.$element);
-                }
-            })
+            .fail(handleSparqlError(xhr, progressBar, widget));
         };
 
         ListDialog.prototype.executeSparqlQuery = function (more=false) {
@@ -1118,25 +1100,7 @@
                 },
                 'json'
             )
-                .fail(function (xhr) {
-                    // A bad request means a bad query
-                    if (xhr.status === 400) {
-                        // TODO can also yield other exceptions, so handle this better
-                        // java.util.concurrent.ExecutionException: org.openrdf.query.MalformedQueryException: Encountered " "a" "a "" at line 1, column 1.
-                        var exception = xhr.responseText.split('\n')[1].split('MalformedQueryException:')[1];
-                        progressBar.$element.remove();
-                        var alertIcon = new OO.ui.IconWidget({
-                            icon: 'alert'
-                        });
-                        var malformedMessage = new OO.ui.LabelWidget({
-                            label: new OO.ui.HtmlSnippet('<b>Malformed query. </b>')
-                        });
-                        var reasonMessage = new OO.ui.LabelWidget({
-                            label: exception
-                        });
-                        widget.mainPanel.$element.append(alertIcon.$element, malformedMessage.$element, reasonMessage.$element);
-                    }
-                })
+                .fail(handleSparqlError(xhr, progressBar, widget))
         };
 
         ListDialog.prototype.displayServiceResult = function (result) {
@@ -1283,7 +1247,7 @@
         linkToBind.click(function () {
             windowManager.openWindow('ps-list');
         });
-
+        
     };
 
     // BEGIN: public functions
@@ -1331,6 +1295,26 @@
             });
         return cache;
     };
+
+    function handleSparqlError(xhr, progressBar, widget) {
+        // A bad request means a bad query
+        if (xhr.status === 400) {
+            // java.util.concurrent.ExecutionException: org.openrdf.query.MalformedQueryException: Encountered " "a" "a "" at line 1, column 1.
+            var exceptionParts = xhr.responseText.split('\n')[1].split('Exception');
+            var exceptionType = exceptionParts[1].split('.').pop().replace(/([A-Z])/g, ' $1').trim();
+            progressBar.$element.remove();
+            var alertIcon = new OO.ui.IconWidget({
+                icon: 'alert'
+            });
+            var typeMessage = new OO.ui.LabelWidget({
+                label: new OO.ui.HtmlSnippet('<b>' + exceptionType + '</b>')
+            });
+            var reasonMessage = new OO.ui.LabelWidget({
+                label: exceptionParts[2]
+            });
+            widget.mainPanel.$element.append(alertIcon.$element, typeMessage.$element, reasonMessage.$element);
+        }
+    }
     // END: private functions
 
     mw.ps = ps;
