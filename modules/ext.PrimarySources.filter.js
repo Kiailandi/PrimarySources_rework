@@ -948,43 +948,6 @@
                 })
         };
 
-        ListDialog.prototype.executeQuery = function () {
-            var widget = this;
-
-            var progressBar = new OO.ui.ProgressBarWidget();
-            progressBar.$element.css('max-width', '100%');
-            widget.mainPanel.$element.append(progressBar.$element);
-            // do research
-            searchStatements(this.parameters)
-                .fail(function () {
-                    progressBar.$element.remove();
-                    var description = new OO.ui.LabelWidget({
-                        label: 'No statements found.'
-                    });
-                    widget.mainPanel.$element.append(description.$element);
-                })
-                .done(function (statements) {
-                    progressBar.$element.remove();
-
-                    widget.parameters.offset += widget.parameters.limit;
-                    widget.displayStatements(statements);
-
-                    // We may assume that more statements remains
-                    if (statements.length > 0) {
-                        widget.nextStatementsButton = new OO.ui.ButtonWidget({
-                            label: 'Load more statements'
-                        });
-                        widget.nextStatementsButton.connect(
-                            widget,
-                            { click: 'onNextButtonSubmit' }
-                        );
-                        widget.mainPanel.$element.append(
-                            widget.nextStatementsButton.$element
-                        );
-                    }
-                });
-        };
-
         ListDialog.prototype.onNextButtonSubmitSearch = function () {
             this.nextStatementsButton.$element.remove();
             this.executeSearch(true);
@@ -1097,7 +1060,7 @@
             var progressBar = new OO.ui.ProgressBarWidget();
             progressBar.$element.css('max-width', '100%');
             widget.mainPanel.$element.append(progressBar.$element);
-            // run SPARQL query
+            // Run SPARQL query
             $.get(
                 ps.globals.API_ENDPOINTS.SPARQL_SERVICE,
                 {
@@ -1254,7 +1217,7 @@
             finalBindings.forEach(function (binding) {
                 binding.splice(2, 1); // Get rid of statement_node
                 var row = new SearchResultRow(binding, filteredProperty, filteredItemValue, filteredDataset, isBlacklisted);
-                console.log('SEARCH RESULT ROW OBJECT:', row);
+                // console.log('SEARCH RESULT ROW OBJECT:', row);
                 if (row) {
                     widget.table.append(row.$element);
                 }
@@ -1372,6 +1335,6 @@
 
     mw.ps = ps;
 
-    console.log("Primary sources tool - filter loaded");
+    console.log("Primary sources tool - Filter loaded");
     
 })(mediaWiki, jQuery);
