@@ -693,7 +693,7 @@
              * @type {OO.ui.MultilineTextInputWidget}
              */
             this.sparqlQuery = new OO.ui.MultilineTextInputWidget({
-                placeholder: 'Browse suggestions with SPARQL',
+                placeholder: 'Browse suggestions with SPARQL (limited to 100 results)',
                 autosize: true
             })
             .connect(this, {
@@ -873,7 +873,11 @@
             }
             // Arbitrary SPARQL query
             else if (!this.sparqlQuery.isDisabled()) {
-                this.sparql = this.sparqlQuery.getValue();
+                var query = this.sparqlQuery.getValue();
+                // Force limit to 100 results to avoid heavy queries
+                this.sparql = query.toLowerCase().includes('limit')
+                ? query.replace(/}\s*limit\s*\d+/i, '} LIMIT 100')
+                : query += ' LIMIT 100';
                 this.executeSparqlQuery();
             }
             // Property / item value autocompletion
