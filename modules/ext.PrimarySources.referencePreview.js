@@ -1,7 +1,4 @@
 (function(mw, $) {
-
-    console.log("Primary sources tool - Reference preview");
-
     var ps = mw.ps || {};
     
     ps.referencePreview = {
@@ -107,5 +104,7 @@
             mw.ps.referencePreview.closeNav();
         }
     });
+
+    console.log("Primary sources tool - Reference preview loaded");
 
 })(mediaWiki, jQuery);

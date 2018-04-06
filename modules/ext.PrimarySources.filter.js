@@ -7,8 +7,6 @@
  */
 (function (mw, $) {
 
-    console.log("Primary sources tool - filter");
-
     var ps = mw.ps || {};
 
     // BEGIN: baked SPARQL queries
@@ -1372,4 +1370,6 @@
 
     mw.ps = ps;
 
+    console.log("Primary sources tool - filter loaded");
+    
 })(mediaWiki, jQuery);

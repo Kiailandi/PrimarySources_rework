@@ -4,8 +4,6 @@
  * item-based curation and filter.
  */
 (function (mw, $) {
-    console.log("Primary sources tool - common functions");
-
     var ps = mw.ps || {};
 
     var ENTITY_LABEL_CACHE = {};
@@ -524,7 +522,6 @@
             } else if (parsed.type === 'wikibase-item' || parsed.type === 'wikibase-property') {
                 return _getEntityLabel(value).then(function (label) {
                     return '<a href="/entity/' + value + '">' + label + '</a>';
-                    //TODO: better URL
                 });
             } else {
                 var api = new mw.Api();
@@ -1046,5 +1043,7 @@
     };
 
     mw.ps = ps;
+
+    console.log("Primary sources tool - common functions loaded");
 
 })(mediaWiki, jQuery);

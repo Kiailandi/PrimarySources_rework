@@ -8,7 +8,6 @@
   // accessible object
   ps.sidebar = {
     // BEGIN: dataset selection
-    // FIXME non si aggiorna la scritta del random col dataset sulla barra laterale
     configDialog: function configDialog(winMan, button) {
       function ConfigDialog(config) {
         ConfigDialog.super.call(this, config);

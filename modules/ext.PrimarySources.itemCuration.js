@@ -572,7 +572,6 @@
             });
           }
           // Reference edit
-          // TODO doesn't seem to work
           else if (classList.contains('f2w-edit')) {
             var a = document.getElementById('f2w-' + sourceQuickStatement);
 

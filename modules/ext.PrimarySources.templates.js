@@ -1,6 +1,4 @@
 (function(mw, $) {
-    console.log("Primary sources tool - HTML templates");
-    
     //FIXME
     /*mw.wbTemplates = mw.wbTemplates || {};
     mw.wbTemplates.store = mw.wbTemplates.store || {};
@@ -319,5 +317,7 @@
     };
     
     mw.ps = ps;
+
+    console.log("Primary sources tool - HTML templates loaded");
     
 })( mediaWiki, jQuery );
