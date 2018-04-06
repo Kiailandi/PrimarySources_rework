@@ -36,15 +36,7 @@
         STATEMENT_FORMAT: 'QuickStatement',
         DEBUG: JSON.parse(localStorage.getItem('f2w_debug')) || false,
         FAKE_OR_RANDOM_DATA: JSON.parse(localStorage.getItem('f2w_fakeOrRandomData')) || false,
-        CACHE_EXPIRY: 60 * 60 * 1000,
-        // SPARQL query to get the set of statement item values in the back end
-        STATEMENT_VALUES: 'SELECT DISTINCT ?statement_value WHERE {' +
-        '  GRAPH ?dataset {' +
-        '  ?statement_node ?statement_property ?statement_value .' +
-        '  FILTER STRSTARTS(str(?statement_node), "http://wikidata-pst.wmflabs.org/entity/statement/") .' +
-        '  FILTER STRSTARTS(str(?statement_value), "http://wikidata-pst.wmflabs.org/entity/Q") .' +
-        '  FILTER STRENDS(str(?dataset), "new") .}' +
-        '}'
+        CACHE_EXPIRY: 60 * 60 * 1000
     };
 
     // Get the selected dataset from a cookie
