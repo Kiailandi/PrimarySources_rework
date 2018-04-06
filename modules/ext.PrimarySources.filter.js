@@ -44,14 +44,33 @@
     // END: baked SPARQL queries
 
     function filterDialog(windowManager, linkToBind) {
+        /*
+         * binding is:
+         * Subject, property, value, reference_property, reference_value, dataset
+         *   [0]      [1]      [2]           [3]               [4]          [5]
+         */
         function SearchResultRow(binding, filteredProperty, filteredItemValue, filteredDataset) {
             SearchResultRow.super.call(this, binding, filteredProperty, filteredItemValue, filteredDataset);
-                        
-            var widget = this;
+            
             /*
-             * Subject, property, value, reference_property, reference_value, dataset
-             *   [0]      [1]           [2]                [3]               [4]          [5]
+             * Do not show blacklisted URLs.
+             * Statements will not be blacklisted in the back end.
+             * The item curation module is responsible for that.
              */
+            ps.commons.getBlacklistedSourceUrls()
+            .done(function(blacklist){
+                var isBlacklisted = ps.commons.isBlackListedBuilder(blacklist);
+                var referenceValue = binding[4];
+                if (ps.commons.isUrl(referenceValue) && isBlacklisted(referenceValue)) {
+                    ps.commons.debug.log('Skipping statement with blacklisted reference URL ' + referenceValue);
+                    return;
+                }
+            })
+            .fail(function(){
+                ps.commons.debug.log('Could not obtain blacklisted source URLs');
+            });
+
+            var widget = this;
             var cells = [];
             var uriPrefix = 'http://www.wikidata.org/';
 
@@ -363,32 +382,6 @@
                     });
                 }
 
-                // Filter out blacklisted source URLs
-                references = references.filter(function (source) {
-                   if (source.sourceType === 'url') {
-                       var url = source.sourceObject.replace(/^"/, '').replace(/"$/, '');
-                       var blacklisted = ps.commons.isBlacklisted(url);
-                       if (blacklisted) {
-                           ps.commons.debug.log('Encountered blacklisted reference URL ' + url);
-                           var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.sourceProperty + '\t' + source.sourceObject;
-                           (function (currentId, currentUrl) {
-                               ps.commons.setStatementState(currentId, ps.globals.STATEMENT_STATES.blacklisted, widget.dataset, widget.statementType)
-                               .fail(function() {
-                                    widget.toggle(false).setDisabled(true);
-                                })
-                                .done(function () {
-                                    ps.commons.debug.log('Automatically blacklisted statement ' +
-                                    currentId + ' with blacklisted reference URL ' +
-                                    currentUrl);
-                                    widget.toggle(false).setDisabled(true);
-                                });
-                            })(sourceQuickStatement, url);
-                       }
-                       // Return the opposite, i.e., the whitelisted URLs
-                       return !blacklisted;
-                   }
-                   return true;
-                });
             }
             widget.showProgressBar();
             ps.commons.getClaims(subject, property, function(err, claims) {
@@ -1259,7 +1252,10 @@
             finalBindings.forEach(function (binding) {
                 binding.splice(2, 1); // Get rid of statement_node
                 var row = new SearchResultRow(binding, filteredProperty, filteredItemValue, filteredDataset);
-                widget.table.append(row.$element);
+                console.log('SEARCH RESULT ROW OBJECT:', row);
+                if (row) {
+                    widget.table.append(row.$element);
+                }
             });
         };
 
