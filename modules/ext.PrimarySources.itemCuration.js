@@ -9,7 +9,6 @@
  *   4.2. update the suggestions state (back-end service /curate).
  */
 (function(mw, $) {
-  console.log("Primary sources tool - Item curation");
   
   var ps = mw.ps || {};
   // The current item
@@ -528,7 +527,7 @@
                 ps.commons.createReference(qid, predicate, object, source,
                   function(error, data) {
                     if (error) {
-                      return mw.ps.commons.reportError(error);
+                      return ps.commons.reportError(error);
                     }
                     // The back end approves everything
                     ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'reference')
@@ -612,7 +611,7 @@
   $.getScript('https://www.wikidata.org/w/index.php?title=User:Kiailandi/async.js&action=raw&ctype=text%2Fjavascript').done(
     function init() {
     
-    mw.ps.itemCuration.addClickHandlers();
+    ps.itemCuration.addClickHandlers();
     
     if ((mw.config.get('wgPageContentModel') !== 'wikibase-item') ||
         (mw.config.get('wgIsRedirect')) ||
@@ -622,19 +621,19 @@
         (document.location.search.indexOf('&action=history') !== -1)) {
       return 0;
     }
-    qid = mw.ps.itemCuration.getQid();
+    qid = ps.itemCuration.getQid();
     if (!qid) {
       return ps.commons.debug.log('Did not manage to load the QID.');
     }
     
     async.parallel({
-      blacklistedSourceUrls: mw.ps.commons.getBlacklistedSourceUrlsWithCallback,
-      whitelistedSourceUrls: mw.ps.commons.getWhitelistedSourceUrlsWithCallback,
-      wikidataEntityData: mw.ps.itemCuration.getWikidataEntityData.bind(null, qid),
-      freebaseEntityData: mw.ps.itemCuration.getFreebaseEntityData.bind(null, qid),
+      blacklistedSourceUrls: ps.commons.getBlacklistedSourceUrlsWithCallback,
+      whitelistedSourceUrls: ps.commons.getWhitelistedSourceUrlsWithCallback,
+      wikidataEntityData: ps.itemCuration.getWikidataEntityData.bind(null, qid),
+      freebaseEntityData: ps.itemCuration.getFreebaseEntityData.bind(null, qid),
     }, function(err, results) {
       if (err) {
-        mw.ps.commons.reportError(err);
+        ps.commons.reportError(err);
       }
       // See https://www.mediawiki.org/wiki/Wikibase/Notes/JSON
       var wikidataEntityData = results.wikidataEntityData;
@@ -642,11 +641,13 @@
 
       var freebaseEntityData = results.freebaseEntityData;
       var blacklistedSourceUrls = results.blacklistedSourceUrls;
-      var freebaseClaims = mw.ps.itemCuration.parseFreebaseClaims(freebaseEntityData,
+      var freebaseClaims = ps.itemCuration.parseFreebaseClaims(freebaseEntityData,
           blacklistedSourceUrls);
 
-      mw.ps.itemCuration.matchClaims(wikidataClaims, freebaseClaims);
+      ps.itemCuration.matchClaims(wikidataClaims, freebaseClaims);
     });
   });
 
+  console.log("Primary sources tool - Item curation loaded");
+  
 })(mediaWiki, jQuery);
