@@ -59,7 +59,7 @@
              */
             var referenceValue = binding[4];
             if (isBlacklisted && ps.commons.isUrl(referenceValue) && isBlacklisted(referenceValue)) {
-                ps.commons.debug.log('Skipping statement with blacklisted reference URL ' + referenceValue);
+                console.log('Skipping statement with blacklisted reference URL ' + referenceValue);
                 return;
             }
 
@@ -359,7 +359,7 @@
             var references = [];
             for (var i = 3; i < length; i += 2) {
                 if (i === length - 1) {
-                    ps.commons.debug.log('Malformed qualifier/source pieces');
+                    console.log('Malformed qualifier/source pieces');
                     break;
                 }
                 if (/^P\d+$/.exec(parts[i])) {
@@ -404,7 +404,7 @@
                                     widget.toggle(false).setDisabled(true);
                                 })
                                 .done(function() {
-                                    ps.commons.debug.log('Approved referenced claim [' + qs + ']');
+                                    console.log('Approved referenced claim [' + qs + ']');
                                     widget.toggle(false).setDisabled(true);
                                 });
                             }
@@ -425,7 +425,7 @@
                                 widget.toggle(false).setDisabled(true);
                             })
                             .done(function() {
-                                ps.commons.debug.log('Approved referenced claim [' + qs + ']');
+                                console.log('Approved referenced claim [' + qs + ']');
                                 widget.toggle(false).setDisabled(true);                
                             });
                         });
@@ -443,7 +443,7 @@
                                 widget.toggle(false).setDisabled(true);
                             })
                             .done(function() {
-                                ps.commons.debug.log('Approved claim with no reference [' + qs + ']');
+                                console.log('Approved claim with no reference [' + qs + ']');
                                 widget.toggle(false).setDisabled(true);                
                             });
                         });
@@ -463,7 +463,7 @@
                 var message = widget.statementType === 'claim'
                 ? 'Rejected claim with no reference [' + widget.quickStatement + ']'
                 : 'Rejected referenced claim [' + widget.quickStatement + ']';
-                ps.commons.debug.log(message);
+                console.log(message);
                 widget.toggle(false).setDisabled(true);                
             });
         }
@@ -1184,7 +1184,7 @@
                 isBlacklisted = ps.commons.isBlackListedBuilder(blacklist);
             })
             .fail(function(){
-                ps.commons.debug.log('Could not obtain blacklisted source URLs');
+                console.log('Could not obtain blacklisted source URLs');
             });
             finalBindings.forEach(function (binding) {
                 binding.splice(2, 1); // Get rid of statement_node
@@ -1298,7 +1298,7 @@
             }
         })
             .fail(function (xhr, textStatus) {
-                ps.commons.debug.log('The call to ' + service + ' went wrong:', textStatus);
+                console.log('The call to ' + service + ' went wrong:', textStatus);
                 reportError('Could not cache suggestions for autocompletion');
             });
         return cache;

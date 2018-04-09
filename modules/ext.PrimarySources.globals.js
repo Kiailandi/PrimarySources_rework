@@ -4,8 +4,6 @@
 
     var BASE_URI = 'https://pst.wmflabs.org/pst/';
 
-    // Uncomment the following line to enable debug log messages
-    localStorage.setItem('f2w_debug', true);
     // Uncomment the following line to add fake blue statements for testing
     // localStorage.setItem('f2w_fakeOrRandomData', true);
 
@@ -34,7 +32,6 @@
             blacklisted: 'blacklisted'
         },
         STATEMENT_FORMAT: 'QuickStatement',
-        DEBUG: JSON.parse(localStorage.getItem('f2w_debug')) || false,
         FAKE_OR_RANDOM_DATA: JSON.parse(localStorage.getItem('f2w_fakeOrRandomData')) || false,
         CACHE_EXPIRY: 60 * 60 * 1000
     };
@@ -46,6 +43,6 @@
 
     mw.ps = ps;
 
-    console.log("Primary sources tool - globals module loaded");
+    console.log("Primary sources tool - Globals module loaded");
     
 })(mediaWiki, jQuery);

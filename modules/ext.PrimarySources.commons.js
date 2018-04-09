@@ -354,7 +354,7 @@
                     blacklist.timestamp = 0;
                 }
                 if (now - blacklist.timestamp < ps.globals.CACHE_EXPIRY) {
-                    ps.commons.debug.log('Using cached source URL blacklist');
+                    console.log('Using cached source URL blacklist');
                     return $.Deferred().resolve(blacklist.data);
                 }
             }
@@ -386,7 +386,7 @@
                             return false;
                         }
                     });
-                    ps.commons.debug.log('Caching source URL blacklist');
+                    console.log('Caching source URL blacklist');
 
                     localStorage.setItem('f2w_blacklist', JSON.stringify({
                         timestamp: now,
@@ -395,7 +395,7 @@
                     return blacklist;
                 } else {
                     // Fail silently
-                    ps.commons.debug.log('Could not obtain blacklisted source URLs');
+                    console.log('Could not obtain blacklisted source URLs');
                     return [];
                 }
             });
@@ -408,7 +408,7 @@
                 whitelist.timestamp = 0;
               }
               if (now - whitelist.timestamp < ps.globals.CACHE_EXPIRY) {
-                ps.commons.debug.log('Using cached source URL whitelist');
+                console.log('Using cached source URL whitelist');
                 return $.Deferred().resolve(whitelist.data);
               }
             }
@@ -438,7 +438,7 @@
                         return false;
                       }
                     });
-                ps.commons.debug.log('Caching source URL whitelist');
+                console.log('Caching source URL whitelist');
                 localStorage.setItem('f2w_whitelist', JSON.stringify({
                   timestamp: now,
                   data: whitelist
@@ -446,7 +446,7 @@
                 return whitelist;
               } else {
                 // Fail silently
-                ps.commons.debug.log('Could not obtain whitelisted source URLs');
+                console.log('Could not obtain whitelisted source URLs');
                 return [];
               }
             });
@@ -457,7 +457,7 @@
               callback(null, blacklist);
             })
             .fail(function() {
-              ps.commons.debug.log('Could not obtain blacklisted source URLs');
+              console.log('Could not obtain blacklisted source URLs');
               callback(null);
             });
         },
@@ -467,7 +467,7 @@
               callback(null, whitelist);
             })
             .fail(function() {
-              ps.commons.debug.log('Could not obtain whitelisted source URLs');
+              console.log('Could not obtain whitelisted source URLs');
               callback(null);
             });
         },
@@ -584,7 +584,7 @@
                 }));
                 return callback(data);
             }).fail(function () {
-                ps.commons.debug.log('Could not obtain datasets');
+                console.log('Could not obtain datasets');
             });
         },
         // END: Primary sources tool API calls
@@ -656,14 +656,6 @@
         /* END: Wikibase API calls */
 
         // BEGIN: utilities
-        debug: {
-            log: function (message) {
-                if (ps.globals.DEBUG) {
-                    console.log('PST: ' + message);
-                }
-            }
-        },
-
         reportError: function reportError(error) {
             mw.notify(error, {
                 autoHide: true,
@@ -862,7 +854,7 @@
 
         jsonToTsvValue: function jsonToTsvValue(dataValue, dataType) {
             if (!dataValue.type) {
-                ps.commons.debug.log('No data value type given');
+                console.log('No data value type given');
                 return dataValue.value;
             }
             switch (dataValue.type) {
@@ -894,13 +886,13 @@
                             return 'P' + dataValue.value['numeric-id'];
                     }
             }
-            ps.commons.debug.log('Unknown data value type ' + dataValue.type);
+            console.log('Unknown data value type ' + dataValue.type);
             return dataValue.value;
         },
 
         jsonToRdfValue: function jsonToRdfValue(dataValue, dataType) {
             if (!dataValue.type) {
-                ps.commons.debug.log('No data value type given');
+                console.log('No data value type given');
                 return dataValue.value;
             }
             switch (dataValue.type) {
@@ -933,7 +925,7 @@
                             return 'P' + dataValue.value['numeric-id'];
                     }
             }
-            ps.commons.debug.log('Unknown data value type ' + dataValue.type);
+            console.log('Unknown data value type ' + dataValue.type);
             return dataValue.value;
         },
 
@@ -959,7 +951,7 @@
 
             for (var i = 3; i < lineLength; i += 2) {
                 if (i === lineLength - 1) {
-                    ps.commons.debug.log('Malformed qualifier/source pieces');
+                    console.log('Malformed qualifier/source pieces');
                     break;
                 }
                 if (/^P\d+$/.exec(line[i])) {
@@ -992,12 +984,12 @@
                         var url = source.sourceObject.replace(/^"/, '').replace(/"$/, '');
                         var blacklisted = isBlacklisted(url);
                         if (blacklisted) {
-                            ps.commons.debug.log('Encountered blacklisted reference URL ' + url);
+                            console.log('Encountered blacklisted reference URL ' + url);
                             var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.key;
                             (function (currentId, currentUrl) {
                                 ps.commons.setStatementState(currentId, ps.globals.STATEMENT_STATES.blacklisted, dataset, 'reference')
                                     .done(function () {
-                                        ps.commons.debug.log('Automatically blacklisted statement ' +
+                                        console.log('Automatically blacklisted statement ' +
                                             currentId + ' with blacklisted reference URL ' +
                                             currentUrl);
                                     });
@@ -1035,7 +1027,7 @@
                 // [ "http:", "", "DATASET-LABEL", "STATE" ]
                 return uri.split('/')[2];
             } else {
-                ps.commons.debug.log('The dataset has an invalid URI: "' + uri + '". Will appear as is (no human-readable conversion)')
+                console.log('The dataset has an invalid URI: "' + uri + '". Will appear as is (no human-readable conversion)')
                 return uri;
             }
         }
