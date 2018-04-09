@@ -181,6 +181,7 @@ $wgResourceModules['ext.PrimarySources.sidebar'] = array(
         '/modules/ext.PrimarySources.sidebar.js'
     ),
     'styles' => array(
+        '/modules/ext.PrimarySources.sidebar.css'
     ),
     'messages' => array(
     ),

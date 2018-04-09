@@ -108,6 +108,7 @@
         "/modules/ext.PrimarySources.sidebar.js"
       ],
       "styles": [
+        "/modules/ext.PrimarySources.sidebar.css"
       ],
       "messages": [
       ],
