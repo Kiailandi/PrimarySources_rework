@@ -943,7 +943,7 @@
                             });
                         }
                     }
-                    console.debug('PRIMARY SOURCES TOOL: Lis of IDs from service call:', ids);
+                    console.debug('PRIMARY SOURCES TOOL: List of IDs from service call:', ids);
                     ps.commons.loadEntityLabels(Array.from(ids));
                     widget.displayServiceResult(data);
                 }
