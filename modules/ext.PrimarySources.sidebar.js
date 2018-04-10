@@ -277,9 +277,18 @@
       var datasetSelectionLink = $(mw.util.addPortletLink(
         'p-pst',
         '#',
-        'Dataset selection',
+        'Select dataset',
         'n-pst-datasets',
-        'Get info and select your primary sources datasets',
+        'Get info and select your primary sources dataset'
+      ));
+
+      // Dataset upload/update
+      $(mw.util.addPortletLink(
+        'p-pst',
+        'Special:PrimarySources',
+        'Upload dataset',
+        'n-pst-upload',
+        'Upload or update a dataset'
       ));
 
       var windowManager = new OO.ui.WindowManager();
