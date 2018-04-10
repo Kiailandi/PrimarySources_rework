@@ -220,7 +220,7 @@
   }
 
   // BEGIN: sidebar links - self invoking
-  mw.loader.using( ['mediawiki.util', 'oojs-ui', 'wikibase.dataTypeStore'], function createSidebarLinks() {
+  mw.loader.using( ['mediawiki.util', 'mediawiki.Title', 'oojs-ui', 'wikibase.dataTypeStore'], function createSidebarLinks() {
       // Primary sources tool dedicated portlet, before the suggestion browser
       $('#p-tb').after(
         $('<div>')
@@ -246,7 +246,7 @@
         '#',
         'Filter',
         'n-pst-filter',
-        'Filter, navigate, curate available data'
+        'Browse and curate available data'
       ));
       
       // Random item
@@ -277,18 +277,18 @@
       var datasetSelectionLink = $(mw.util.addPortletLink(
         'p-pst',
         '#',
-        'Select dataset',
+        'Choose dataset',
         'n-pst-datasets',
-        'Get info and select your primary sources dataset'
+        'Get info and pick your primary sources dataset'
       ));
 
       // Dataset upload/update
       $(mw.util.addPortletLink(
         'p-pst',
-        'Special:PrimarySources',
+        mw.Title.newFromText('Special:PrimarySources').getUrl(),
         'Upload dataset',
         'n-pst-upload',
-        'Upload or update a dataset'
+        'Upload or update a dataset to the primary sources database'
       ));
 
       var windowManager = new OO.ui.WindowManager();
