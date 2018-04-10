@@ -1329,6 +1329,6 @@
 
     mw.ps = ps;
 
-    console.info("Primary sources tool - Filter loaded");
+    console.info('PRIMARY SOURCES TOOL: Filter loaded');
     
 })(mediaWiki, jQuery);

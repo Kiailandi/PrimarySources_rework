@@ -45,6 +45,6 @@
 
     mw.ps = ps;
 
-    console.info("Primary sources tool - Globals module loaded");
+    console.info('PRIMARY SOURCES TOOL: Globals module loaded');
     
 })(mediaWiki, jQuery);

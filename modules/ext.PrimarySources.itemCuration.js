@@ -647,6 +647,6 @@
     });
   });
 
-  console.info("Primary sources tool - Item curation loaded");
+  console.info('PRIMARY SOURCES TOOL: Item curation loaded');
   
 })(mediaWiki, jQuery);

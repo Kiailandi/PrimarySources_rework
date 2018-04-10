@@ -309,6 +309,6 @@
 
   mw.ps = ps;
 
-  console.info("Primary sources tool - Sidebar facilities loaded");
+  console.info('PRIMARY SOURCES TOOL: Sidebar facilities loaded');
     
 })(mediaWiki, jQuery);

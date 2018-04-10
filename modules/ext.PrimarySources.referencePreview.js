@@ -104,6 +104,6 @@
         }
     });
 
-    console.info("Primary sources tool - Reference preview loaded");
+    console.info('PRIMARY SOURCES TOOL: Reference preview loaded');
 
 })(mediaWiki, jQuery);

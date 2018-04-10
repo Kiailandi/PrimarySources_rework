@@ -1026,6 +1026,6 @@
 
     mw.ps = ps;
 
-    console.info("Primary sources tool - Common functions loaded");
+    console.info('PRIMARY SOURCES TOOL: Common functions loaded');
 
 })(mediaWiki, jQuery);
