@@ -222,7 +222,7 @@
   // BEGIN: sidebar links - self invoking
   mw.loader.using( ['mediawiki.util', 'oojs-ui', 'wikibase.dataTypeStore'], function createSidebarLinks() {
       // Primary sources tool dedicated portlet, before the suggestion browser
-      $('#p-ps-navigation').before(
+      $('#p-tb').after(
         $('<div>')
         .addClass('portal')
         .attr({
