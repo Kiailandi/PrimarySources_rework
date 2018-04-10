@@ -304,9 +304,8 @@
     }
 
     function _createClaim(subject, predicate, object, qualifiers) {
-        console.log('OGGETTO TSV:', object);
         var value = (_tsvValueToJson(object)).value;
-        console.log('OGGETTO JSON:', value);
+        console.debug('Converted QuickStatement value to Wikidata JSON:', object, value);
         var api = new mw.Api();
         return api.postWithToken('csrf', {
             action: 'wbcreateclaim',
@@ -341,7 +340,7 @@
     // Public methods
     ps.commons = {
         /**
-         * Return a list of black listed source urls from
+         * Return a list of blacklisted reference URLs from
          * https://www.wikidata.org/wiki/Wikidata:Primary_sources_tool/URL_blacklist
          * saved in localStorage
          * @returns {*}
@@ -354,48 +353,40 @@
                     blacklist.timestamp = 0;
                 }
                 if (now - blacklist.timestamp < ps.globals.CACHE_EXPIRY) {
-                    console.log('Using cached source URL blacklist');
+                    console.info('Using cached reference URL blacklist');
                     return $.Deferred().resolve(blacklist.data);
                 }
             }
             return $.ajax({
                 url: ps.globals.API_ENDPOINTS.SOURCE_URL_BLACKLIST,
-                data: {
-                    origin: '*'
-                }
             }).then(function (data) {
                 if (data && data.parse && data.parse.text && data.parse.text['*']) {
                     var blacklist = data.parse.text['*'].replace(/\n/g, '').replace(/^.*?<ul>(.*?)<\/ul>.*?$/g, '$1').replace(/<\/li>/g, '').split('<li>').slice(1).map(function (url) {
                         return url.trim();
                     }).filter(function (url) {
                         var copy = url;
-
                         if (/\s/g.test(copy) || !/\./g.test(copy)) {
+                            console.warn('Skipping invalid blacklisted URL:', copy);
                             return false;
                         }
                         if (!/^https?:\/\//.test(copy)) {
                             copy = 'http://' + url;
                         }
                         try {
-                            var newUrl = new URL(copy);
-                            var resul = newUrl.host !== '';
-                            return resul;
+                            return (new URL(copy)).host !== '';
                         } catch (e) {
-                            console.log("ERROR");
-                            console.log(e);
+                            console.warn('Skipping invalid blacklisted URL:', copy);
                             return false;
                         }
                     });
-                    console.log('Caching source URL blacklist');
-
+                    console.info('Caching reference URL blacklist');
                     localStorage.setItem('f2w_blacklist', JSON.stringify({
                         timestamp: now,
                         data: blacklist
                     }));
                     return blacklist;
                 } else {
-                    // Fail silently
-                    console.log('Could not obtain blacklisted source URLs');
+                    console.warn('Could not retrieve reference URL blacklist, it will not be used');
                     return [];
                 }
             });
@@ -408,7 +399,7 @@
                 whitelist.timestamp = 0;
               }
               if (now - whitelist.timestamp < ps.globals.CACHE_EXPIRY) {
-                console.log('Using cached source URL whitelist');
+                console.info('Using cached reference URL whitelist');
                 return $.Deferred().resolve(whitelist.data);
               }
             }
@@ -427,6 +418,7 @@
                     .filter(function(url) {
                       var copy = url;
                       if (/\s/g.test(copy) || !/\./g.test(copy)) {
+                        console.warn('Skipping invalid whitelisted URL:', copy);
                         return false;
                       }
                       if (!/^https?:\/\//.test(copy)) {
@@ -435,18 +427,18 @@
                       try {
                         return (new URL(copy)).host !== '';
                       } catch (e) {
+                        console.warn('Skipping invalid whitelisted URL:', copy);
                         return false;
                       }
                     });
-                console.log('Caching source URL whitelist');
+                console.info('Caching reference URL whitelist');
                 localStorage.setItem('f2w_whitelist', JSON.stringify({
                   timestamp: now,
                   data: whitelist
                 }));
                 return whitelist;
               } else {
-                // Fail silently
-                console.log('Could not obtain whitelisted source URLs');
+                console.warn('Could not retrieve reference URL whitelist: it will not be used');
                 return [];
               }
             });
@@ -457,7 +449,7 @@
               callback(null, blacklist);
             })
             .fail(function() {
-              console.log('Could not obtain blacklisted source URLs');
+                console.warn('Could not retrieve reference URL blacklist: it will not be used');
               callback(null);
             });
         },
@@ -467,7 +459,7 @@
               callback(null, whitelist);
             })
             .fail(function() {
-              console.log('Could not obtain whitelisted source URLs');
+                console.warn('Could not retrieve reference URL whitelist: it will not be used');
               callback(null);
             });
         },
@@ -583,8 +575,8 @@
                     data: data
                 }));
                 return callback(data);
-            }).fail(function () {
-                console.log('Could not obtain datasets');
+            }).fail(function (xhr) {
+                console.warn('Could not retrieve the available datasets. Something went wrong when calling:', ps.globals.API_ENDPOINTS.DATASETS_SERVICE, 'The server responded with status code', xhr.status, 'Reason:', xhr.responseText);
             });
         },
         // END: Primary sources tool API calls
@@ -854,7 +846,7 @@
 
         jsonToTsvValue: function jsonToTsvValue(dataValue, dataType) {
             if (!dataValue.type) {
-                console.log('No data value type given');
+                console.warn('Wikidata JSON value without data type:', dataValue, 'It will be converted to QuickStatement as is');
                 return dataValue.value;
             }
             switch (dataValue.type) {
@@ -886,13 +878,13 @@
                             return 'P' + dataValue.value['numeric-id'];
                     }
             }
-            console.log('Unknown data value type ' + dataValue.type);
+            console.warn('Wikidata JSON value with unknown data type:' + dataValue, dataValue.type, 'It will be converted to QuickStatement as is');
             return dataValue.value;
         },
 
         jsonToRdfValue: function jsonToRdfValue(dataValue, dataType) {
             if (!dataValue.type) {
-                console.log('No data value type given');
+                console.warn('Wikidata JSON value without data type:', dataValue, 'It will be converted to RDF as is');
                 return dataValue.value;
             }
             switch (dataValue.type) {
@@ -925,7 +917,7 @@
                             return 'P' + dataValue.value['numeric-id'];
                     }
             }
-            console.log('Unknown data value type ' + dataValue.type);
+            console.warn('Wikidata JSON value with unknown data type:' + dataValue, dataValue.type, 'It will be converted to RDF as is');
             return dataValue.value;
         },
 
@@ -951,7 +943,7 @@
 
             for (var i = 3; i < lineLength; i += 2) {
                 if (i === lineLength - 1) {
-                    console.log('Malformed qualifier/source pieces');
+                    console.warn('Malformed QuickStatement, will skip qualifiers and references:', id);
                     break;
                 }
                 if (/^P\d+$/.exec(line[i])) {
@@ -984,18 +976,16 @@
                         var url = source.sourceObject.replace(/^"/, '').replace(/"$/, '');
                         var blacklisted = isBlacklisted(url);
                         if (blacklisted) {
-                            console.log('Encountered blacklisted reference URL ' + url);
+                            console.info('Hit a blacklisted reference URL:', url);
                             var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.key;
                             (function (currentId, currentUrl) {
                                 ps.commons.setStatementState(currentId, ps.globals.STATEMENT_STATES.blacklisted, dataset, 'reference')
                                     .done(function () {
-                                        console.log('Automatically blacklisted statement ' +
-                                            currentId + ' with blacklisted reference URL ' +
-                                            currentUrl);
+                                        console.info('Blacklisted referenced claim [' + currentId + ']');
                                     });
                             })(sourceQuickStatement, url);
                         }
-                        // Return the opposite, i.e., the whitelisted URLs
+                        // Return the non-blacklisted URLs
                         return !blacklisted;
                     }
                     return true;
@@ -1027,7 +1017,7 @@
                 // [ "http:", "", "DATASET-LABEL", "STATE" ]
                 return uri.split('/')[2];
             } else {
-                console.log('The dataset has an invalid URI: "' + uri + '". Will appear as is (no human-readable conversion)')
+                console.warn('The dataset has an invalid URI: "' + uri + '". Will appear as is')
                 return uri;
             }
         }
@@ -1036,6 +1026,6 @@
 
     mw.ps = ps;
 
-    console.log("Primary sources tool - common functions loaded");
+    console.info("Primary sources tool - Common functions loaded");
 
 })(mediaWiki, jQuery);

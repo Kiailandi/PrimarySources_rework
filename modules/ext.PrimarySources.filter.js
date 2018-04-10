@@ -59,7 +59,7 @@
              */
             var referenceValue = binding[4];
             if (isBlacklisted && ps.commons.isUrl(referenceValue) && isBlacklisted(referenceValue)) {
-                console.log('Skipping statement with blacklisted reference URL ' + referenceValue);
+                console.info('Skipping statement with blacklisted reference URL ' + referenceValue);
                 return;
             }
 
@@ -168,7 +168,7 @@
                         previewParams.push(cells[2].text());
                     }
                     previewParams.push(referenceValue);
-                    console.log('PREVIEW PARAMS:', previewParams);
+                    console.debug('Parameters passed to the reference preview:', previewParams);
                     ps.referencePreview.openNav(
                         previewParams[0], previewParams[1], previewParams[2], previewParams[3],
                         $(curationButtons.$element)
@@ -359,7 +359,7 @@
             var references = [];
             for (var i = 3; i < length; i += 2) {
                 if (i === length - 1) {
-                    console.log('Malformed qualifier/source pieces');
+                    console.warn('Malformed QuickStatement, will skip qualifiers and references:', qs);
                     break;
                 }
                 if (/^P\d+$/.exec(parts[i])) {
@@ -404,7 +404,7 @@
                                     widget.toggle(false).setDisabled(true);
                                 })
                                 .done(function() {
-                                    console.log('Approved referenced claim [' + qs + ']');
+                                    console.info('Approved referenced claim [' + qs + ']');
                                     widget.toggle(false).setDisabled(true);
                                 });
                             }
@@ -425,7 +425,7 @@
                                 widget.toggle(false).setDisabled(true);
                             })
                             .done(function() {
-                                console.log('Approved referenced claim [' + qs + ']');
+                                console.info('Approved referenced claim [' + qs + ']');
                                 widget.toggle(false).setDisabled(true);                
                             });
                         });
@@ -443,7 +443,7 @@
                                 widget.toggle(false).setDisabled(true);
                             })
                             .done(function() {
-                                console.log('Approved claim with no reference [' + qs + ']');
+                                console.info('Approved claim with no reference [' + qs + ']');
                                 widget.toggle(false).setDisabled(true);                
                             });
                         });
@@ -463,7 +463,7 @@
                 var message = widget.statementType === 'claim'
                 ? 'Rejected claim with no reference [' + widget.quickStatement + ']'
                 : 'Rejected referenced claim [' + widget.quickStatement + ']';
-                console.log(message);
+                console.info(message);
                 widget.toggle(false).setDisabled(true);                
             });
         }
@@ -797,7 +797,7 @@
                 this.filteredDataset = filteredDataset;
                 this.filteredProperty = null;
                 this.filteredItemValue = null;
-                console.log('SEARCH:', this.sparql);
+                console.debug('DEFAULT SEARCH triggered. Query:', this.sparql);
                 this.executeSearch();
             }
             // Baked filters
@@ -811,15 +811,17 @@
                 switch (baked) {
                     case 'subjects':
                         this.sparql = subjectsSparqlQuery;
-                        console.log('BAKED FILTER SUBJECT ONLY:', this.sparql);
                         this.sparqlOffset = 0;
                         this.sparqlLimit = 100;
+                        console.debug('BAKED FILTER triggered. Subjects-only query:', this.sparql);
                         this.executeSparqlQuery();
                         break;
                     case 'properties':
+                        console.debug('BAKED FILTER triggered. All properties service call');
                         this.executeServiceCall(ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE);
                         break;
                     case 'values':
+                        console.debug('BAKED FILTER triggered. All values service call');
                         this.executeServiceCall(ps.globals.API_ENDPOINTS.VALUES_SERVICE);
                         break;
                     default:
@@ -840,9 +842,9 @@
                                 .replace('{{FILTER}}', datasetFilter);
                             }
                             this.sparql = filledQuery;
-                            console.log('BAKED FILTER WITH VALUE:', this.sparql);
                             this.sparqlOffset = 0;
                             this.sparqlLimit = 100;
+                            console.debug('BAKED FILTER triggered. Value query:', this.sparql);
                             this.executeSparqlQuery();
                         }
                         // PIDs, perform a search query
@@ -860,7 +862,7 @@
                                 bindings += ' ?dataset';
                             }
                             this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
-                            console.log('BAKED FILTER WITH PROPERTY:', this.sparql);
+                            console.debug('BAKED FILTER triggered. Property query:', this.sparql);
                             this.sparqlOffset = 0;
                             this.sparqlLimit = 300;
                             this.filteredDataset = filteredDataset;
@@ -911,12 +913,12 @@
                     bindings += ' ?dataset';
                 }
                 this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
-                console.log('AUTOCOMPLETION:', this.sparql);
                 this.sparqlOffset = 0;
                 this.sparqlLimit = 300;
                 this.filteredDataset = filteredDataset;
                 this.filteredProperty = filteredProperty;
                 this.filteredItemValue = filteredItemValue;
+                console.debug('AUTOCOMPLETION triggered. Query:', this.sparql);
                 this.executeSearch();
             }
         };
@@ -941,7 +943,7 @@
                             });
                         }
                     }
-                    console.log('IDs FROM SERVICE CALL RESULT:', ids);
+                    console.debug('Lis of IDs from service call:', ids);
                     ps.commons.loadEntityLabels(Array.from(ids));
                     widget.displayServiceResult(data);
                 }
@@ -1084,7 +1086,7 @@
                                 }
                             });
                         });
-                        console.log('IDs FROM SPARQL QUERY RESULT:', ids);
+                        console.debug('List of IDs from SPARQL query:', ids);
                         ps.commons.loadEntityLabels(Array.from(ids));
 
                         // Paging
@@ -1137,7 +1139,7 @@
             var filteredProperty = widget.filteredProperty;
             var filteredItemValue = widget.filteredItemValue;
             var filteredDataset = widget.filteredDataset;
-            //console.log('FILTER ATTRIBUTES', filteredProperty, filteredItemValue, filteredDataset);
+            console.debug('Filter attributes. Dataset:', filteredDataset, 'Entity of interest:', filteredProperty, 'Property of interest:', filteredItemValue);
             /*
              * Subject, property, statement_node, value, reference_property, reference_value, dataset
              *   [0]      [1]          [2]              [3]                [4]               [5]          [6]
@@ -1161,6 +1163,7 @@
             }
             var threshold = filteredDataset ? 4 : 5; // Handle dataset binding
             // Merge statements on common statement_node
+            console.debug('RAW SPARQL results:', bindings);            
             var triples = bindings.filter(binding => binding.length === threshold);
             var full =  bindings.filter(binding => binding.length > threshold);
             var merged = full.map(function(statement) {
@@ -1176,7 +1179,7 @@
                 return toReturn;
             });
             var finalBindings = merged.filter(Boolean); // Filter undefined values
-            //console.log('MERGED BINDINGS', finalBindings);
+            console.debug('MERGED SPARQL results (on statement node):', finalBindings);
             // Build the URL blacklist check
             var isBlacklisted;
             ps.commons.getBlacklistedSourceUrls()
@@ -1184,12 +1187,12 @@
                 isBlacklisted = ps.commons.isBlackListedBuilder(blacklist);
             })
             .fail(function(){
-                console.log('Could not obtain blacklisted source URLs');
+                console.warn('Could not obtain blacklisted source URLs');
             });
             finalBindings.forEach(function (binding) {
                 binding.splice(2, 1); // Get rid of statement_node
                 var row = new SearchResultRow(binding, filteredProperty, filteredItemValue, filteredDataset, isBlacklisted);
-                // console.log('SEARCH RESULT ROW OBJECT:', row);
+                console.debug('Search result row:', row);
                 if (row) {
                     widget.table.append(row.$element);
                 }
@@ -1298,8 +1301,7 @@
             }
         })
             .fail(function (xhr, textStatus) {
-                console.log('The call to ' + service + ' went wrong:', textStatus);
-                reportError('Could not cache suggestions for autocompletion');
+                console.warn('Could not cache suggestions for autocompletion. The call to ' + service + ' went wrong:', textStatus);
             });
         return cache;
     };
@@ -1327,6 +1329,6 @@
 
     mw.ps = ps;
 
-    console.log("Primary sources tool - Filter loaded");
+    console.info("Primary sources tool - Filter loaded");
     
 })(mediaWiki, jQuery);

@@ -1,13 +1,13 @@
 (function (mw, $) {
 
+    // Uncomment the following line to add fake blue statements for testing
+    // localStorage.setItem('f2w_fakeOrRandomData', true);
+
     var ps = mw.ps || {};
 
     var BASE_URI = 'https://pst.wmflabs.org/pst/';
 
-    // Uncomment the following line to add fake blue statements for testing
-    // localStorage.setItem('f2w_fakeOrRandomData', true);
-
-    // accessible object
+    // Public constants
     ps.globals = {
         API_ENDPOINTS: {
             DATASETS_SERVICE: BASE_URI + 'datasets',
@@ -19,10 +19,12 @@
             PROPERTIES_SERVICE: BASE_URI + 'properties',
             VALUES_SERVICE: BASE_URI + 'values',
             SPARQL_SERVICE: BASE_URI + 'sparql',
+            PREVIEW_SERVICE: 'https://tools.wmflabs.org/strephit/search?url=',
             SOURCE_URL_BLACKLIST: 'https://wikidata-pst.wmflabs.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Testwiki:Primary_sources_tool/URL_blacklist',
             SOURCE_URL_WHITELIST: 'https://wikidata-pst.wmflabs.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Testwiki:Primary_sources_tool/URL_whitelist',
             WIKIDATA_ENTITY_DATA_URL: 'https://wikidata-pst.wmflabs.org/wiki/Special:EntityData/{{qid}}.json'
         },
+
         WIKIDATA_API_COMMENT: 'Added via [[Wikidata:Primary sources tool]]',
         STATEMENT_STATES: {
             unapproved: 'new',
@@ -43,6 +45,6 @@
 
     mw.ps = ps;
 
-    console.log("Primary sources tool - Globals module loaded");
+    console.info("Primary sources tool - Globals module loaded");
     
 })(mediaWiki, jQuery);

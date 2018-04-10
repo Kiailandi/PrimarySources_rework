@@ -4,8 +4,7 @@
     ps.referencePreview = {
         openNav : function openNav(itemLabel, propertyLabel, propertyValue, referenceURL, buttons) {
 
-            //console.log("Preview - button args");
-            //console.log(arguments);
+            console.debug("Reference preview buttons passed:", arguments);
         
             $('#myNav').width('100%');
 
@@ -17,7 +16,7 @@
 
             $.ajax({
                 type: 'GET',
-                url: 'https://tools.wmflabs.org/strephit/search?url=' + encodeURIComponent(referenceURL),
+                url: ps.globals.API_ENDPOINTS.PREVIEW_SERVICE + encodeURIComponent(referenceURL),
                 success: function(msg) {
                     $('.loader').remove();
 
@@ -63,8 +62,8 @@
                         blackboard.append('<h1>Preview not available for this reference.</h1>');
                     }
                 },
-                error: function(er){
-                    console.log(er);
+                error: function(xhr){
+                    console.warn('Will not show the reference preview. Something went wrong when calling:', ps.globals.API_ENDPOINTS.PREVIEW_SERVICE, 'The server responded with status code', xhr.status, 'Reason:', xhr.responseText);
                     $('.loader').remove();
                     blackboard.append('<h1>Preview not available for this reference.</h1>');
                 }
@@ -105,6 +104,6 @@
         }
     });
 
-    console.log("Primary sources tool - Reference preview loaded");
+    console.info("Primary sources tool - Reference preview loaded");
 
 })(mediaWiki, jQuery);

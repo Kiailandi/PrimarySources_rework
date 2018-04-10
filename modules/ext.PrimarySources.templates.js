@@ -318,6 +318,6 @@
     
     mw.ps = ps;
 
-    console.log("Primary sources tool - HTML templates loaded");
+    console.info("Primary sources tool - HTML templates loaded");
     
 })( mediaWiki, jQuery );
