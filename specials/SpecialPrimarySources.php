@@ -18,16 +18,21 @@ class SpecialPrimarySources extends SpecialPage {
      *  [[Special:HelloWorld/subpage]].
      */
     public function execute( $sub ) {
+        $BASE_URI = 'https://pst.wmflabs.org/pst/';
+        $DATASETS_SERVICE = $BASE_URI . 'datasets';
+        $UPLOAD_SERVICE = $BASE_URI . 'upload';
+        $UPDATE_SERVICE = $BASE_URI . 'update';
+
         $out = $this->getOutput();
         $user = $this->getUser();
 
-        $out->setPageTitle( 'Data Curation' ); 
+        $out->setPageTitle( 'Upload or update dataset' ); 
 
-        if($user->isLoggedIn() || $sub == "alohomora"){
+        if($user->isLoggedIn()){
             // Parses message from .i18n.php as wikitext and adds it to the
             // page output.
 
-            $json = file_get_contents('https://pst.wmflabs.org/pst/datasets');
+            $json = file_get_contents($DATASETS_SERVICE);
             $datasets = json_decode($json);
             $keyUser = "user";
             $keyDataset = "dataset";
@@ -38,49 +43,51 @@ class SpecialPrimarySources extends SpecialPage {
                     array_push($userDatasets, $datasets[$i]->$keyDataset);
                 }
             }
-
-            $out->addHTML('<script>
-                            function swap(){
-                                if($("#swap").text() == "I want to update a dataset"){
-                                    $("#uploadForm").hide();
-                                    $("#updateForm").show();
-                                    $("#swap").text("I want to upload a dataset");
+            // Enable update if the user has uploaded at least a dataset
+            if(count($userDatasets) > 0){
+                $out->addHTML('<script>
+                                function swap(){
+                                    if($("#swap").text() == "I want to update a dataset"){
+                                        $("#uploadForm").hide();
+                                        $("#updateForm").show();
+                                        $("#swap").text("I want to upload a dataset");
+                                    }
+                                    else{
+                                        $("#updateForm").hide();
+                                        $("#uploadForm").show();
+                                        $("#swap").text("I want to update a dataset");
+                                    }
                                 }
-                                else{
-                                    $("#updateForm").hide();
-                                    $("#uploadForm").show();
-                                    $("#swap").text("I want to update a dataset");
-                                }
-                            }
-                            </script>');
-                            
-            $out->addHTML('<button id="swap" onClick="swap()">I want to update a dataset</button><br><br>');
-            
-            $updateString= '<form id="updateForm" action="http://pst.wmflabs.org/pst/update" method="post" enctype="multipart/form-data" style="display:none">
-                <label>Update Dataset</label><br><br>
-                <input type="hidden" name="user" value="' . $user->getName() . '">
-                Dataset name: <select name="name">';
-            for($i = 0; $i < count($userDatasets); $i++){
-                $updateString.= '<option value="' . $userDatasets[$i] . '">' . explode('/', $userDatasets[$i])[2] . '</option>';
+                                </script>');
+                                
+                $out->addHTML('<button id="swap" onClick="swap()">I want to update a dataset</button><br /><br />');
+                
+                $updateString= '<form id="updateForm" action="' . $UPDATE_SERVICE . '" method="post" enctype="multipart/form-data" style="display:none">
+                    <label><b>Update</b></label><br /><br />
+                    <input type="hidden" name="user" value="' . $user->getName() . '">
+                    Dataset name: <select name="name">';
+                for($i = 0; $i < count($userDatasets); $i++){
+                    $updateString.= '<option value="' . $userDatasets[$i] . '">' . explode('/', $userDatasets[$i])[2] . '</option>';
+                }
+                $updateString.='</select><br />
+                              Dataset file to remove: <input type="file" name="remove" id="remove"><br />
+                              Dataset file to add: <input type="file" name="add" id="add"><br /><br />
+                              <input type="button" onclick="if($(\'#remove\').get(0).files.length == 0 || $(\'#add\').get(0).files.length == 0 ){alert(\'Please select a file for both inputs\')}else{submit()}" value="Submit">
+                              </form>';
+                $out->addHTML($updateString);
             }
-            $updateString.='</select><br>
-                          Dataset file to remove: <input type="file" name="remove" id="remove"><br>
-                          Dataset file to add: <input type="file" name="add" id="add"><br><br>
-                          <input type="button" onclick="if($(\'#remove\').get(0).files.length == 0 || $(\'#add\').get(0).files.length == 0 ){alert(\'Please select a file for both inputs\')}else{submit()}" value="Submit">
-                          </form>';
 
-            $out->addHTML('<form id="uploadForm" action="http://pst.wmflabs.org/pst/upload" method="post" enctype="multipart/form-data">
-                          <label>Upload Dataset</label><br><br>
+            $out->addHTML('<form id="uploadForm" action="' . $UPLOAD_SERVICE . '" method="post" enctype="multipart/form-data">
+                          <label><b>Upload</b></label><br /><br />
                           <input type="hidden" name="user" value="' . $user->getName() . '">
-                          Dataset name: <input type="text" name="name" value="dataset name"><br>
-                          Dataset file: <input type="file" name="dataset" id="dataset" multiple><br><br>
+                          Dataset name: <input type="text" name="name" value=""><br />
+                          Dataset file: <input type="file" name="dataset" id="dataset" multiple><br /><br />
                           <input type="button" onclick="if($(\'#dataset\').get(0).files.length == 0){alert(\'Please select a file\')}else{submit()}" value="Submit">
                           </form>');
 
-            $out->addHTML($updateString);
         }
         else{
-            $out->addWikiText( strtoupper('Please log in to use this feature') );
+            $out->addWikiText( strtoupper('please log in to use this feature') );
         }
     }
 
