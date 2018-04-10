@@ -423,7 +423,7 @@
                 // No source, duplicate statement
                 ps.commons.setStatementState(freebaseObject.id, ps.globals.STATEMENT_STATES.duplicate, freebaseObject.dataset, 'claim')
                   .done(function() {
-                    console.info('Marked as duplicate existing claim with no reference [' + freebaseObject.id + ']');
+                    console.info('PRIMARY SOURCES TOOL: Marked as duplicate existing claim with no reference [' + freebaseObject.id + ']');
                   });
               } else {
                 // maybe new sources
@@ -442,7 +442,7 @@
                 if (wikidataObject.mainsnak.snaktype === 'value' &&
                   ps.commons.jsonToTsvValue(wikidataObject.mainsnak.datavalue) === freebaseObject.object) {
                   isDuplicate = true;
-                  console.info('Found existing claim [' + freebaseObject.id + ']' );
+                  console.info('PRIMARY SOURCES TOOL: Found existing claim [' + freebaseObject.id + ']' );
 
                   // Add new sources to existing statement
                   ps.itemCuration.prepareNewSources(
@@ -464,7 +464,7 @@
       }
       for (var property in newClaims) {
         var claims = newClaims[property];
-        console.info('New claim with property [' + property + ']');
+        console.info('PRIMARY SOURCES TOOL: New claim with property [' + property + ']');
         createNewClaim(property, claims);
       }
     },
@@ -531,7 +531,7 @@
                     // The back end approves everything
                     ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'reference')
                       .done(function() {
-                        console.info('Approved referenced claim [' + sourceQuickStatement + ']');
+                        console.info('PRIMARY SOURCES TOOL: Approved referenced claim [' + sourceQuickStatement + ']');
                         if (data.pageinfo && data.pageinfo.lastrevid) {
                           document.location.hash = 'revision=' +
                             data.pageinfo.lastrevid;
@@ -551,7 +551,7 @@
                     // The back end approves everything
                     ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'reference')
                       .done(function() {
-                        console.info('Approved referenced claim [' + sourceQuickStatement + ']');
+                        console.info('PRIMARY SOURCES TOOL: Approved referenced claim [' + sourceQuickStatement + ']');
                         if (data.pageinfo && data.pageinfo.lastrevid) {
                           document.location.hash = 'revision=' +
                             data.pageinfo.lastrevid;
@@ -565,7 +565,7 @@
           // Reference rejection
           else if (classList.contains('f2w-reject')) {
             ps.commons.setStatementState(sourceQuickStatement, ps.globals.STATEMENT_STATES.rejected, dataset, 'reference').done(function() {
-              console.info('Rejected referenced claim [' + sourceQuickStatement + ']');
+              console.info('PRIMARY SOURCES TOOL: Rejected referenced claim [' + sourceQuickStatement + ']');
               return document.location.reload();
             });
           }
@@ -622,7 +622,7 @@
     }
     qid = ps.itemCuration.getQid();
     if (!qid) {
-      return console.warn('Could not retrieve the QID of the current page');
+      return console.warn('PRIMARY SOURCES TOOL: Could not retrieve the QID of the current page');
     }
     
     async.parallel({

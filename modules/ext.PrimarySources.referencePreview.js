@@ -63,7 +63,7 @@
                     }
                 },
                 error: function(xhr){
-                    console.warn('Will not show the reference preview. Something went wrong when calling:', ps.globals.API_ENDPOINTS.PREVIEW_SERVICE, 'The server responded with status code', xhr.status, 'Reason:', xhr.responseText);
+                    console.warn('PRIMARY SOURCES TOOL: Will not show the reference preview. Something went wrong when calling:', ps.globals.API_ENDPOINTS.PREVIEW_SERVICE, 'The server responded with status code', xhr.status, 'Reason:', xhr.responseText);
                     $('.loader').remove();
                     blackboard.append('<h1>Preview not available for this reference.</h1>');
                 }

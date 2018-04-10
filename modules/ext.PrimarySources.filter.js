@@ -59,7 +59,7 @@
              */
             var referenceValue = binding[4];
             if (isBlacklisted && ps.commons.isUrl(referenceValue) && isBlacklisted(referenceValue)) {
-                console.info('Skipping statement with blacklisted reference URL ' + referenceValue);
+                console.info('PRIMARY SOURCES TOOL: Skipping statement with blacklisted reference URL ' + referenceValue);
                 return;
             }
 
@@ -168,7 +168,7 @@
                         previewParams.push(cells[2].text());
                     }
                     previewParams.push(referenceValue);
-                    console.debug('Parameters passed to the reference preview:', previewParams);
+                    console.debug('PRIMARY SOURCES TOOL: Parameters passed to the reference preview:', previewParams);
                     ps.referencePreview.openNav(
                         previewParams[0], previewParams[1], previewParams[2], previewParams[3],
                         $(curationButtons.$element)
@@ -359,7 +359,7 @@
             var references = [];
             for (var i = 3; i < length; i += 2) {
                 if (i === length - 1) {
-                    console.warn('Malformed QuickStatement, will skip qualifiers and references:', qs);
+                    console.warn('PRIMARY SOURCES TOOL: Malformed QuickStatement, will skip qualifiers and references:', qs);
                     break;
                 }
                 if (/^P\d+$/.exec(parts[i])) {
@@ -404,7 +404,7 @@
                                     widget.toggle(false).setDisabled(true);
                                 })
                                 .done(function() {
-                                    console.info('Approved referenced claim [' + qs + ']');
+                                    console.info('PRIMARY SOURCES TOOL: Approved referenced claim [' + qs + ']');
                                     widget.toggle(false).setDisabled(true);
                                 });
                             }
@@ -425,7 +425,7 @@
                                 widget.toggle(false).setDisabled(true);
                             })
                             .done(function() {
-                                console.info('Approved referenced claim [' + qs + ']');
+                                console.info('PRIMARY SOURCES TOOL: Approved referenced claim [' + qs + ']');
                                 widget.toggle(false).setDisabled(true);                
                             });
                         });
@@ -443,7 +443,7 @@
                                 widget.toggle(false).setDisabled(true);
                             })
                             .done(function() {
-                                console.info('Approved claim with no reference [' + qs + ']');
+                                console.info('PRIMARY SOURCES TOOL: Approved claim with no reference [' + qs + ']');
                                 widget.toggle(false).setDisabled(true);                
                             });
                         });
@@ -797,7 +797,7 @@
                 this.filteredDataset = filteredDataset;
                 this.filteredProperty = null;
                 this.filteredItemValue = null;
-                console.debug('DEFAULT SEARCH triggered. Query:', this.sparql);
+                console.debug('PRIMARY SOURCES TOOL: DEFAULT SEARCH triggered. Query:', this.sparql);
                 this.executeSearch();
             }
             // Baked filters
@@ -813,15 +813,15 @@
                         this.sparql = subjectsSparqlQuery;
                         this.sparqlOffset = 0;
                         this.sparqlLimit = 100;
-                        console.debug('BAKED FILTER triggered. Subjects-only query:', this.sparql);
+                        console.debug('PRIMARY SOURCES TOOL: BAKED FILTER triggered. Subjects-only query:', this.sparql);
                         this.executeSparqlQuery();
                         break;
                     case 'properties':
-                        console.debug('BAKED FILTER triggered. All properties service call');
+                        console.debug('PRIMARY SOURCES TOOL: BAKED FILTER triggered. All properties service call');
                         this.executeServiceCall(ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE);
                         break;
                     case 'values':
-                        console.debug('BAKED FILTER triggered. All values service call');
+                        console.debug('PRIMARY SOURCES TOOL: BAKED FILTER triggered. All values service call');
                         this.executeServiceCall(ps.globals.API_ENDPOINTS.VALUES_SERVICE);
                         break;
                     default:
@@ -844,7 +844,7 @@
                             this.sparql = filledQuery;
                             this.sparqlOffset = 0;
                             this.sparqlLimit = 100;
-                            console.debug('BAKED FILTER triggered. Value query:', this.sparql);
+                            console.debug('PRIMARY SOURCES TOOL: BAKED FILTER triggered. Value query:', this.sparql);
                             this.executeSparqlQuery();
                         }
                         // PIDs, perform a search query
@@ -862,7 +862,7 @@
                                 bindings += ' ?dataset';
                             }
                             this.sparql = filledQuery.replace('{{BINDINGS}}', bindings);
-                            console.debug('BAKED FILTER triggered. Property query:', this.sparql);
+                            console.debug('PRIMARY SOURCES TOOL: BAKED FILTER triggered. Property query:', this.sparql);
                             this.sparqlOffset = 0;
                             this.sparqlLimit = 300;
                             this.filteredDataset = filteredDataset;
@@ -918,7 +918,7 @@
                 this.filteredDataset = filteredDataset;
                 this.filteredProperty = filteredProperty;
                 this.filteredItemValue = filteredItemValue;
-                console.debug('AUTOCOMPLETION triggered. Query:', this.sparql);
+                console.debug('PRIMARY SOURCES TOOL: AUTOCOMPLETION triggered. Query:', this.sparql);
                 this.executeSearch();
             }
         };
@@ -943,7 +943,7 @@
                             });
                         }
                     }
-                    console.debug('Lis of IDs from service call:', ids);
+                    console.debug('PRIMARY SOURCES TOOL: Lis of IDs from service call:', ids);
                     ps.commons.loadEntityLabels(Array.from(ids));
                     widget.displayServiceResult(data);
                 }
@@ -1086,7 +1086,7 @@
                                 }
                             });
                         });
-                        console.debug('List of IDs from SPARQL query:', ids);
+                        console.debug('PRIMARY SOURCES TOOL: List of IDs from SPARQL query:', ids);
                         ps.commons.loadEntityLabels(Array.from(ids));
 
                         // Paging
@@ -1139,7 +1139,7 @@
             var filteredProperty = widget.filteredProperty;
             var filteredItemValue = widget.filteredItemValue;
             var filteredDataset = widget.filteredDataset;
-            console.debug('Filter attributes. Dataset:', filteredDataset, 'Entity of interest:', filteredProperty, 'Property of interest:', filteredItemValue);
+            console.debug('PRIMARY SOURCES TOOL: Filter attributes. Dataset:', filteredDataset, 'Entity of interest:', filteredProperty, 'Property of interest:', filteredItemValue);
             /*
              * Subject, property, statement_node, value, reference_property, reference_value, dataset
              *   [0]      [1]          [2]              [3]                [4]               [5]          [6]
@@ -1163,7 +1163,7 @@
             }
             var threshold = filteredDataset ? 4 : 5; // Handle dataset binding
             // Merge statements on common statement_node
-            console.debug('RAW SPARQL results:', bindings);            
+            console.debug('PRIMARY SOURCES TOOL: RAW SPARQL results:', bindings);            
             var triples = bindings.filter(binding => binding.length === threshold);
             var full =  bindings.filter(binding => binding.length > threshold);
             var merged = full.map(function(statement) {
@@ -1179,7 +1179,7 @@
                 return toReturn;
             });
             var finalBindings = merged.filter(Boolean); // Filter undefined values
-            console.debug('MERGED SPARQL results (on statement node):', finalBindings);
+            console.debug('PRIMARY SOURCES TOOL: MERGED SPARQL results (on statement node):', finalBindings);
             // Build the URL blacklist check
             var isBlacklisted;
             ps.commons.getBlacklistedSourceUrls()
@@ -1187,12 +1187,12 @@
                 isBlacklisted = ps.commons.isBlackListedBuilder(blacklist);
             })
             .fail(function(){
-                console.warn('Could not obtain blacklisted source URLs');
+                console.warn('PRIMARY SOURCES TOOL: Could not obtain blacklisted source URLs');
             });
             finalBindings.forEach(function (binding) {
                 binding.splice(2, 1); // Get rid of statement_node
                 var row = new SearchResultRow(binding, filteredProperty, filteredItemValue, filteredDataset, isBlacklisted);
-                console.debug('Search result row:', row);
+                console.debug('PRIMARY SOURCES TOOL: Search result row:', row);
                 if (row) {
                     widget.table.append(row.$element);
                 }
@@ -1301,7 +1301,7 @@
             }
         })
             .fail(function (xhr, textStatus) {
-                console.warn('Could not cache suggestions for autocompletion. The call to ' + service + ' went wrong:', textStatus);
+                console.warn('PRIMARY SOURCES TOOL: Could not cache suggestions for autocompletion. The call to ' + service + ' went wrong:', textStatus);
             });
         return cache;
     };

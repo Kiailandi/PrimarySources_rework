@@ -305,7 +305,7 @@
 
     function _createClaim(subject, predicate, object, qualifiers) {
         var value = (_tsvValueToJson(object)).value;
-        console.debug('Converted QuickStatement value to Wikidata JSON:', object, value);
+        console.debug('PRIMARY SOURCES TOOL: Converted QuickStatement value to Wikidata JSON:', object, value);
         var api = new mw.Api();
         return api.postWithToken('csrf', {
             action: 'wbcreateclaim',
@@ -353,7 +353,7 @@
                     blacklist.timestamp = 0;
                 }
                 if (now - blacklist.timestamp < ps.globals.CACHE_EXPIRY) {
-                    console.info('Using cached reference URL blacklist');
+                    console.info('PRIMARY SOURCES TOOL: Using cached reference URL blacklist');
                     return $.Deferred().resolve(blacklist.data);
                 }
             }
@@ -366,7 +366,7 @@
                     }).filter(function (url) {
                         var copy = url;
                         if (/\s/g.test(copy) || !/\./g.test(copy)) {
-                            console.warn('Skipping invalid blacklisted URL:', copy);
+                            console.warn('PRIMARY SOURCES TOOL: Skipping invalid blacklisted URL:', copy);
                             return false;
                         }
                         if (!/^https?:\/\//.test(copy)) {
@@ -375,18 +375,18 @@
                         try {
                             return (new URL(copy)).host !== '';
                         } catch (e) {
-                            console.warn('Skipping invalid blacklisted URL:', copy);
+                            console.warn('PRIMARY SOURCES TOOL: Skipping invalid blacklisted URL:', copy);
                             return false;
                         }
                     });
-                    console.info('Caching reference URL blacklist');
+                    console.info('PRIMARY SOURCES TOOL: Caching reference URL blacklist');
                     localStorage.setItem('f2w_blacklist', JSON.stringify({
                         timestamp: now,
                         data: blacklist
                     }));
                     return blacklist;
                 } else {
-                    console.warn('Could not retrieve reference URL blacklist, it will not be used');
+                    console.warn('PRIMARY SOURCES TOOL: Could not retrieve reference URL blacklist, it will not be used');
                     return [];
                 }
             });
@@ -399,7 +399,7 @@
                 whitelist.timestamp = 0;
               }
               if (now - whitelist.timestamp < ps.globals.CACHE_EXPIRY) {
-                console.info('Using cached reference URL whitelist');
+                console.info('PRIMARY SOURCES TOOL: Using cached reference URL whitelist');
                 return $.Deferred().resolve(whitelist.data);
               }
             }
@@ -418,7 +418,7 @@
                     .filter(function(url) {
                       var copy = url;
                       if (/\s/g.test(copy) || !/\./g.test(copy)) {
-                        console.warn('Skipping invalid whitelisted URL:', copy);
+                        console.warn('PRIMARY SOURCES TOOL: Skipping invalid whitelisted URL:', copy);
                         return false;
                       }
                       if (!/^https?:\/\//.test(copy)) {
@@ -427,18 +427,18 @@
                       try {
                         return (new URL(copy)).host !== '';
                       } catch (e) {
-                        console.warn('Skipping invalid whitelisted URL:', copy);
+                        console.warn('PRIMARY SOURCES TOOL: Skipping invalid whitelisted URL:', copy);
                         return false;
                       }
                     });
-                console.info('Caching reference URL whitelist');
+                console.info('PRIMARY SOURCES TOOL: Caching reference URL whitelist');
                 localStorage.setItem('f2w_whitelist', JSON.stringify({
                   timestamp: now,
                   data: whitelist
                 }));
                 return whitelist;
               } else {
-                console.warn('Could not retrieve reference URL whitelist: it will not be used');
+                console.warn('PRIMARY SOURCES TOOL: Could not retrieve reference URL whitelist: it will not be used');
                 return [];
               }
             });
@@ -449,7 +449,7 @@
               callback(null, blacklist);
             })
             .fail(function() {
-                console.warn('Could not retrieve reference URL blacklist: it will not be used');
+                console.warn('PRIMARY SOURCES TOOL: Could not retrieve reference URL blacklist: it will not be used');
               callback(null);
             });
         },
@@ -459,7 +459,7 @@
               callback(null, whitelist);
             })
             .fail(function() {
-                console.warn('Could not retrieve reference URL whitelist: it will not be used');
+                console.warn('PRIMARY SOURCES TOOL: Could not retrieve reference URL whitelist: it will not be used');
               callback(null);
             });
         },
@@ -576,7 +576,7 @@
                 }));
                 return callback(data);
             }).fail(function (xhr) {
-                console.warn('Could not retrieve the available datasets. Something went wrong when calling:', ps.globals.API_ENDPOINTS.DATASETS_SERVICE, 'The server responded with status code', xhr.status, 'Reason:', xhr.responseText);
+                console.warn('PRIMARY SOURCES TOOL: Could not retrieve the available datasets. Something went wrong when calling:', ps.globals.API_ENDPOINTS.DATASETS_SERVICE, 'The server responded with status code', xhr.status, 'Reason:', xhr.responseText);
             });
         },
         // END: Primary sources tool API calls
@@ -846,7 +846,7 @@
 
         jsonToTsvValue: function jsonToTsvValue(dataValue, dataType) {
             if (!dataValue.type) {
-                console.warn('Wikidata JSON value without data type:', dataValue, 'It will be converted to QuickStatement as is');
+                console.warn('PRIMARY SOURCES TOOL: Wikidata JSON value without data type:', dataValue, 'It will be converted to QuickStatement as is');
                 return dataValue.value;
             }
             switch (dataValue.type) {
@@ -878,13 +878,13 @@
                             return 'P' + dataValue.value['numeric-id'];
                     }
             }
-            console.warn('Wikidata JSON value with unknown data type:' + dataValue, dataValue.type, 'It will be converted to QuickStatement as is');
+            console.warn('PRIMARY SOURCES TOOL: Wikidata JSON value with unknown data type:' + dataValue, dataValue.type, 'It will be converted to QuickStatement as is');
             return dataValue.value;
         },
 
         jsonToRdfValue: function jsonToRdfValue(dataValue, dataType) {
             if (!dataValue.type) {
-                console.warn('Wikidata JSON value without data type:', dataValue, 'It will be converted to RDF as is');
+                console.warn('PRIMARY SOURCES TOOL: Wikidata JSON value without data type:', dataValue, 'It will be converted to RDF as is');
                 return dataValue.value;
             }
             switch (dataValue.type) {
@@ -917,7 +917,7 @@
                             return 'P' + dataValue.value['numeric-id'];
                     }
             }
-            console.warn('Wikidata JSON value with unknown data type:' + dataValue, dataValue.type, 'It will be converted to RDF as is');
+            console.warn('PRIMARY SOURCES TOOL: Wikidata JSON value with unknown data type:' + dataValue, dataValue.type, 'It will be converted to RDF as is');
             return dataValue.value;
         },
 
@@ -943,7 +943,7 @@
 
             for (var i = 3; i < lineLength; i += 2) {
                 if (i === lineLength - 1) {
-                    console.warn('Malformed QuickStatement, will skip qualifiers and references:', id);
+                    console.warn('PRIMARY SOURCES TOOL: Malformed QuickStatement, will skip qualifiers and references:', id);
                     break;
                 }
                 if (/^P\d+$/.exec(line[i])) {
@@ -976,12 +976,12 @@
                         var url = source.sourceObject.replace(/^"/, '').replace(/"$/, '');
                         var blacklisted = isBlacklisted(url);
                         if (blacklisted) {
-                            console.info('Hit a blacklisted reference URL:', url);
+                            console.info('PRIMARY SOURCES TOOL: Hit a blacklisted reference URL:', url);
                             var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.key;
                             (function (currentId, currentUrl) {
                                 ps.commons.setStatementState(currentId, ps.globals.STATEMENT_STATES.blacklisted, dataset, 'reference')
                                     .done(function () {
-                                        console.info('Blacklisted referenced claim [' + currentId + ']');
+                                        console.info('PRIMARY SOURCES TOOL: Blacklisted referenced claim [' + currentId + ']');
                                     });
                             })(sourceQuickStatement, url);
                         }
@@ -1017,7 +1017,7 @@
                 // [ "http:", "", "DATASET-LABEL", "STATE" ]
                 return uri.split('/')[2];
             } else {
-                console.warn('The dataset has an invalid URI: "' + uri + '". Will appear as is')
+                console.warn('PRIMARY SOURCES TOOL: The dataset has an invalid URI: "' + uri + '". Will appear as is')
                 return uri;
             }
         }
