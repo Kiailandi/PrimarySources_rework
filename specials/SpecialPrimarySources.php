@@ -71,6 +71,8 @@ class SpecialPrimarySources extends SpecialPage {
                 $updateHtml.='</select></td></tr>
                     <tr class="mw-htmlform-field-UpdateSourceField"><td class="mw-label"><label for="datasetToRemove">Dataset file to remove:</label></td><td class="mw-input"><input id="datasetToRemove" name="remove" type="file"></td></tr>
                     <tr class="mw-htmlform-field-UpdateSourceField"><td class="mw-label"><label for="datasetToAdd">Dataset file to add:</label></td><td class="mw-input"><input id="datasetToAdd" name="add" type="file"></td></tr>
+                    <tr><td colspan="2" class="htmlform-tip">Maximum file size: 250 MB</td></tr>
+                    <tr><td colspan="2" class="htmlform-tip">File format allowed: RDF</td></tr>
                     </tbody></table>
                     </fieldset>
                     <span class="mw-htmlform-submit-buttons">
