@@ -73,7 +73,9 @@ class SpecialPrimarySources extends SpecialPage {
                     <tr class="mw-htmlform-field-UpdateSourceField"><td class="mw-label"><label for="datasetToAdd">Dataset file to add:</label></td><td class="mw-input"><input id="datasetToAdd" name="add" type="file"></td></tr>
                     </tbody></table>
                     </fieldset>
-                    <input type="button" onclick="if($(\'#remove\').get(0).files.length === 0 || $(\'#add\').get(0).files.length === 0 ){alert(\'Please select a file for both inputs\')}else{submit()}" value="Submit">
+                    <span class="mw-htmlform-submit-buttons">
+                    <input type="button" onclick="if($(\'#datasetToRemove\').get(0).files.length === 0 || $(\'#datasetToAdd\').get(0).files.length === 0 ){alert(\'Please select a file for both inputs\')}else{submit()}" title="Update your dataset" value="Submit">
+                    </span>
                     </form>';
                 $out->addHTML($updateHtml);
             }
@@ -89,7 +91,9 @@ class SpecialPrimarySources extends SpecialPage {
                 <tr><td colspan="2" class="htmlform-tip">File format allowed: RDF</td></tr>
                 </tbody></table>
                 </fieldset>
-                <input type="button" onclick="if($(\'#dataset\').get(0).files.length === 0){alert(\'Please select a file\')}else{submit()}" value="Submit">
+                <span class="mw-htmlform-submit-buttons">
+                <input type="button" onclick="if($(\'#datasetFiles\').get(0).files.length === 0){alert(\'Please select a file\')}else{submit()}" title="Upload your dataset" value="Submit">
+                </span>
                 </form>');
 
         }
