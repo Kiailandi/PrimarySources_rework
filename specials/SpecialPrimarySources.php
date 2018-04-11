@@ -62,7 +62,7 @@ class SpecialPrimarySources extends SpecialPage {
                     <fieldset>
                     <legend>Update</legend>
                     <table><tbody>
-                    <tr class="mw-htmlform-field-"><td class="mw-label"><label for="datasetToUpdate">Dataset name to update:</label></td><td class="mw-input"><select id="datasetToUpdate" name="name">';
+                    <tr class="mw-htmlform-field-"><td class="mw-label"><label for="datasetToUpdate">Dataset name to update:</label></td><td class="mw-input"><select id="datasetToUpdate" name="dataset">';
 
                 for($i = 0; $i < count($userDatasets); $i++){
                     $updateHtml.= '<option value="' . $userDatasets[$i] . '">' . explode('/', $userDatasets[$i])[2] . '</option>';
