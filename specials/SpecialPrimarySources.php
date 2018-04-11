@@ -29,11 +29,7 @@ class SpecialPrimarySources extends SpecialPage {
         $out->setPageTitle( 'Upload or update dataset' ); 
 
         if($user->isLoggedIn()){
-            // Parses message from .i18n.php as wikitext and adds it to the
-            // page output.
-
-            $json = file_get_contents($DATASETS_SERVICE);
-            $datasets = json_decode($json);
+            $datasets = json_decode(file_get_contents($DATASETS_SERVICE));
             $keyUser = "user";
             $keyDataset = "dataset";
             $userDatasets = [];
@@ -43,7 +39,7 @@ class SpecialPrimarySources extends SpecialPage {
                     array_push($userDatasets, $datasets[$i]->$keyDataset);
                 }
             }
-            // Enable update if the user has uploaded at least a dataset
+            // Enable update only if the user has uploaded at least a dataset
             if(count($userDatasets) > 0){
                 $out->addHTML('<script>
                                 function swap(){
@@ -63,7 +59,8 @@ class SpecialPrimarySources extends SpecialPage {
                 $out->addHTML('<button id="swap" onClick="swap()">I want to update a dataset</button><br /><br />');
                 
                 $updateString= '<form id="updateForm" action="' . $UPDATE_SERVICE . '" method="post" enctype="multipart/form-data" style="display:none">
-                    <label><b>Update</b></label><br /><br />
+                    <fieldset>
+                    <legend>Update</legend>
                     <input type="hidden" name="user" value="' . $user->getName() . '">
                     Dataset name: <select name="name">';
                 for($i = 0; $i < count($userDatasets); $i++){
@@ -72,18 +69,21 @@ class SpecialPrimarySources extends SpecialPage {
                 $updateString.='</select><br />
                               Dataset file to remove: <input type="file" name="remove" id="remove"><br />
                               Dataset file to add: <input type="file" name="add" id="add"><br /><br />
-                              <input type="button" onclick="if($(\'#remove\').get(0).files.length == 0 || $(\'#add\').get(0).files.length == 0 ){alert(\'Please select a file for both inputs\')}else{submit()}" value="Submit">
+                              <input type="button" onclick="if($(\'#remove\').get(0).files.length === 0 || $(\'#add\').get(0).files.length === 0 ){alert(\'Please select a file for both inputs\')}else{submit()}" value="Submit">
+                              </fieldset>
                               </form>';
                 $out->addHTML($updateString);
             }
 
             $out->addHTML('<form id="uploadForm" action="' . $UPLOAD_SERVICE . '" method="post" enctype="multipart/form-data">
-                          <label><b>Upload</b></label><br /><br />
-                          <input type="hidden" name="user" value="' . $user->getName() . '">
-                          Dataset name: <input type="text" name="name" value=""><br />
-                          Dataset file: <input type="file" name="dataset" id="dataset" multiple><br /><br />
-                          <input type="button" onclick="if($(\'#dataset\').get(0).files.length == 0){alert(\'Please select a file\')}else{submit()}" value="Submit">
-                          </form>');
+                <fieldset>
+                <legend>Upload</legend>
+                <input type="hidden" name="user" value="' . $user->getName() . '">
+                Dataset name: <input type="text" name="name" value=""><br />
+                Dataset file: <input type="file" name="dataset" id="dataset" multiple><br /><br />
+                <input type="button" onclick="if($(\'#dataset\').get(0).files.length === 0){alert(\'Please select a file\')}else{submit()}" value="Submit">
+                </fieldset>                
+                </form>');
 
         }
         else{
