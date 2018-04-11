@@ -84,7 +84,7 @@ class SpecialPrimarySources extends SpecialPage {
                 <tr><td class="mw-label"><label for="dataset">Dataset files:</label></td><td class="mw-input"><input id="dataset" type="file" name="dataset" multiple></td></tr>
                 <tr><td colspan="2" class="htmlform-tip">Maximum file size: 250 MB</td></tr>
                 <tr><td colspan="2" class="htmlform-tip">File type allowed: RDF</td></tr>
-                </table></tbody>
+                </tbody></table>
                 </fieldset>
                 <input type="button" onclick="if($(\'#dataset\').get(0).files.length === 0){alert(\'Please select a file\')}else{submit()}" value="Submit">
                 </form>');
