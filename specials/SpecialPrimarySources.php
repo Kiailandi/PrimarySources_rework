@@ -76,13 +76,17 @@ class SpecialPrimarySources extends SpecialPage {
             }
 
             $out->addHTML('<form id="uploadForm" action="' . $UPLOAD_SERVICE . '" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="user" value="' . $user->getName() . '">
                 <fieldset>
                 <legend>Upload</legend>
-                <input type="hidden" name="user" value="' . $user->getName() . '">
-                Dataset name: <input type="text" name="name" value=""><br />
-                Dataset file: <input type="file" name="dataset" id="dataset" multiple><br /><br />
+                <table><tbody>
+                <tr><td class="mw-label"><label for="datasetName">Dataset name:</label></td><td class="mw-input"><input id="datasetName" type="text" name="name" value=""></td></tr>
+                <tr><td class="mw-label"><label for="dataset">Dataset files:</label></td><td class="mw-input"><input id="dataset" type="file" name="dataset" multiple></td></tr>
+                <tr><td colspan="2" class="htmlform-tip">Maximum file size: 250 MB</td></tr>
+                <tr><td colspan="2" class="htmlform-tip">File type allowed: RDF</td></tr>
+                </table></tbody>
+                </fieldset>
                 <input type="button" onclick="if($(\'#dataset\').get(0).files.length === 0){alert(\'Please select a file\')}else{submit()}" value="Submit">
-                </fieldset>                
                 </form>');
 
         }
