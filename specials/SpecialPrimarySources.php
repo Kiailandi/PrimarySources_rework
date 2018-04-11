@@ -15,7 +15,6 @@ class SpecialPrimarySources extends SpecialPage {
     /**
      * Shows the page to the user.
      * @param string $sub: The subpage string argument (if any).
-     *  [[Special:HelloWorld/subpage]].
      */
     public function execute( $sub ) {
         $BASE_URI = 'https://pst.wmflabs.org/pst/';
@@ -58,21 +57,25 @@ class SpecialPrimarySources extends SpecialPage {
                                 
                 $out->addHTML('<button id="swap" onClick="swap()">I want to update a dataset</button><br /><br />');
                 
-                $updateString= '<form id="updateForm" action="' . $UPDATE_SERVICE . '" method="post" enctype="multipart/form-data" style="display:none">
+                $updateHtml= '<form id="updateForm" action="' . $UPDATE_SERVICE . '" method="post" enctype="multipart/form-data" style="display:none">
+                    <input type="hidden" name="user" value="' . $user->getName() . '">
                     <fieldset>
                     <legend>Update</legend>
-                    <input type="hidden" name="user" value="' . $user->getName() . '">
-                    Dataset name: <select name="name">';
+                    <table><tbody>
+                    <tr class="mw-htmlform-field-"><td class="mw-label"><label for="datasetToUpdate">Dataset name to update:</label></td><td class="mw-input"><select id="datasetToUpdate" name="name">';
+
                 for($i = 0; $i < count($userDatasets); $i++){
-                    $updateString.= '<option value="' . $userDatasets[$i] . '">' . explode('/', $userDatasets[$i])[2] . '</option>';
+                    $updateHtml.= '<option value="' . $userDatasets[$i] . '">' . explode('/', $userDatasets[$i])[2] . '</option>';
                 }
-                $updateString.='</select><br />
-                              Dataset file to remove: <input type="file" name="remove" id="remove"><br />
-                              Dataset file to add: <input type="file" name="add" id="add"><br /><br />
-                              <input type="button" onclick="if($(\'#remove\').get(0).files.length === 0 || $(\'#add\').get(0).files.length === 0 ){alert(\'Please select a file for both inputs\')}else{submit()}" value="Submit">
-                              </fieldset>
-                              </form>';
-                $out->addHTML($updateString);
+
+                $updateHtml.='</select></td></tr>
+                    <tr class="mw-htmlform-field-UpdateSourceField"><td class="mw-label"><label for="datasetToRemove">Dataset file to remove:</label></td><td class="mw-input"><input id="datasetToRemove" name="remove" type="file"></td></tr>
+                    <tr class="mw-htmlform-field-UpdateSourceField"><td class="mw-label"><label for="datasetToAdd">Dataset file to add:</label></td><td class="mw-input"><input id="datasetToAdd" name="add" type="file"></td></tr>
+                    </tbody></table>
+                    </fieldset>
+                    <input type="button" onclick="if($(\'#remove\').get(0).files.length === 0 || $(\'#add\').get(0).files.length === 0 ){alert(\'Please select a file for both inputs\')}else{submit()}" value="Submit">
+                    </form>';
+                $out->addHTML($updateHtml);
             }
 
             $out->addHTML('<form id="uploadForm" action="' . $UPLOAD_SERVICE . '" method="post" enctype="multipart/form-data">
@@ -80,10 +83,10 @@ class SpecialPrimarySources extends SpecialPage {
                 <fieldset>
                 <legend>Upload</legend>
                 <table><tbody>
-                <tr><td class="mw-label"><label for="datasetName">Dataset name:</label></td><td class="mw-input"><input id="datasetName" type="text" name="name" value=""></td></tr>
-                <tr><td class="mw-label"><label for="dataset">Dataset files:</label></td><td class="mw-input"><input id="dataset" type="file" name="dataset" multiple></td></tr>
+                <tr class="mw-htmlform-field-HTMLTextField"><td class="mw-label"><label for="datasetName">Dataset name:</label></td><td class="mw-input"><input id="datasetName" type="text" name="name" value=""></td></tr>
+                <tr class="mw-htmlform-field-UploadSourceField"><td class="mw-label"><label for="datasetFiles">Dataset files:</label></td><td class="mw-input"><input id="datasetFiles" type="file" name="dataset" multiple></td></tr>
                 <tr><td colspan="2" class="htmlform-tip">Maximum file size: 250 MB</td></tr>
-                <tr><td colspan="2" class="htmlform-tip">File type allowed: RDF</td></tr>
+                <tr><td colspan="2" class="htmlform-tip">File format allowed: RDF</td></tr>
                 </tbody></table>
                 </fieldset>
                 <input type="button" onclick="if($(\'#dataset\').get(0).files.length === 0){alert(\'Please select a file\')}else{submit()}" value="Submit">
