@@ -4,20 +4,14 @@
  * item-based curation and filter.
  */
 ( function ( mw, $ ) {
-	var ps = mw.ps || {};
+	var ps = mw.ps || {},
+		ENTITY_LABEL_CACHE = {},
+		VALUE_HTML_CACHE = {},
+		URL_FORMATTER_CACHE = {};
 
-	var ENTITY_LABEL_CACHE = {};
-	var VALUE_HTML_CACHE = {};
-	var URL_FORMATTER_CACHE = {};
-
-	// Private methods
-	function computeCoordinatesPrecision( latitude, longitude ) {
-		return Math.min(
-			Math.pow( 10, -numberOfDecimalDigits( latitude ) ),
-			Math.pow( 10, -numberOfDecimalDigits( longitude ) )
-		);
-	}
-
+	/*
+	 * BEGIN: private functions
+	 */
 	function numberOfDecimalDigits( number ) {
 		var parts = number.split( '.' );
 		if ( parts.length < 2 ) {
@@ -26,38 +20,19 @@
 		return parts[ 1 ].length;
 	}
 
-	function _getFewEntityLabels( entityIds ) {
-		if ( entityIds.length === 0 ) {
-			return $.Deferred().resolve( {} );
-		}
-		var api = new mw.Api();
-		var language = mw.config.get( 'wgUserLanguage' );
-		return api.get( {
-			action: 'wbgetentities',
-			ids: entityIds.join( '|' ),
-			props: 'labels',
-			languages: language,
-			languagefallback: true
-		} ).then( function ( data ) {
-			var labels = {};
-			for ( var id in data.entities ) {
-				var entity = data.entities[ id ];
-				if ( entity.labels && entity.labels[ language ] ) {
-					labels[ id ] = entity.labels[ language ].value;
-				} else {
-					labels[ id ] = entity.id;
-				}
-			}
-			return labels;
-		} );
+	function computeCoordinatesPrecision( latitude, longitude ) {
+		return Math.min(
+			Math.pow( 10, -numberOfDecimalDigits( latitude ) ),
+			Math.pow( 10, -numberOfDecimalDigits( longitude ) )
+		);
 	}
 
 	function extractEntityIdsFromStatement( statement ) {
+		var entityIds = [ statement.subject, statement.predicate ];
+
 		function isEntityId( str ) {
 			return /^[PQ]\d+$/.test( str );
 		}
-
-		var entityIds = [ statement.subject, statement.predicate ];
 
 		if ( isEntityId( statement.object ) ) {
 			entityIds.push( statement.object );
@@ -81,11 +56,12 @@
 	}
 
 	function getUrlFormatter( property ) {
+		var api = new mw.Api();
+
 		if ( property in URL_FORMATTER_CACHE ) {
 			return URL_FORMATTER_CACHE[ property ];
 		}
 
-		var api = new mw.Api();
 		URL_FORMATTER_CACHE[ property ] = api.get( {
 			action: 'wbgetentities',
 			ids: property,
@@ -102,62 +78,21 @@
 		return URL_FORMATTER_CACHE[ property ];
 	}
 
-	function _getEntityLabel( entityId ) {
-		if ( !( entityId in ENTITY_LABEL_CACHE ) ) {
-			_loadEntityLabels( [ entityId ] );
-		}
-
-		return ENTITY_LABEL_CACHE[ entityId ];
-	}
-
-	function _loadEntityLabels( entityIds ) {
-		entityIds = entityIds.filter( function ( entityId ) {
-			return !( entityId in ENTITY_LABEL_CACHE );
-		} );
-		if ( entityIds.length === 0 ) {
-			return;
-		}
-
-		var promise = _getEntityLabels( entityIds );
-		entityIds.forEach( function ( entityId ) {
-			ENTITY_LABEL_CACHE[ entityId ] = promise.then( function ( labels ) {
-				return labels[ entityId ];
-			} );
-		} );
-	}
-
-	function _getEntityLabels( entityIds ) {
-		// Split entityIds per bucket in order to match limits
-		var buckets = [];
-		var currentBucket = [];
-
-		entityIds.forEach( function ( entityId ) {
-			currentBucket.push( entityId );
-			if ( currentBucket.length > 40 ) {
-				buckets.push( currentBucket );
-				currentBucket = [];
-			}
-		} );
-		buckets.push( currentBucket );
-
-		var promises = buckets.map( function ( bucket ) {
-			return _getFewEntityLabels( bucket );
-		} );
-
-		return $.when.apply( this, promises ).then( function () {
-			return $.extend.apply( this, arguments );
-		} );
+	function getValueTypeFromDataValueType( dataValueType ) {
+		return wikibase.dataTypeStore.getDataType( dataValueType )
+			.getDataValueType();
 	}
 
 	function formatSourceForSave( sourceSnaks ) {
-		var result = {};
+		var dataValue, type,
+			result = {};
 		sourceSnaks.forEach( function ( snak ) {
 			result[ snak.sourceProperty ] = [];
 		} );
 
 		sourceSnaks.forEach( function ( snak ) {
-			var dataValue = _tsvValueToJson( snak.sourceObject );
-			var type = getValueTypeFromDataValueType( dataValue.type );
+			dataValue = ps.commons.tsvValueToJson( snak.sourceObject );
+			type = getValueTypeFromDataValueType( dataValue.type );
 
 			result[ snak.sourceProperty ].push( {
 				snaktype: 'value',
@@ -171,183 +106,25 @@
 
 		return result;
 	}
+	/*
+	 * END: private functions
+	 */
 
-	function getValueTypeFromDataValueType( dataValueType ) {
-		return wikibase.dataTypeStore.getDataType( dataValueType )
-			.getDataValueType();
-	}
-
-	function _isUrl( url ) {
-		if ( typeof URL !== 'function' ) {
-			return url.indexOf( 'http' ) === 0;
-		}
-		try {
-			url = new URL( url.toString() );
-			return url.protocol.indexOf( 'http' ) === 0 && url.host;
-		} catch ( e ) {
-			return false;
-		}
-	}
-
-	function _normalizeUrl( url ) {
-		try {
-			return ( new URL( url.toString() ) ).href;
-		} catch ( e ) {
-			return url;
-		}
-	}
-
-	function _tsvValueToJson( value ) {
-		// From https://www.wikidata.org/wiki/Special:ListDatatypes and
-		// https://de.wikipedia.org/wiki/Wikipedia:Wikidata/Wikidata_Spielwiese
-		// https://www.wikidata.org/wiki/Special:EntityData/Q90.json
-
-		// Q1
-		var itemRegEx = /^Q\d+$/;
-
-		// P1
-		var propertyRegEx = /^P\d+$/;
-
-		// @43.3111/-16.6655
-		var coordinatesRegEx = /^@([+\-]?\d+(?:.\d+)?)\/([+\-]?\d+(?:.\d+))?$/;
-
-		// fr:"Les Misérables"
-		var languageStringRegEx = /^(\w+):("[^"\\]*(?:\\.[^"\\]*)*")$/;
-
-		// +2013-01-01T00:00:00Z/10
-		/* jshint maxlen: false */
-		var timeRegEx = /^[+-]\d+-\d\d-\d\dT\d\d:\d\d:\d\dZ\/\d+$/;
-		/* jshint maxlen: 80 */
-
-		// +/-1234.4567
-		var quantityRegEx = /^[+-]\d+(\.\d+)?$/;
-
-		if ( itemRegEx.test( value ) ) {
-			return {
-				type: 'wikibase-item',
-				value: {
-					'entity-type': 'item',
-					'numeric-id': parseInt( value.replace( /^Q/, '' ) )
-				}
-			};
-		} else if ( propertyRegEx.test( value ) ) {
-			return {
-				type: 'wikibase-property',
-				value: {
-					'entity-type': 'property',
-					'numeric-id': parseInt( value.replace( /^P/, '' ) )
-				}
-			};
-		} else if ( coordinatesRegEx.test( value ) ) {
-			var latitude = value.replace( coordinatesRegEx, '$1' );
-			var longitude = value.replace( coordinatesRegEx, '$2' );
-			return {
-				type: 'globe-coordinate',
-				value: {
-					latitude: parseFloat( latitude ),
-					longitude: parseFloat( longitude ),
-					altitude: null,
-					precision: computeCoordinatesPrecision( latitude, longitude ),
-					globe: 'http://www.wikidata.org/entity/Q2'
-				}
-			};
-		} else if ( languageStringRegEx.test( value ) ) {
-			return {
-				type: 'monolingualtext',
-				value: {
-					language: value.replace( languageStringRegEx, '$1' ),
-					text: JSON.parse( value.replace( languageStringRegEx, '$2' ) )
-				}
-			};
-		} else if ( timeRegEx.test( value ) ) {
-			var parts = value.split( '/' );
-			return {
-				type: 'time',
-				value: {
-					time: parts[ 0 ],
-					timezone: 0,
-					before: 0,
-					after: 0,
-					precision: parseInt( parts[ 1 ] ),
-					calendarmodel: 'http://www.wikidata.org/entity/Q1985727'
-				}
-			};
-		} else if ( quantityRegEx.test( value ) ) {
-			return {
-				type: 'quantity',
-				value: {
-					amount: value,
-					unit: '1'
-				}
-			};
-		} else {
-			try {
-				value = JSON.parse( value );
-			} catch ( e ) { // If it is an invalid JSON we assume it is the value
-				if ( !( e instanceof SyntaxError ) ) {
-					throw e;
-				}
-			}
-			if ( _isUrl( value ) ) {
-				return {
-					type: 'url',
-					value: _normalizeUrl( value )
-				};
-			} else {
-				return {
-					type: 'string',
-					value: value
-				};
-			}
-		}
-	}
-
-	function _createClaim( subject, predicate, object, qualifiers ) {
-		var value = ( _tsvValueToJson( object ) ).value;
-		console.debug( 'PRIMARY SOURCES TOOL: Converted QuickStatement value to Wikidata JSON:', object, value );
-		var api = new mw.Api();
-		return api.postWithToken( 'csrf', {
-			action: 'wbcreateclaim',
-			entity: subject,
-			property: predicate,
-			snaktype: 'value',
-			value: JSON.stringify( value ),
-			summary: ps.globals.WIKIDATA_API_COMMENT
-		} ).then( function ( data ) {
-			// We save the qualifiers sequentially in order to avoid edit conflict
-			var saveQualifiers = function () {
-				var qualifier = qualifiers.pop();
-				if ( qualifier === undefined ) {
-					return data;
-				}
-
-				var value = ( _tsvValueToJson( qualifier.qualifierObject ) ).value;
-				return api.postWithToken( 'csrf', {
-					action: 'wbsetqualifier',
-					claim: data.claim.id,
-					property: qualifier.qualifierProperty,
-					snaktype: 'value',
-					value: JSON.stringify( value ),
-					summary: ps.globals.WIKIDATA_API_COMMENT
-				} ).then( saveQualifiers );
-			};
-
-			return saveQualifiers();
-		} );
-	}
-
-	// Public methods
+	/*
+	 * BEGIN: public functions
+	 */
 	ps.commons = {
 		/**
          * Return a list of blacklisted reference URLs from
          * https://www.wikidata.org/wiki/Wikidata:Primary_sources_tool/URL_blacklist
-         * saved in localStorage
+         * Saved in localStorage.
          * @return {*}
          */
 		getBlacklistedSourceUrls: function getBlacklistedSourceUrls() {
-			var now = Date.now();
+			var blacklist,
+				now = Date.now();
 			if ( localStorage.getItem( 'f2w_blacklist' ) ) {
-				var blacklist = JSON.parse( localStorage.getItem( 'f2w_blacklist' ) );
+				blacklist = JSON.parse( localStorage.getItem( 'f2w_blacklist' ) );
 				if ( !blacklist.timestamp ) {
 					blacklist.timestamp = 0;
 				}
@@ -360,7 +137,7 @@
 				url: ps.globals.API_ENDPOINTS.SOURCE_URL_BLACKLIST
 			} ).then( function ( data ) {
 				if ( data && data.parse && data.parse.text && data.parse.text[ '*' ] ) {
-					var blacklist = data.parse.text[ '*' ].replace( /\n/g, '' ).replace( /^.*?<ul>(.*?)<\/ul>.*?$/g, '$1' ).replace( /<\/li>/g, '' ).split( '<li>' ).slice( 1 ).map( function ( url ) {
+					blacklist = data.parse.text[ '*' ].replace( /\n/g, '' ).replace( /^.*?<ul>(.*?)<\/ul>.*?$/g, '$1' ).replace( /<\/li>/g, '' ).split( '<li>' ).slice( 1 ).map( function ( url ) {
 						return url.trim();
 					} ).filter( function ( url ) {
 						var copy = url;
@@ -390,10 +167,12 @@
 				}
 			} );
 		},
+
 		getWhitelistedSourceUrls: function getWhitelistedSourceUrls() {
-			var now = Date.now();
+			var whitelist,
+				now = Date.now();
 			if ( localStorage.getItem( 'f2w_whitelist' ) ) {
-				var whitelist = JSON.parse( localStorage.getItem( 'f2w_whitelist' ) );
+				whitelist = JSON.parse( localStorage.getItem( 'f2w_whitelist' ) );
 				if ( !whitelist.timestamp ) {
 					whitelist.timestamp = 0;
 				}
@@ -406,7 +185,7 @@
 				url: ps.globals.API_ENDPOINTS.SOURCE_URL_WHITELIST
 			} ).then( function ( data ) {
 				if ( data && data.parse && data.parse.text && data.parse.text[ '*' ] ) {
-					var whitelist = data.parse.text[ '*' ]
+					whitelist = data.parse.text[ '*' ]
 						.replace( /\n/g, '' )
 						.replace( /^.*?<ul>(.*?)<\/ul>.*?$/g, '$1' )
 						.replace( /<\/li>/g, '' )
@@ -442,6 +221,7 @@
 				}
 			} );
 		},
+
 		getBlacklistedSourceUrlsWithCallback: function getBlacklistedSourceUrlsWithCallback( callback ) {
 			ps.commons.getBlacklistedSourceUrls()
 				.done( function ( blacklist ) {
@@ -452,6 +232,7 @@
 					callback( null );
 				} );
 		},
+
 		getWhitelistedSourceUrlsWithCallback: function getWhitelistedSourceUrlsWithCallback( callback ) {
 			ps.commons.getWhitelistedSourceUrls()
 				.done( function ( whitelist ) {
@@ -462,41 +243,41 @@
 					callback( null );
 				} );
 		},
-		/**
-         *
-         * @param blacklistedSourceUrls
-         * @return {Function}
-         */
+
 		isBlackListedBuilder: function isBlackListedBuilder( blacklistedSourceUrls ) {
+			var parsedUrl, i;
+
 			return function ( url ) {
 				try {
-					var url = new URL( url );
+					parsedUrl = new URL( url );
 				} catch ( e ) {
 					return false;
 				}
 
-				for ( var i in blacklistedSourceUrls ) {
-					if ( url.host.indexOf( blacklistedSourceUrls[ i ] ) !== -1 ) {
+				for ( i in blacklistedSourceUrls ) {
+					if ( parsedUrl.host.indexOf( blacklistedSourceUrls[ i ] ) !== -1 ) {
 						return true;
 					}
 				}
 				return false;
-			}
-			;
+			};
 		},
+
 		getValueHtml: function getValueHtml( value, property ) {
-			var cacheKey = property + '\t' + value;
+			var api, url,
+				cacheKey = property + '\t' + value,
+				parsed = ps.commons.tsvValueToJson( value ),
+				dataValue = {
+					type: getValueTypeFromDataValueType( parsed.type ),
+					value: parsed.value
+				},
+				options = {
+					lang: mw.language.getFallbackLanguageChain()[ 0 ] || 'en'
+				};
+
 			if ( cacheKey in VALUE_HTML_CACHE ) {
 				return VALUE_HTML_CACHE[ cacheKey ];
 			}
-			var parsed = _tsvValueToJson( value );
-			var dataValue = {
-				type: getValueTypeFromDataValueType( parsed.type ),
-				value: parsed.value
-			};
-			var options = {
-				lang: mw.language.getFallbackLanguageChain()[ 0 ] || 'en'
-			};
 
 			if ( parsed.type === 'string' ) {
 				// Link to external database
@@ -504,18 +285,18 @@
 					if ( urlFormatter === '' ) {
 						return parsed.value;
 					} else {
-						var url = urlFormatter.replace( '$1', parsed.value );
+						url = urlFormatter.replace( '$1', parsed.value );
 						return '<a rel="nofollow" class="external free" href="' + url + '">' + parsed.value + '</a>';
 					}
 				} );
 			} else if ( parsed.type === 'url' ) {
 				VALUE_HTML_CACHE[ cacheKey ] = $.Deferred().resolve( '<a rel="nofollow" class="external free" href="' + parsed.value + '">' + parsed.value + '</a>' );
 			} else if ( parsed.type === 'wikibase-item' || parsed.type === 'wikibase-property' ) {
-				return _getEntityLabel( value ).then( function ( label ) {
+				return ps.commons.getEntityLabel( value ).then( function ( label ) {
 					return '<a href="/entity/' + value + '">' + label + '</a>';
 				} );
 			} else {
-				var api = new mw.Api();
+				api = new mw.Api();
 				VALUE_HTML_CACHE[ cacheKey ] = api.get( {
 					action: 'wbformatvalue',
 					generate: 'text/html',
@@ -525,23 +306,18 @@
 				} ).then( function ( result ) {
 					// Create links for geocoordinates
 					if ( parsed.type === 'globe-coordinate' ) {
-						var url = 'https://tools.wmflabs.org/geohack/geohack.php' + '?language=' + mw.config.get( 'wgUserLanguage' ) + '&params=' + dataValue.value.latitude + '_N_' + dataValue.value.longitude + '_E_globe:earth';
+						url = 'https://tools.wmflabs.org/geohack/geohack.php?language=' + mw.config.get( 'wgUserLanguage' ) + '&params=' + dataValue.value.latitude + '_N_' + dataValue.value.longitude + '_E_globe:earth';
 						return '<a rel="nofollow" class="external free" href="' + url + '">' + result.result + '</a>';
 					}
-
 					return result.result;
 				} );
 			}
-
 			return VALUE_HTML_CACHE[ cacheKey ];
 		},
 
-		// BEGIN: Primary sources tool API calls
+		/* BEGIN: Primary sources tool API calls */
 		// Update the suggestions state
 		setStatementState: function setStatementState( quickStatement, state, dataset, type ) {
-			if ( !ps.globals.STATEMENT_STATES[ state ] ) {
-				ps.commons.reportError( 'Invalid statement state' );
-			}
 			var data = {
 				qs: quickStatement,
 				state: state,
@@ -549,16 +325,21 @@
 				type: type,
 				user: mw.user.getName()
 			};
+			if ( !ps.globals.STATEMENT_STATES[ state ] ) {
+				ps.commons.reportError( 'Invalid statement state' );
+			}
 			return $.post( ps.globals.API_ENDPOINTS.CURATE_SERVICE, JSON.stringify( data ) )
 				.fail( function () {
 					ps.commons.reportError( 'Set statement state to ' + state + ' failed.' );
 				} );
 		},
+
 		// Get the available datasets
 		getDatasets: function getDatasets( callback ) {
-			var now = Date.now();
+			var blacklist,
+				now = Date.now();
 			if ( localStorage.getItem( 'f2w_dataset' ) ) {
-				var blacklist = JSON.parse( localStorage.getItem( 'f2w_dataset' ) );
+				blacklist = JSON.parse( localStorage.getItem( 'f2w_dataset' ) );
 				if ( !blacklist.timestamp ) {
 					blacklist.timestamp = 0;
 				}
@@ -578,25 +359,59 @@
 				console.warn( 'PRIMARY SOURCES TOOL: Could not retrieve the available datasets. Something went wrong when calling:', ps.globals.API_ENDPOINTS.DATASETS_SERVICE, 'The server responded with status code', xhr.status, 'Reason:', xhr.responseText );
 			} );
 		},
-		// END: Primary sources tool API calls
+		/* END: Primary sources tool API calls */
 
-		/* BEGIN: Wikibase API calls */
+		/* BEGIN: Wikidata API calls */
 		// BEGIN: post approved claims to Wikidata
 		// https://www.wikidata.org/w/api.php?action=help&modules=wbcreateclaim
-		createClaim: _createClaim,
+		createClaim: function createClaim( subject, predicate, object, qualifiers ) {
+			var qualifierValue,
+				claimValue = ( ps.commons.tsvValueToJson( object ) ).value,
+				api = new mw.Api();
+
+			console.debug( 'PRIMARY SOURCES TOOL: Converted QuickStatement value to Wikidata JSON:', object, claimValue );
+			return api.postWithToken( 'csrf', {
+				action: 'wbcreateclaim',
+				entity: subject,
+				property: predicate,
+				snaktype: 'value',
+				value: JSON.stringify( claimValue ),
+				summary: ps.globals.WIKIDATA_API_COMMENT
+			} ).then( function ( data ) {
+				// We save the qualifiers sequentially in order to avoid edit conflict
+				var saveQualifiers = function () {
+					var qualifier = qualifiers.pop();
+					if ( qualifier === undefined ) {
+						return data;
+					}
+
+					qualifierValue = ( ps.commons.tsvValueToJson( qualifier.qualifierObject ) ).value;
+					return api.postWithToken( 'csrf', {
+						action: 'wbsetqualifier',
+						claim: data.claim.id,
+						property: qualifier.qualifierProperty,
+						snaktype: 'value',
+						value: JSON.stringify( qualifierValue ),
+						summary: ps.globals.WIKIDATA_API_COMMENT
+					} ).then( saveQualifiers );
+				};
+				return saveQualifiers();
+			} );
+		},
 
 		// https://www.wikidata.org/w/api.php?action=help&modules=wbsetreference
 		createReference: function createReference( subject, predicate, object, sourceSnaks, callback ) {
-			var api = new mw.Api();
+			var i, lenI, claimObject, mainSnak,
+				api = new mw.Api();
 			api.get( {
 				action: 'wbgetclaims',
 				entity: subject,
 				property: predicate
 			} ).then( function ( data ) {
 				var index = -1;
-				for ( var i = 0, lenI = data.claims[ predicate ].length; i < lenI; i++ ) {
-					var claimObject = data.claims[ predicate ][ i ];
-					var mainSnak = claimObject.mainsnak;
+				for ( i = 0, lenI = data.claims[ predicate ].length; i < lenI; i++ ) {
+					claimObject = data.claims[ predicate ][ i ];
+					mainSnak = claimObject.mainsnak;
 					if ( mainSnak.snaktype === 'value' && mw.ps.commons.jsonToTsvValue( mainSnak.datavalue, mainSnak.datatype ) === object ) {
 						index = i;
 						break;
@@ -615,10 +430,10 @@
 			} );
 		},
 
-		// combines the 2 functions above
+		// Combines the 2 functions above
 		createClaimWithReference: function createClaimWithReference( subject, predicate, object, qualifiers, sourceSnaks ) {
 			var api = new mw.Api();
-			return _createClaim( subject, predicate, object, qualifiers ).then( function ( data ) {
+			return ps.commons.createClaim( subject, predicate, object, qualifiers ).then( function ( data ) {
 				return api.postWithToken( 'csrf', {
 					action: 'wbsetreference',
 					statement: data.claim.id,
@@ -644,7 +459,7 @@
 			} );
 		},
 		// END:  get existing claims from Wikidata
-		/* END: Wikibase API calls */
+		/* END: Wikidata API calls */
 
 		// BEGIN: utilities
 		reportError: function reportError( error ) {
@@ -654,39 +469,113 @@
 			} );
 		},
 
-		isUrl: _isUrl,
+		isUrl: function isUrl( url ) {
+			if ( typeof URL !== 'function' ) {
+				return url.indexOf( 'http' ) === 0;
+			}
+			try {
+				url = new URL( url.toString() );
+				return url.protocol.indexOf( 'http' ) === 0 && url.host;
+			} catch ( e ) {
+				return false;
+			}
+		},
 
-		getEntityLabel: _getEntityLabel,
+		getEntityLabel: function getEntityLabel( entityId ) {
+			if ( !( entityId in ENTITY_LABEL_CACHE ) ) {
+				ps.commons.loadEntityLabels( [ entityId ] );
+			}
+			return ENTITY_LABEL_CACHE[ entityId ];
+		},
 
-		getEntityLabels: _getEntityLabels,
+		getEntityLabels: function getEntityLabels( entityIds ) {
+			// Split entityIds per bucket in order to match limits
+			var promises,
+				buckets = [],
+				currentBucket = [];
 
-		getFewEntityLabels: _getFewEntityLabels,
+			entityIds.forEach( function ( entityId ) {
+				currentBucket.push( entityId );
+				if ( currentBucket.length > 40 ) {
+					buckets.push( currentBucket );
+					currentBucket = [];
+				}
+			} );
+			buckets.push( currentBucket );
 
-		loadEntityLabels: _loadEntityLabels,
+			promises = buckets.map( function ( bucket ) {
+				return ps.commons.getFewEntityLabels( bucket );
+			} );
 
-		tsvValueToJson: _tsvValueToJson,
+			return $.when.apply( this, promises ).then( function () {
+				return $.extend.apply( this, arguments );
+			} );
+		},
 
-		rdfValueToJson: function rdfValueToJson( value ) {
-			// Q666
-			var itemRegEx = /^Q\d+$/;
+		getFewEntityLabels: function getFewEntityLabels( entityIds ) {
+			var id, entity,
+				api = new mw.Api(),
+				language = mw.config.get( 'wgUserLanguage' );
 
-			// P1269
-			var propertyRegEx = /^P\d+$/;
+			if ( entityIds.length === 0 ) {
+				return $.Deferred().resolve( {} );
+			}
+			return api.get( {
+				action: 'wbgetentities',
+				ids: entityIds.join( '|' ),
+				props: 'labels',
+				languages: language,
+				languagefallback: true
+			} ).then( function ( data ) {
+				var labels = {};
+				for ( id in data.entities ) {
+					entity = data.entities[ id ];
+					if ( entity.labels && entity.labels[ language ] ) {
+						labels[ id ] = entity.labels[ language ].value;
+					} else {
+						labels[ id ] = entity.id;
+					}
+				}
+				return labels;
+			} );
+		},
 
-			// Point(28.050277777778 -26.145)
-			// longitude latitude
-			var coordinatesRegEx = /^Point\(([\s]+)\s([\)]+)\)$/;
+		loadEntityLabels: function loadEntityLabels( entityIds ) {
+			var promise = ps.commons.getEntityLabels( entityIds );
 
-			// "Douglas Adams"@en
-			var languageStringRegEx = /^("[^"\\]*(?:\\.[^"\\]*)*")@(\w+)$/;
+			entityIds = entityIds.filter( function ( entityId ) {
+				return !( entityId in ENTITY_LABEL_CACHE );
+			} );
+			if ( entityIds.length === 0 ) {
+				return;
+			}
 
-			// 2018-02-07T00:00:00Z
-			/* jshint maxlen: false */
-			var timeRegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
-			/* jshint maxlen: 80 */
+			entityIds.forEach( function ( entityId ) {
+				ENTITY_LABEL_CACHE[ entityId ] = promise.then( function ( labels ) {
+					return labels[ entityId ];
+				} );
+			} );
+		},
 
-			// +/-1234.4567
-			var quantityRegEx = /^[+-]\d+(\.\d+)?$/;
+		/*
+		 * From https://www.wikidata.org/wiki/Special:ListDatatypes and
+		 * https://de.wikipedia.org/wiki/Wikipedia:Wikidata/Wikidata_Spielwiese
+		 * https://www.wikidata.org/wiki/Special:EntityData/Q90.json
+		 */
+		tsvValueToJson: function tsvValueToJson( value ) {
+			var latitude, longitude, parts,
+				// Q1
+				itemRegEx = /^Q\d+$/,
+				// P1
+				propertyRegEx = /^P\d+$/,
+				// @43.3111/-16.6655
+				coordinatesRegEx = /^@([+\-]?\d+(?:.\d+)?)\/([+\-]?\d+(?:.\d+))?$/,
+				// fr:"Les Misérables"
+				languageStringRegEx = /^(\w+):("[^"\\]*(?:\\.[^"\\]*)*")$/,
+				// +2013-01-01T00:00:00Z/10
+				timeRegEx = /^[+-]\d+-\d\d-\d\dT\d\d:\d\d:\d\dZ\/\d+$/,
+				// +/-1234.4567
+				quantityRegEx = /^[+-]\d+(\.\d+)?$/;
 
 			if ( itemRegEx.test( value ) ) {
 				return {
@@ -705,8 +594,8 @@
 					}
 				};
 			} else if ( coordinatesRegEx.test( value ) ) {
-				var longitude = value.replace( coordinatesRegEx, '$1' );
-				var latitude = value.replace( coordinatesRegEx, '$2' );
+				latitude = value.replace( coordinatesRegEx, '$1' );
+				longitude = value.replace( coordinatesRegEx, '$2' );
 				return {
 					type: 'globe-coordinate',
 					value: {
@@ -721,12 +610,12 @@
 				return {
 					type: 'monolingualtext',
 					value: {
-						language: value.replace( languageStringRegEx, '$2' ),
-						text: JSON.parse( value.replace( languageStringRegEx, '$1' ) )
+						language: value.replace( languageStringRegEx, '$1' ),
+						text: JSON.parse( value.replace( languageStringRegEx, '$2' ) )
 					}
 				};
 			} else if ( timeRegEx.test( value ) ) {
-				var parts = value.split( '/' );
+				parts = value.split( '/' );
 				return {
 					type: 'time',
 					value: {
@@ -754,10 +643,106 @@
 						throw e;
 					}
 				}
-				if ( _isUrl( value ) ) {
+				if ( ps.commons.isUrl( value ) ) {
 					return {
 						type: 'url',
-						value: _normalizeUrl( value )
+						value: ps.commons.normalizeUrl( value )
+					};
+				} else {
+					return {
+						type: 'string',
+						value: value
+					};
+				}
+			}
+		},
+
+		rdfValueToJson: function rdfValueToJson( value ) {
+			var longitude, latitude, parts,
+				// Q666
+				itemRegEx = /^Q\d+$/,
+				// P1269
+				propertyRegEx = /^P\d+$/,
+				// Point(28.050277777778 -26.145)
+				// Longitude, latitude
+				coordinatesRegEx = /^Point\(([\s]+)\s([\)]+)\)$/,
+				// "Douglas Adams"@en
+				languageStringRegEx = /^("[^"\\]*(?:\\.[^"\\]*)*")@(\w+)$/,
+				// 2018-02-07T00:00:00Z
+				timeRegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/,
+				// +/-1234.4567
+				quantityRegEx = /^[+-]\d+(\.\d+)?$/;
+
+			if ( itemRegEx.test( value ) ) {
+				return {
+					type: 'wikibase-item',
+					value: {
+						'entity-type': 'item',
+						'numeric-id': parseInt( value.replace( /^Q/, '' ) )
+					}
+				};
+			} else if ( propertyRegEx.test( value ) ) {
+				return {
+					type: 'wikibase-property',
+					value: {
+						'entity-type': 'property',
+						'numeric-id': parseInt( value.replace( /^P/, '' ) )
+					}
+				};
+			} else if ( coordinatesRegEx.test( value ) ) {
+				longitude = value.replace( coordinatesRegEx, '$1' );
+				latitude = value.replace( coordinatesRegEx, '$2' );
+				return {
+					type: 'globe-coordinate',
+					value: {
+						latitude: parseFloat( latitude ),
+						longitude: parseFloat( longitude ),
+						altitude: null,
+						precision: computeCoordinatesPrecision( latitude, longitude ),
+						globe: 'http://www.wikidata.org/entity/Q2'
+					}
+				};
+			} else if ( languageStringRegEx.test( value ) ) {
+				return {
+					type: 'monolingualtext',
+					value: {
+						language: value.replace( languageStringRegEx, '$2' ),
+						text: JSON.parse( value.replace( languageStringRegEx, '$1' ) )
+					}
+				};
+			} else if ( timeRegEx.test( value ) ) {
+				parts = value.split( '/' );
+				return {
+					type: 'time',
+					value: {
+						time: parts[ 0 ],
+						timezone: 0,
+						before: 0,
+						after: 0,
+						precision: parseInt( parts[ 1 ] ),
+						calendarmodel: 'http://www.wikidata.org/entity/Q1985727'
+					}
+				};
+			} else if ( quantityRegEx.test( value ) ) {
+				return {
+					type: 'quantity',
+					value: {
+						amount: value,
+						unit: '1'
+					}
+				};
+			} else {
+				try {
+					value = JSON.parse( value );
+				} catch ( e ) { // If it is an invalid JSON we assume it is the value
+					if ( !( e instanceof SyntaxError ) ) {
+						throw e;
+					}
+				}
+				if ( ps.commons.isUrl( value ) ) {
+					return {
+						type: 'url',
+						value: ps.commons.normalizeUrl( value )
 					};
 				} else {
 					return {
@@ -769,44 +754,38 @@
 		},
 
 		rdfValueToTsv: function rdfValueToTsv( value ) {
-			// Q666
-			var itemRegEx = /^Q\d+$/;
-
-			// P1269
-			var propertyRegEx = /^P\d+$/;
-
-			// Point(28.050277777778 -26.145)
-			// longitude latitude
-			var coordinatesRegEx = /^Point\(([\s]+)\s([\)]+)\)$/;
-
-			// "Douglas Adams"@en
-			var languageStringRegEx = /^("[^"\\]*(?:\\.[^"\\]*)*")@(\w+)$/;
-
-			// 2018-02-07T00:00:00Z
-			/* jshint maxlen: false */
-			var timeRegEx = /^(-?)\d{3,4}-(\d{2})-(\d{2})T\d{2}:\d{2}:\d{2}Z$/;
-			/* jshint maxlen: 80 */
-
-			// +/-1234.4567
-			var quantityRegEx = /^[+-]\d+(\.\d+)?$/;
+			var longitude, latitude, text, language, match, era,
+				// Q666
+				itemRegEx = /^Q\d+$/,
+				// P1269
+				propertyRegEx = /^P\d+$/,
+				// Point(28.050277777778 -26.145)
+				// longitude latitude
+				coordinatesRegEx = /^Point\(([\s]+)\s([\)]+)\)$/,
+				// "Douglas Adams"@en
+				languageStringRegEx = /^("[^"\\]*(?:\\.[^"\\]*)*")@(\w+)$/,
+				// 2018-02-07T00:00:00Z
+				timeRegEx = /^(-?)\d{3,4}-(\d{2})-(\d{2})T\d{2}:\d{2}:\d{2}Z$/,
+				// +/-1234.4567
+				quantityRegEx = /^[+-]\d+(\.\d+)?$/;
 
 			if ( itemRegEx.test( value ) ) {
 				return value;
 			} else if ( propertyRegEx.test( value ) ) {
 				return value;
 			} else if ( coordinatesRegEx.test( value ) ) {
-				var longitude = value.replace( coordinatesRegEx, '$1' );
-				var latitude = value.replace( coordinatesRegEx, '$2' );
+				longitude = value.replace( coordinatesRegEx, '$1' );
+				latitude = value.replace( coordinatesRegEx, '$2' );
 				// @43.3111/-16.6655
 				return '@' + latitude + '/' + longitude;
 			} else if ( languageStringRegEx.test( value ) ) {
-				var text = value.replace( languageStringRegEx, '$1' );
-				var language = value.replace( languageStringRegEx, '$2' );
+				text = value.replace( languageStringRegEx, '$1' );
+				language = value.replace( languageStringRegEx, '$2' );
 				// en:"Douglas Adams"
 				return language + ':"' + text + '"';
 			} else if ( timeRegEx.test( value ) ) {
-				var match = timeRegEx.exec( value );
-				var era = match[ 1 ] ? match[ 1 ] : '+'; // No initial '-' means '+'
+				match = timeRegEx.exec( value );
+				era = match[ 1 ] ? match[ 1 ] : '+'; // No initial '-' means '+'
 				// Guess precision based on '01' values
 				if ( parseInt( match[ 3 ] ) > 1 ) { return era + value + '/11'; } else if ( parseInt( match[ 2 ] ) > 1 ) { return era + value + '/10'; } else { return era + value + '/9'; }
 			} else if ( quantityRegEx.test( value ) ) {
@@ -817,15 +796,15 @@
 		},
 
 		buildValueKeysFromWikidataStatement: function buildValueKeysFromWikidataStatement( statement ) {
-			var mainSnak = statement.mainsnak;
+			var qualifierKeyParts,
+				mainSnak = statement.mainsnak,
+				keys = [ ps.commons.jsonToTsvValue( mainSnak.datavalue, mainSnak.datatype ) ];
+
 			if ( mainSnak.snaktype !== 'value' ) {
 				return [ mainSnak.snaktype ];
 			}
-
-			var keys = [ ps.commons.jsonToTsvValue( mainSnak.datavalue, mainSnak.datatype ) ];
-
 			if ( statement.qualifiers ) {
-				var qualifierKeyParts = [];
+				qualifierKeyParts = [];
 				$.each( statement.qualifiers, function ( _, qualifiers ) {
 					qualifiers.forEach( function ( qualifier ) {
 						qualifierKeyParts.push(
@@ -837,11 +816,11 @@
 				qualifierKeyParts.sort();
 				keys.push( keys[ 0 ] + '\t' + qualifierKeyParts.join( '\t' ) );
 			}
-
 			return keys;
 		},
 
 		jsonToTsvValue: function jsonToTsvValue( dataValue, dataType ) {
+			var time, precision, plainStringOrUrl;
 			if ( !dataValue.type ) {
 				console.warn( 'PRIMARY SOURCES TOOL: Wikidata JSON value without data type:', dataValue, 'It will be converted to QuickStatement as is' );
 				return dataValue.value;
@@ -850,8 +829,8 @@
 				case 'quantity':
 					return dataValue.value.amount;
 				case 'time':
-					var time = dataValue.value.time;
-					var precision = dataValue.value.precision;
+					time = dataValue.value.time;
+					precision = dataValue.value.precision;
 					if ( precision < 11 ) {
 						time = time.replace( '-00T', '-01T' );
 					}
@@ -864,9 +843,9 @@
 				case 'monolingualtext':
 					return dataValue.value.language + ':' + JSON.stringify( dataValue.value.text );
 				case 'string':
-					var str = ( dataType === 'url' ) ? _normalizeUrl( dataValue.value ) :
+					plainStringOrUrl = ( dataType === 'url' ) ? ps.commons.normalizeUrl( dataValue.value ) :
 						dataValue.value;
-					return JSON.stringify( str );
+					return JSON.stringify( plainStringOrUrl );
 				case 'wikibase-entityid':
 					switch ( dataValue.value[ 'entity-type' ] ) {
 						case 'item':
@@ -880,6 +859,7 @@
 		},
 
 		jsonToRdfValue: function jsonToRdfValue( dataValue, dataType ) {
+			var time, precision, plainStringOrUrl;
 			if ( !dataValue.type ) {
 				console.warn( 'PRIMARY SOURCES TOOL: Wikidata JSON value without data type:', dataValue, 'It will be converted to RDF as is' );
 				return dataValue.value;
@@ -889,8 +869,8 @@
 					return dataValue.value.amount;
 				case 'time':
 					// 2018-02-07T00:00:00Z
-					var time = dataValue.value.time;
-					var precision = dataValue.value.precision;
+					time = dataValue.value.time;
+					precision = dataValue.value.precision;
 					if ( precision < 11 ) {
 						time = time.replace( '-00T', '-01T' );
 					}
@@ -903,9 +883,9 @@
 				case 'monolingualtext':
 					return JSON.stringify( dataValue.value.text ) + '@' + dataValue.value.language;
 				case 'string':
-					var str = ( dataType === 'url' ) ? _normalizeUrl( dataValue.value ) :
+					plainStringOrUrl = ( dataType === 'url' ) ? ps.commons.normalizeUrl( dataValue.value ) :
 						dataValue.value;
-					return JSON.stringify( str );
+					return JSON.stringify( plainStringOrUrl );
 				case 'wikibase-entityid':
 					switch ( dataValue.value[ 'entity-type' ] ) {
 						case 'item':
@@ -918,33 +898,37 @@
 			return dataValue.value;
 		},
 
-		normalizeUrl: _normalizeUrl,
-
-		tsvValueToJson: _tsvValueToJson,
+		normalizeUrl: function normalizeUrl( url ) {
+			try {
+				return ( new URL( url.toString() ) ).href;
+			} catch ( e ) {
+				return url;
+			}
+		},
 
 		parsePrimarySourcesStatement: function parsePrimarySourcesStatement( statement, isBlacklisted ) {
-
 			// The full QuickStatement acts as the ID
-			var id = statement.statement;
-			var dataset = statement.dataset;
-			var line = statement.statement.split( /\t/ );
-			var subject = line[ 0 ];
-			var predicate = line[ 1 ];
-			var object = line[ 2 ];
-			var qualifiers = [];
-			var source = [];
-			var key = object;
-			// Handle any qualifiers and/or sources
-			var qualifierKeyParts = [];
-			var lineLength = line.length;
+			var i, qualifierKey, url, blacklisted, sourceQuickStatement,
+				id = statement.statement,
+				dataset = statement.dataset,
+				line = statement.statement.split( /\t/ ),
+				subject = line[ 0 ],
+				predicate = line[ 1 ],
+				object = line[ 2 ],
+				qualifiers = [],
+				source = [],
+				key = object,
+				// Handle any qualifiers and/or sources
+				qualifierKeyParts = [],
+				lineLength = line.length;
 
-			for ( var i = 3; i < lineLength; i += 2 ) {
+			for ( i = 3; i < lineLength; i += 2 ) {
 				if ( i === lineLength - 1 ) {
 					console.warn( 'PRIMARY SOURCES TOOL: Malformed QuickStatement, will skip qualifiers and references:', id );
 					break;
 				}
 				if ( /^P\d+$/.exec( line[ i ] ) ) {
-					var qualifierKey = line[ i ] + '\t' + line[ i + 1 ];
+					qualifierKey = line[ i ] + '\t' + line[ i + 1 ];
 					qualifiers.push( {
 						qualifierProperty: line[ i ],
 						qualifierObject: line[ i + 1 ],
@@ -955,7 +939,7 @@
 					source.push( {
 						sourceProperty: line[ i ].replace( /^S/, 'P' ),
 						sourceObject: line[ i + 1 ],
-						sourceType: ( _tsvValueToJson( line[ i + 1 ] ) ).type,
+						sourceType: ( ps.commons.tsvValueToJson( line[ i + 1 ] ) ).type,
 						sourceId: id,
 						key: line[ i ] + '\t' + line[ i + 1 ]
 					} );
@@ -970,11 +954,11 @@
 				// Filter out blacklisted source URLs
 				source = source.filter( function ( source ) {
 					if ( source.sourceType === 'url' ) {
-						var url = source.sourceObject.replace( /^"/, '' ).replace( /"$/, '' );
-						var blacklisted = isBlacklisted( url );
+						url = source.sourceObject.replace( /^"/, '' ).replace( /"$/, '' );
+						blacklisted = isBlacklisted( url );
 						if ( blacklisted ) {
 							console.info( 'PRIMARY SOURCES TOOL: Hit a blacklisted reference URL:', url );
-							var sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.key;
+							sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.key;
 							( function ( currentId, currentUrl ) {
 								ps.commons.setStatementState( currentId, ps.globals.STATEMENT_STATES.blacklisted, dataset, 'reference' )
 									.done( function () {
@@ -1006,11 +990,11 @@
 			statements.forEach( function ( statement ) {
 				entityIds = entityIds.concat( extractEntityIdsFromStatement( statement ) );
 			} );
-			_loadEntityLabels( entityIds );
+			ps.commons.loadEntityLabels( entityIds );
 		},
 
 		datasetUriToLabel: function datasetUriToLabel( uri ) {
-			if ( _isUrl( uri ) ) {
+			if ( ps.commons.isUrl( uri ) ) {
 				// [ "http:", "", "DATASET-LABEL", "STATE" ]
 				return uri.split( '/' )[ 2 ];
 			} else {
