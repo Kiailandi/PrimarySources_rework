@@ -1,7 +1,7 @@
-(function(mw, $) {
+( function ( mw, $ ) {
 	var ps = mw.ps || {};
-	
-    ps.templates = {
+
+	ps.templates = {
     	qualifierHtml:
         '<div class="wikibase-listview">' +
           '<div class="wikibase-snaklistview listview-item">' +
@@ -52,7 +52,7 @@
             '<!-- [0,*] wikibase-snaklistview -->' +
           '</div>' +
         '</div>',
-      sourceItemHtml:
+		sourceItemHtml:
         '<div class="wikibase-snakview listview-item">' +
           '<div class="wikibase-snakview-property-container">' +
             '<div class="wikibase-snakview-property" dir="auto">' +
@@ -68,7 +68,7 @@
             '</div>' +
           '</div>' +
         '</div>',
-      statementViewHtml:
+		statementViewHtml:
         '<div class="wikibase-statementview listview-item wikibase-toolbar-item new-object">' + // Removed class wikibase-statement-q31$8F3B300A-621A-4882-B4EE-65CE7C21E692
           '<div class="wikibase-statementview-rankselector">' +
             '<div class="wikibase-rankselector ui-state-disabled">' +
@@ -131,7 +131,7 @@
             '</div>' +
           '</div>' +
         '</div>',
-      mainHtml:
+		mainHtml:
         '<div class="wikibase-statementgroupview listview-item" id="{{property}}">' +
           '<div class="wikibase-statementgroupview-property new-property">' +
             '<div class="wikibase-statementgroupview-property-label" dir="auto">' +
@@ -157,10 +157,10 @@
             '</span>' +
           '</div>' +
         '</div>'
-    };
-    
-    mw.ps = ps;
+	};
 
-    console.info('PRIMARY SOURCES TOOL: HTML templates loaded');
-    
-})( mediaWiki, jQuery );
+	mw.ps = ps;
+
+	console.info( 'PRIMARY SOURCES TOOL: HTML templates loaded' );
+
+}( mediaWiki, jQuery ) );
