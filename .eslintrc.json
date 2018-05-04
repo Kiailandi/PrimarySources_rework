@@ -8,9 +8,8 @@
 	"globals": {
 		"mediaWiki": false,
 		"OO": false
-		// Project-wide globals
 	},
 	"rules": {
-		// Project-wide rule variations, keep to a minimum
+		"no-console": "off"
 	}
 }
