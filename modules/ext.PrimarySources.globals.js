@@ -5,7 +5,7 @@
 
     var ps = mw.ps || {};
 
-    var BASE_URI = 'https://pst.wmflabs.org/pst/';
+    var BASE_URI = 'https://pst.wmflabs.org/v2/';
 
     // Public constants
     ps.globals = {
