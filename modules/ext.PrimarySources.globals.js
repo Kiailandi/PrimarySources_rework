@@ -1,11 +1,10 @@
-( function ( mw, $ ) {
+( function ( mw ) {
 
 	// Uncomment the following line to add fake blue statements for testing
 	// localStorage.setItem('f2w_fakeOrRandomData', true);
 
-	var ps = mw.ps || {};
-
-	var BASE_URI = 'https://pst.wmflabs.org/v2/';
+	var ps = mw.ps || {},
+		BASE_URI = 'https://pst.wmflabs.org/v2/';
 
 	// Public constants
 	ps.globals = {
@@ -20,8 +19,8 @@
 			VALUES_SERVICE: BASE_URI + 'values',
 			SPARQL_SERVICE: BASE_URI + 'sparql',
 			PREVIEW_SERVICE: 'https://tools.wmflabs.org/strephit/search?url=',
-			SOURCE_URL_BLACKLIST: 'https://wikidata-pst.wmflabs.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Testwiki:Primary_sources_tool/URL_blacklist',
-			SOURCE_URL_WHITELIST: 'https://wikidata-pst.wmflabs.org/w/api.php' + '?action=parse&format=json&prop=text' + '&page=Testwiki:Primary_sources_tool/URL_whitelist',
+			SOURCE_URL_BLACKLIST: 'https://wikidata-pst.wmflabs.org/w/api.php?action=parse&format=json&prop=text&page=Testwiki:Primary_sources_tool/URL_blacklist',
+			SOURCE_URL_WHITELIST: 'https://wikidata-pst.wmflabs.org/w/api.php?action=parse&format=json&prop=text&page=Testwiki:Primary_sources_tool/URL_whitelist',
 			WIKIDATA_ENTITY_DATA_URL: 'https://wikidata-pst.wmflabs.org/wiki/Special:EntityData/{{qid}}.json'
 		},
 
@@ -47,4 +46,4 @@
 
 	console.info( 'PRIMARY SOURCES TOOL: Globals module loaded' );
 
-}( mediaWiki, jQuery ) );
+}( mediaWiki ) );
