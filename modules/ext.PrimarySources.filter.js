@@ -1231,6 +1231,14 @@
                     )
                 )
             )
+            // Firefox won't properly display the grid,
+            // due to wikitable CSS "border-collapse: collapse"
+            if (navigator.userAgent.indexOf('Firefox') !== -1) {
+                this.table.css({
+                    'border-collapse': 'separate',
+                    'border-spacing': 0
+                })
+            }
             this.mainPanel.$element.append(this.table);
         };
 
@@ -1249,6 +1257,14 @@
                         )
                     )
                 );
+            // Firefox won't properly display the grid,
+            // due to wikitable CSS "border-collapse: collapse"
+            if (navigator.userAgent.indexOf('Firefox') !== -1) {
+                this.table.css({
+                    'border-collapse': 'separate',
+                    'border-spacing': 0
+                })
+            }
             this.mainPanel.$element.append(this.table);
         };
 
