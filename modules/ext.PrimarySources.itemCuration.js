@@ -136,7 +136,6 @@
           }
 
           if (statement.source.length > 0) {
-            // TODO: find reference duplicates
             freebaseClaims[predicate][key].sources.push(statement.source);
           }
         });
@@ -471,12 +470,10 @@
     // END 3. match existing Wikidata statements
 
     /**
-     * 4. Handle curation actions:
-     * approval, rejection, and editing.
+     * 4. Handle curation actions: approval and rejection.
      * In other words, handle clicks on the following buttons:
      * -approve;
      * -reject.
-     * TODO there is some code for reference editing, which doesn't seem to work
      */
     addClickHandlers: function addClickHandlers() {
       var contentDiv = document.getElementById('content');
