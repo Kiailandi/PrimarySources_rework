@@ -1,6 +1,7 @@
 {
 	"extends": "wikimedia",
 	"env": {
+		"es6": true,
 		"browser": true,
 		"jquery": true,
 		"qunit": true
@@ -8,6 +9,9 @@
 	"globals": {
 		"mediaWiki": false,
 		"OO": false
+	},
+	"parserOptions": {
+		"ecmaVersion": 6
 	},
 	"rules": {
 		"no-console": "off"
