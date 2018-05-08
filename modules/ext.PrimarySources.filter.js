@@ -1182,34 +1182,13 @@
 			};
 
 			ListDialog.prototype.displaySearchResult = function ( headers, bindings ) {
-				var widget = this,
+				var threshold, triples, full, merged, finalBindings, isBlacklisted,
+					widget = this,
 					filteredProperty = widget.filteredProperty,
 					filteredItemValue = widget.filteredItemValue,
-					filteredDataset = widget.filteredDataset,
-					// Handle dataset binding
-					threshold = filteredDataset ? 4 : 5,
-					triples = bindings.filter( binding => binding.length === threshold ),
-					full = bindings.filter( binding => binding.length > threshold ),
-					// Merge statements on common statement_node
-					merged = full.map( function ( statement ) {
-						var toReturn;
-						$.each( triples, function ( k, triple ) {
-							if ( triple[ 2 ] === statement[ 2 ] ) {
-								toReturn = $.extend( [], triple, statement );
-								// Keep the triple statement value
-								toReturn[ 3 ] = triple[ 3 ];
-								return false;
-							}
-						} );
-						return toReturn;
-					} ),
-					// Filter undefined values
-					finalBindings = merged.filter( Boolean ),
-					isBlacklisted;
+					filteredDataset = widget.filteredDataset;
 
 				console.debug( 'PRIMARY SOURCES TOOL: Filter attributes. Dataset:', filteredDataset, 'Entity of interest:', filteredProperty, 'Property of interest:', filteredItemValue );
-				console.debug( 'PRIMARY SOURCES TOOL: RAW SPARQL results:', bindings );
-				console.debug( 'PRIMARY SOURCES TOOL: MERGED SPARQL results (on statement node):', finalBindings );
 
 				/*
 				 * Subject, property, statement_node, value, reference_property, reference_value, dataset
@@ -1233,6 +1212,28 @@
 					headers.splice( 2, 1 );
 					widget.initSearchTable( headers );
 				}
+
+				// Handle dataset binding
+				threshold = filteredDataset ? 4 : 5;
+				triples = bindings.filter( binding => binding.length === threshold );
+				full = bindings.filter( binding => binding.length > threshold );
+				// Merge statements on common statement_node
+				merged = full.map( function ( statement ) {
+					var toReturn;
+					$.each( triples, function ( k, triple ) {
+						if ( triple[ 2 ] === statement[ 2 ] ) {
+							toReturn = $.extend( [], triple, statement );
+							// Keep the triple statement value
+							toReturn[ 3 ] = triple[ 3 ];
+							return false;
+						}
+					} );
+					return toReturn;
+				} );
+				// Filter undefined values
+				finalBindings = merged.filter( Boolean );
+				console.debug( 'PRIMARY SOURCES TOOL: RAW SPARQL results:', bindings );
+				console.debug( 'PRIMARY SOURCES TOOL: MERGED SPARQL results (on statement node):', finalBindings );
 
 				// Build the URL blacklist check
 				ps.commons.getBlacklistedSourceUrls()
