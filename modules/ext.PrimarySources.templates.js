@@ -1,8 +1,9 @@
-( function ( mw, $ ) {
+( function ( mw ) {
+
 	var ps = mw.ps || {};
 
 	ps.templates = {
-    	qualifierHtml:
+		qualifierHtml:
         '<div class="wikibase-listview">' +
           '<div class="wikibase-snaklistview listview-item">' +
             '<div class="wikibase-snaklistview-listview">' +
@@ -24,8 +25,8 @@
               '<!-- wikibase-listview -->' +
             '</div>' +
           '</div>' +
-        '</div>',
-    	sourceHtml:
+		'</div>',
+		sourceHtml:
         '<div class="wikibase-referenceview listview-item wikibase-toolbar-item new-source">' + // Remove wikibase-reference-d6e3ab4045fb3f3feea77895bc6b27e663fc878a wikibase-referenceview-d6e3ab4045fb3f3feea77895bc6b27e663fc878a
           '<div class="wikibase-referenceview-heading new-source">' +
             '<div class="wikibase-edittoolbar-container wikibase-toolbar-container">' +
@@ -163,4 +164,4 @@
 
 	console.info( 'PRIMARY SOURCES TOOL: HTML templates loaded' );
 
-}( mediaWiki, jQuery ) );
+}( mediaWiki ) );
