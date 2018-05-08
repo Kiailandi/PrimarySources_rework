@@ -18,8 +18,17 @@
 			ConfigDialog.static.name = 'ps-config';
 			ConfigDialog.static.title = 'Choose a primary sources dataset';
 			ConfigDialog.static.actions = [
-				{ action: 'save', label: 'Save', flags: [ 'primary', 'constructive' ] },
-				{ label: 'Cancel', flags: 'safe' }
+				{
+					action: 'save',
+					label: 'Save',
+					flags: [ 'primary', 'progressive' ],
+					icon: 'check'
+				},
+				{
+					label: 'Cancel',
+					flags: [ 'safe', 'destructive' ],
+					icon: 'close'
+				}
 			];
 
 			ConfigDialog.prototype.initialize = function () {
