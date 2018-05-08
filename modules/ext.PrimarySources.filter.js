@@ -107,7 +107,7 @@
 
 	// The only public function is the one that creates the whole dialog window
 	ps.filter = {
-		init: function init( windowManager, linkToBind ) {
+		initFilterDialog: function initFilterDialog( windowManager, linkToBind ) {
 			function SearchResultRow( binding, filteredProperty, filteredItemValue, filteredDataset, isBlacklisted ) {
 				/*
 				 * binding should be:
