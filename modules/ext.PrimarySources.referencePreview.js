@@ -1,15 +1,14 @@
 ( function ( mw, $ ) {
+
 	var ps = mw.ps || {};
 
 	ps.referencePreview = {
 		openNav: function openNav( itemLabel, propertyLabel, propertyValue, referenceURL, buttons ) {
-
-			console.debug( 'Reference preview buttons passed:', arguments );
-
-			$( '#myNav' ).width( '100%' );
-
 			var blackboard = $( '#blackboard' );
 
+			console.debug( 'Reference preview buttons passed:', buttons );
+
+			$( '#myNav' ).width( '100%' );
 			blackboard.append( $( buttons[ 0 ] ).clone( true, true ) );
 			blackboard.append( $( buttons[ 1 ] ).clone( true, true ) );
 			blackboard.append( '<div class="loader"></div>' );
@@ -18,37 +17,38 @@
 				type: 'GET',
 				url: ps.globals.API_ENDPOINTS.PREVIEW_SERVICE + encodeURIComponent( referenceURL ),
 				success: function ( msg ) {
-					$( '.loader' ).remove();
+					var data, regEx, linkList, index, item, key;
 
-					if ( msg != 'no preview' ) {
-						var data = JSON.parse( msg );
-						var regEx = new RegExp( '(' + itemLabel + '|' + propertyLabel + '|' + propertyValue + ')(?!([^<]+)?>)', 'gi' );
+					$( '.loader' ).remove();
+					if ( msg !== 'no preview' ) {
+						data = JSON.parse( msg );
+						regEx = new RegExp( '(' + itemLabel + '|' + propertyLabel + '|' + propertyValue + ')(?!([^<]+)?>)', 'gi' );
 
 						if ( !data.hasOwnProperty( 'excerpt' ) ) {
 							blackboard.append( '<h1><a href="' + data.url + '">' + data.url + '</a></h1>' );
 							blackboard.append( '<ul></ul>' );
+							linkList = $( '#blackboard > ul' );
 
-							var linklist = $( '#blackboard > ul' );
-							for ( var index in data ) {
-								var item = data[ index ];
-								if ( index != 'url' && item !== null ) {
-									if ( index == 'other' ) {
+							for ( index in data ) {
+								item = data[ index ];
+								if ( index !== 'url' && item !== null ) {
+									if ( index === 'other' ) {
 										while ( typeof item === 'string' ) {
 											item = JSON.parse( item );
 										}
-										for ( var key in item ) {
+										for ( key in item ) {
 											if ( item[ key ] !== null ) {
-												linklist.append( ( '<li>' + '<strong>' + key + '</strong>' + ': ' + item[ key ] + '</li>' ).replace( regEx, '<span class="highlight">$1</span>' ) );
+												linkList.append( ( '<li><b>' + key + '</b>: ' + item[ key ] + '</li>' ).replace( regEx, '<span class="highlight">$1</span>' ) );
 											}
 										}
 									} else {
-										linklist.append( ( '<li>' + '<strong>' + index + '</strong>' + ': ' + item + '</li>' ).replace( regEx, '<span class="highlight">$1</span>' ) );
+										linkList.append( ( '<li><b>' + index + '</b>: ' + item + '</li>' ).replace( regEx, '<span class="highlight">$1</span>' ) );
 									}
 								}
 							}
 						} else {
 							blackboard.append( '<h1><a href="' + data.url + '">' + data.url + '</a></h1>' );
-							if ( data.content === '' || data.content == '<body></body>' ) {
+							if ( data.content === '' || data.content === '<body></body>' ) {
 								blackboard.append( '<p>Preview not available for this reference.</p>' );
 							} else {
 								blackboard.append( $.parseHTML( data.content.replace( /<a[^>]*>(.*?)<\/a>/g, '$1' ).replace( /<img .*?>/g, '' ).replace( regEx, '<span class="highlight">$1</span>' ) ) );
@@ -70,15 +70,21 @@
 			$( '#blackboard' ).html( '' );
 		},
 		appendPreviewButton: function appendPreviewButton( container ) {
+			var refs, refLabel;
+
 			if ( container.find( '.external.free' ).length > 0 ) {
-				var refs = container.find( '.wikibase-snakview-property' );
+				refs = container.find( '.wikibase-snakview-property' );
 				refs.each( function ( index, item ) {
-					var refLabel = $( item ).children().text();
+					refLabel = $( item ).children().text();
 					// if(refLabel === "reference URL"){
-					$( item ).append( '<a class="preview-button" onclick="mw.ps.referencePreview.openNav(\'' + $( '.wikibase-title-label' ).text() + '\',\'' +
-                                                                                       $( item ).parents( '.wikibase-statementgroupview.listview-item' ).find( '.wikibase-statementgroupview-property-label' ).children().text() + '\',\'' +
-                                                                                       $( item ).parents( '.wikibase-statementview.listview-item.wikibase-toolbar-item' ).find( '.wikibase-statementview-mainsnak .wikibase-snakview-value.wikibase-snakview-variation-valuesnak' ).children().text() + '\',\'' +
-                                                                                       container.find( item ).closest( '.wikibase-snakview.listview-item' ).find( '.external.free' ).text() + '\'' + ',' + '$(this).closest(\'.wikibase-referenceview.listview-item.wikibase-toolbar-item.new-source\').children().find(\'.f2w-button.f2w-source\'))">Preview</a>' );
+					$( item ).append(
+						'<a class="preview-button" onclick="mw.ps.referencePreview.openNav(\'' +
+							$( '.wikibase-title-label' ).text() + '\',\'' +
+							$( item ).parents( '.wikibase-statementgroupview.listview-item' ).find( '.wikibase-statementgroupview-property-label' ).children().text() + '\',\'' +
+							$( item ).parents( '.wikibase-statementview.listview-item.wikibase-toolbar-item' ).find( '.wikibase-statementview-mainsnak .wikibase-snakview-value.wikibase-snakview-variation-valuesnak' ).children().text() + '\',\'' +
+							container.find( item ).closest( '.wikibase-snakview.listview-item' ).find( '.external.free' ).text() + '\',' +
+							'$(this).closest(\'.wikibase-referenceview.listview-item.wikibase-toolbar-item.new-source\').children().find(\'.f2w-button.f2w-source\'))' +
+						'">Preview</a>' );
 					// }
 				} );
 			}
@@ -88,10 +94,11 @@
 	mw.ps = ps;
 
 	( function appendOverlay() {
-		$( '#content' ).append( '<div id="myNav" class="overlay">' +
-                             '<a href="javascript:void(0)" class="closebtn" onclick="mw.ps.referencePreview.closeNav()">press q to exit or press here &times;</a>' +
-                             '<div id="blackboard" class="overlay-content"></div>' +
-                             '</div>' );
+		$( '#content' ).append(
+			'<div id="myNav" class="overlay">' +
+				'<a href="javascript:void(0)" class="closebtn" onclick="mw.ps.referencePreview.closeNav()">press q to exit or press here &times;</a>' +
+				'<div id="blackboard" class="overlay-content"></div>' +
+			'</div>' );
 	}() );
 
 	$( document ).keypress( function ( e ) {
