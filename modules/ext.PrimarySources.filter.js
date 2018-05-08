@@ -1244,9 +1244,10 @@
 						console.warn( 'PRIMARY SOURCES TOOL: Could not obtain blacklisted source URLs' );
 					} );
 				finalBindings.forEach( function ( binding ) {
-					var row = new SearchResultRow( binding, filteredProperty, filteredItemValue, filteredDataset, isBlacklisted );
+					var row;
 					// Get rid of statement_node
 					binding.splice( 2, 1 );
+					row = new SearchResultRow( binding, filteredProperty, filteredItemValue, filteredDataset, isBlacklisted );
 					console.debug( 'PRIMARY SOURCES TOOL: Search result row:', row );
 					if ( row ) {
 						widget.table.append( row.$element );
