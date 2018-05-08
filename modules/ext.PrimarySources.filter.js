@@ -549,18 +549,22 @@
 					);
 			};
 
-			function ListDialog( config ) {
-				ListDialog.super.call( this, config );
+			function FilterDialog( config ) {
+				FilterDialog.super.call( this, config );
 			}
-			OO.inheritClass( ListDialog, OO.ui.ProcessDialog );
-			ListDialog.static.name = 'ps-list';
-			ListDialog.static.title = 'primary sources filter';
-			ListDialog.static.size = 'full';
-			ListDialog.static.actions = [
-				{ label: 'Close', flags: 'safe' }
+			OO.inheritClass( FilterDialog, OO.ui.ProcessDialog );
+			FilterDialog.static.name = 'ps-list';
+			FilterDialog.static.title = 'primary sources filter';
+			FilterDialog.static.size = 'full';
+			FilterDialog.static.actions = [
+				{
+					label: 'Close',
+					flags: [ 'safe', 'destructive' ],
+					icon: 'close'
+				}
 			];
 
-			ListDialog.prototype.initialize = function () {
+			FilterDialog.prototype.initialize = function () {
 				var widget = this,
 					// Entity value autocompletion
 					itemValueCache = populateAutocompletionCache( ps.globals.API_ENDPOINTS.VALUES_SERVICE ),
@@ -574,7 +578,7 @@
 						framed: true
 					} );
 
-				ListDialog.super.prototype.initialize.apply( this, arguments );
+				FilterDialog.super.prototype.initialize.apply( this, arguments );
 				this.datasetInput = new OO.ui.DropdownInputWidget();
 				ps.commons.getDatasets( function ( datasets ) {
 					var options = [ { data: '', label: 'All sources' } ];
@@ -766,7 +770,8 @@
 
 				this.loadButton = new OO.ui.ButtonInputWidget( {
 					label: 'Run',
-					flags: 'progressive',
+					flags: [ 'primary', 'progressive' ],
+					icon: 'play',
 					type: 'submit'
 				} )
 					.connect( this, { click: 'onOptionSubmit' } );
@@ -812,7 +817,7 @@
 				}
 			};
 
-			ListDialog.prototype.onOptionSubmit = function () {
+			FilterDialog.prototype.onOptionSubmit = function () {
 				var filledQuery, bindings, bakedFiltersMenu, bakedSelection, baked, query, filteredItemValue, filteredProperty,
 					// The dataset field is needed for all filters but the arbitrary SPARQL query
 					filteredDataset = this.datasetInput.getValue();
@@ -966,7 +971,7 @@
 				}
 			};
 
-			ListDialog.prototype.executeServiceCall = function ( url ) {
+			FilterDialog.prototype.executeServiceCall = function ( url ) {
 				var widget = this,
 					progressBar = new OO.ui.ProgressBarWidget();
 
@@ -998,21 +1003,21 @@
 					} );
 			};
 
-			ListDialog.prototype.onNextButtonSubmitSearch = function () {
+			FilterDialog.prototype.onNextButtonSubmitSearch = function () {
 				this.nextStatementsButton.$element.remove();
 				this.executeSearch( true );
 			};
 
-			ListDialog.prototype.onNextButtonSubmit = function () {
+			FilterDialog.prototype.onNextButtonSubmit = function () {
 				this.nextStatementsButton.$element.remove();
 				this.executeSparqlQuery( true );
 			};
 
-			ListDialog.prototype.getBodyHeight = function () {
+			FilterDialog.prototype.getBodyHeight = function () {
 				return window.innerHeight - 100;
 			};
 
-			ListDialog.prototype.executeSearch = function ( more = false ) {
+			FilterDialog.prototype.executeSearch = function ( more = false ) {
 				var widget = this,
 					progressBar = new OO.ui.ProgressBarWidget();
 
@@ -1092,7 +1097,7 @@
 					} );
 			};
 
-			ListDialog.prototype.executeSparqlQuery = function ( more = false ) {
+			FilterDialog.prototype.executeSparqlQuery = function ( more = false ) {
 				var label, noticeIcon, noStatements, ids,
 					widget = this,
 					progressBar = new OO.ui.ProgressBarWidget();
@@ -1163,7 +1168,7 @@
 					} );
 			};
 
-			ListDialog.prototype.displayServiceResult = function ( result ) {
+			FilterDialog.prototype.displayServiceResult = function ( result ) {
 				var dataset, entities,
 					widget = this,
 					datasetLabels = [];
@@ -1186,7 +1191,7 @@
 				}
 			};
 
-			ListDialog.prototype.displaySearchResult = function ( headers, bindings ) {
+			FilterDialog.prototype.displaySearchResult = function ( headers, bindings ) {
 				var threshold, triples, full, merged, finalBindings, isBlacklisted,
 					widget = this,
 					filteredProperty = widget.filteredProperty,
@@ -1260,7 +1265,7 @@
 				} );
 			};
 
-			ListDialog.prototype.displaySparqlResult = function ( headers, bindings ) {
+			FilterDialog.prototype.displaySparqlResult = function ( headers, bindings ) {
 				var widget = this;
 				if ( this.table === null ) {
 					this.initResultTable( headers );
@@ -1272,7 +1277,7 @@
 
 			};
 
-			ListDialog.prototype.initSearchTable = function ( headers ) {
+			FilterDialog.prototype.initSearchTable = function ( headers ) {
 				var htmlHeaders = [];
 				headers.forEach( function ( header ) {
 					var formatted = header
@@ -1303,7 +1308,7 @@
 				this.mainPanel.$element.append( this.table );
 			};
 
-			ListDialog.prototype.initResultTable = function ( headers ) {
+			FilterDialog.prototype.initResultTable = function ( headers ) {
 				var htmlHeaders = [];
 				headers.forEach( function ( header ) {
 					htmlHeaders.push( $( '<th>' ).text( header ) );
@@ -1330,7 +1335,7 @@
 			};
 
 			// Add modal to window
-			windowManager.addWindows( [ new ListDialog() ] );
+			windowManager.addWindows( [ new FilterDialog() ] );
 
 			linkToBind.click( function () {
 				windowManager.openWindow( 'ps-list' );
