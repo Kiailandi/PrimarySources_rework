@@ -771,7 +771,7 @@
 				this.loadButton = new OO.ui.ButtonInputWidget( {
 					label: 'Run',
 					flags: [ 'primary', 'progressive' ],
-					icon: 'play',
+					icon: 'next',
 					type: 'submit'
 				} )
 					.connect( this, { click: 'onOptionSubmit' } );
