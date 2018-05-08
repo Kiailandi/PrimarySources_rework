@@ -907,6 +907,9 @@
 								this.sparql = filledQuery.replace( '{{BINDINGS}}', bindings );
 								console.debug( 'PRIMARY SOURCES TOOL: BAKED FILTER triggered. Property query:', this.sparql );
 								this.sparqlOffset = 0;
+								// The Limit value is quite high to avoid empty result tables,
+								// due SPARQL results merged on the statement_node binding.
+								// See ListDialog.prototype.displaySearchResult
 								this.sparqlLimit = 300;
 								this.filteredDataset = filteredDataset;
 								this.filteredProperty = baked;
@@ -1012,8 +1015,10 @@
 			ListDialog.prototype.executeSearch = function ( more = false ) {
 				var widget = this,
 					progressBar = new OO.ui.ProgressBarWidget();
+
 				progressBar.$element.css( 'max-width', '100%' );
 				widget.mainPanel.$element.append( progressBar.$element );
+
 				$.ajax(
 					ps.globals.API_ENDPOINTS.SPARQL_SERVICE,
 					{
