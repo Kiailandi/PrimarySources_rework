@@ -137,9 +137,9 @@
 						ps.globals.API_ENDPOINTS.STATISTICS_SERVICE,
 						{ dataset: selected.getData() },
 						function ( data ) {
-							var description = data.description === null ?
-								new OO.ui.HtmlSnippet( '<i>Not available</i>' ) :
-								new OO.ui.HtmlSnippet( '<i>' + data.description + '</i>' );
+							var description = data.description ?
+								new OO.ui.HtmlSnippet( '<i>' + data.description + '</i>' ) :
+								new OO.ui.HtmlSnippet( '<i>Not available</i>' );
 							datasetDescriptionWidget.setLabel( description );
 							missingStatementsWidget.setLabel( new OO.ui.HtmlSnippet( '<b>' + data.missing_statements.toLocaleString() + '</b>' ) );
 							totalStatementsWidget.setLabel( new OO.ui.HtmlSnippet( '<b>' + data.total_statements.toLocaleString() + '</b>' ) );
