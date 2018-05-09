@@ -323,9 +323,10 @@
 
 	/* BEGIN: browse suggested claims, self-invoking */
 	mw.loader.using( [ 'mediawiki.util' ], function generateNav() {
-		var navigation = $( '#p-ps-navigation' );
+		var navigation;
 
 		$( '#mw-panel' ).append( '<div class="portal" role="navigation" id="p-ps-navigation" aria-labelledby="p-ps-navigation-label"><h3 id="p-ps-navigation-label">Browse item suggestions</h3></div>' );
+		navigation = $( '#p-ps-navigation' );
 		navigation.append( '<div class="body"><ul id="p-ps-nav-list"></ul></div>' );
 		$( '#p-ps-nav-list' ).before( '<a href="#" id="n-ps-anchor-btt" title="move to top">&#x25B2 back to top &#x25B2</a>' );
 		$( '#n-ps-anchor-btt' ).click( function ( e ) {
