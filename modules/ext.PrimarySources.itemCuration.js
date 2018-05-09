@@ -6,641 +6,628 @@
  * 3. match existing Wikidata statements and display blue boxes accordingly;
  * 4. handle curation actions (AKA approve/reject buttons);
  *   4.1. add approved suggestions to Wikidata;
- *   4.2. update the suggestions state (back-end service /curate).
+ *   4.2. update the suggestions state (/curate back-end service).
  */
 ( function ( mw, $ ) {
+	var ps = mw.ps || {},
+		// The current entity
+		QID = null;
 
-	var ps = mw.ps || {};
-	// The current item
-	var qid = null;
+	// BEGIN: 1. pre-process suggestions from primary sources back end
+	function getEntitySuggestions( qid, callback ) {
+		$.ajax( {
+			url: ps.globals.FAKE_OR_RANDOM_DATA ?
+				ps.globals.API_ENDPOINTS.RANDOM_SERVICE :
+				ps.globals.API_ENDPOINTS.SUGGEST_SERVICE.replace( /\{\{qid\}\}/, qid ) + '&dataset=' +
+				ps.globals.DATASET
+		} ).done( function ( data ) {
+			return callback( null, data );
+		} );
+	}
 
-	// accessible object
-	ps.itemCuration = {
-		// BEGIN: 1. process suggestions
-		getFreebaseEntityData: function getFreebaseEntityData( qid, callback ) {
-			$.ajax( {
-				url: FAKE_OR_RANDOM_DATA ?
-					ps.globals.API_ENDPOINTS.RANDOM_SERVICE :
-					ps.globals.API_ENDPOINTS.SUGGEST_SERVICE.replace( /\{\{qid\}\}/, qid ) + '&dataset=' +
-          ps.globals.DATASET
-			} ).done( function ( data ) {
-				return callback( null, data );
-			} );
-		},
-		parseFreebaseClaims: function parseFreebaseClaims( freebaseEntityData, blacklistedSourceUrls ) {
-			var isBlacklisted = ps.commons.isBlackListedBuilder( blacklistedSourceUrls );
-
-			var freebaseClaims = {};
-			/* jshint ignore:start */
-			/* jscs: disable */
-			if ( ps.globals.DEBUG ) {
-				if ( qid === 'Q4115189' ) {
-					// The sandbox item can be written to
-					document.getElementById( 'content' ).style.backgroundColor = 'lime';
-				}
-			}
-			if ( ps.globals.FAKE_OR_RANDOM_DATA ) {
-				freebaseEntityData.push( {
-					statement: qid + '\tP31\tQ1\tP580\t+1840-01-01T00:00:00Z/9\tS143\tQ48183',
-					state: ps.globals.STATEMENT_STATES.unapproved,
-					id: 0,
-					format: ps.globals.STATEMENT_FORMAT
-				} );
-				freebaseEntityData.push( {
-					statement: qid + '\tP108\tQ95\tS854\t"http://research.google.com/pubs/vrandecic.html"',
-					state: ps.globals.STATEMENT_STATES.unapproved,
-					id: 0,
-					format: ps.globals.STATEMENT_FORMAT
-				} );
-				freebaseEntityData.push( {
-					statement: qid + '\tP108\tQ8288\tP582\t+2013-09-30T00:00:00Z/10\tS854\t"http://simia.net/wiki/Denny"\tS813\t+2015-02-14T00:00:00Z/11',
-					state: ps.globals.STATEMENT_STATES.unapproved,
-					id: 0,
-					format: ps.globals.STATEMENT_FORMAT
-				} );
-				freebaseEntityData.push( {
-					statement: qid + '\tP1451\ten:"foo bar"\tP582\t+2013-09-30T00:00:00Z/10\tS854\t"http://www.ebay.com/itm/GNC-Mens-Saw-Palmetto-Formula-60-Tablets/301466378726?pt=LH_DefaultDomain_0&hash=item4630cbe1e6"',
-					state: ps.globals.STATEMENT_STATES.unapproved,
-					id: 0,
-					format: ps.globals.STATEMENT_FORMAT
-				} );
-				freebaseEntityData.push( {
-					statement: qid + '\tP108\tQ8288\tP582\t+2013-09-30T00:00:00Z/10\tS854\t"https://lists.wikimedia.org/pipermail/wikidata-l/2013-July/002518.html"',
-					state: ps.globals.STATEMENT_STATES.unapproved,
-					id: 0,
-					format: ps.globals.STATEMENT_FORMAT
-				} );
-				freebaseEntityData.push( {
-					statement: qid + '\tP1082\t-1234',
-					state: ps.globals.STATEMENT_STATES.unapproved,
-					id: 0,
-					format: ps.globals.STATEMENT_FORMAT
-				} );
-				freebaseEntityData.push( {
-					statement: qid + '\tP625\t@-12.12334556/23.1234',
-					state: ps.globals.STATEMENT_STATES.unapproved,
-					id: 0,
-					format: ps.globals.STATEMENT_FORMAT
-				} );
-				freebaseEntityData.push( {
-					statement: qid + '\tP646\t"/m/05zhl_"',
-					state: ps.globals.STATEMENT_STATES.unapproved,
-					id: 0,
-					format: ps.globals.STATEMENT_FORMAT
-				} );
-				freebaseEntityData.push( {
-					statement: qid + '\tP569\t+1840-01-01T00:00:00Z/11\tS854\t"https://lists.wikimedia.org/pipermail/wikidata-l/2013-July/002518.html"',
-					state: ps.globals.STATEMENT_STATES.unapproved,
-					id: 0,
-					format: ps.globals.STATEMENT_FORMAT
-				} );
-			}
-			/* jscs: enable */
-			/* jshint ignore:end */
+	function parseEntitySuggestions( suggestions, blacklistedSourceUrls ) {
+		var isBlacklisted = ps.commons.isBlackListedBuilder( blacklistedSourceUrls ),
+			parsed = {},
 			// Unify statements, as some statements may appear more than once
-			var statementUnique = function ( haystack, needle ) {
-				for ( var i = 0, lenI = haystack.length; i < lenI; i++ ) {
+			statementUnique = function ( haystack, needle ) {
+				var i, lenI;
+				for ( i = 0, lenI = haystack.length; i < lenI; i++ ) {
 					if ( haystack[ i ].statement === needle ) {
 						return i;
 					}
 				}
 				return -1;
-			};
-			var statements = freebaseEntityData.filter( function ( freebaseEntity, index, self ) {
-				return statementUnique( self, freebaseEntity.statement ) === index;
+			},
+			statements = suggestions.filter( function ( entity, index, self ) {
+				return statementUnique( self, entity.statement ) === index;
 			} )
-			// Only show v1 new statements
-				.filter( function ( freebaseEntity ) {
-					return freebaseEntity.format === ps.globals.STATEMENT_FORMAT &&
-              freebaseEntity.state === ps.globals.STATEMENT_STATES.unapproved;
+				.filter( function ( entity ) {
+					return entity.format === ps.globals.STATEMENT_FORMAT &&
+					entity.state === ps.globals.STATEMENT_STATES.unapproved;
 				} )
-				.map( function ( freebaseEntity ) {
-					return ps.commons.parsePrimarySourcesStatement( freebaseEntity, isBlacklisted );
+				.map( function ( entity ) {
+					return ps.commons.parsePrimarySourcesStatement( entity, isBlacklisted );
 				} );
 
-			ps.commons.preloadEntityLabels( statements );
-
-			statements.forEach( function ( statement ) {
-				var predicate = statement.predicate;
-				var key = statement.key;
-
-				freebaseClaims[ predicate ] = freebaseClaims[ predicate ] || {};
-				if ( !freebaseClaims[ predicate ][ key ] ) {
-					freebaseClaims[ predicate ][ key ] = {
-						id: statement.id,
-						dataset: statement.dataset,
-						object: statement.object,
-						qualifiers: statement.qualifiers,
-						sources: []
-					};
-				}
-
-				if ( statement.source.length > 0 ) {
-					freebaseClaims[ predicate ][ key ].sources.push( statement.source );
-				}
+		if ( ps.globals.DEBUG ) {
+			if ( QID === 'Q4115189' ) {
+				// The sandbox item can be written to
+				document.getElementById( 'content' ).style.backgroundColor = 'lime';
+			}
+		}
+		if ( ps.globals.FAKE_OR_RANDOM_DATA ) {
+			suggestions.push( {
+				statement: QID + '\tP31\tQ1\tP580\t+1840-01-01T00:00:00Z/9\tS143\tQ48183',
+				state: ps.globals.STATEMENT_STATES.unapproved,
+				id: 0,
+				format: ps.globals.STATEMENT_FORMAT
 			} );
-			return freebaseClaims;
-		},
-		// END: 1. process suggestions
-
-		// BEGIN: 2. fill HTML templates
-		getQualifiersHtml: function getQualifiersHtml( qualifiers ) {
-			var qualifierPromises = qualifiers.map( function ( qualifier ) {
-				return $.when(
-					getValueHtml( qualifier.qualifierProperty ),
-					getValueHtml( qualifier.qualifierObject, qualifier.qualifierProperty )
-				).then( function ( formattedProperty, formattedValue ) {
-					return ps.templates.qualifierHtml
-						.replace( /\{\{qualifier-property-html\}\}/g, formattedProperty )
-						.replace( /\{\{qualifier-object\}\}/g, formattedValue );
-				} );
+			suggestions.push( {
+				statement: QID + '\tP108\tQ95\tS854\t"http://research.google.com/pubs/vrandecic.html"',
+				state: ps.globals.STATEMENT_STATES.unapproved,
+				id: 0,
+				format: ps.globals.STATEMENT_FORMAT
 			} );
-
-			return $.when.apply( $, qualifierPromises ).then( function () {
-				return Array.prototype.slice.call( arguments ).join( '' );
+			suggestions.push( {
+				statement: QID + '\tP108\tQ8288\tP582\t+2013-09-30T00:00:00Z/10\tS854\t"http://simia.net/wiki/Denny"\tS813\t+2015-02-14T00:00:00Z/11',
+				state: ps.globals.STATEMENT_STATES.unapproved,
+				id: 0,
+				format: ps.globals.STATEMENT_FORMAT
 			} );
-		},
-		getSourcesHtml: function getSourcesHtml( sources, property, object ) {
-			var sourcePromises = sources.map( function ( source ) {
-				var sourceItemsPromises = source.map( function ( snak ) {
-					return $.when(
-						ps.commons.getValueHtml( snak.sourceProperty ),
-						ps.commons.getValueHtml( snak.sourceObject, snak.sourceProperty )
-					).then( function ( formattedProperty, formattedValue ) {
-						return ps.templates.sourceItemHtml
-							.replace( /\{\{source-property-html\}\}/g, formattedProperty )
-							.replace( /\{\{source-object\}\}/g, formattedValue );
-					} );
-				} );
-
-				return $.when.apply( $, sourceItemsPromises ).then( function () {
-					return ps.templates.sourceHtml
-						.replace( /\{\{data-source\}\}/g, ps.itemCuration.escapeHtml( JSON.stringify( source ) ) )
-						.replace( /\{\{data-property\}\}/g, property )
-						.replace( /\{\{data-object\}\}/g, ps.itemCuration.escapeHtml( object.object ) )
-						.replace( /\{\{data-dataset\}\}/g, object.dataset )
-						.replace( /\{\{statement-id\}\}/g, source[ 0 ].sourceId )
-						.replace( /\{\{source-html\}\}/g,
-							Array.prototype.slice.call( arguments ).join( '' ) )
-						.replace( /\{\{data-qualifiers\}\}/g, ps.itemCuration.escapeHtml( JSON.stringify(
-							object.qualifiers ) ) );
-				} );
+			suggestions.push( {
+				statement: QID + '\tP1451\ten:"foo bar"\tP582\t+2013-09-30T00:00:00Z/10\tS854\t"http://www.ebay.com/itm/GNC-Mens-Saw-Palmetto-Formula-60-Tablets/301466378726?pt=LH_DefaultDomain_0&hash=item4630cbe1e6"',
+				state: ps.globals.STATEMENT_STATES.unapproved,
+				id: 0,
+				format: ps.globals.STATEMENT_FORMAT
 			} );
-
-			return $.when.apply( $, sourcePromises ).then( function () {
-				return Array.prototype.slice.call( arguments ).join( '' );
+			suggestions.push( {
+				statement: QID + '\tP108\tQ8288\tP582\t+2013-09-30T00:00:00Z/10\tS854\t"https://lists.wikimedia.org/pipermail/wikidata-l/2013-July/002518.html"',
+				state: ps.globals.STATEMENT_STATES.unapproved,
+				id: 0,
+				format: ps.globals.STATEMENT_FORMAT
 			} );
-		},
-		escapeHtml: function escapeHtml( html ) {
-			return html
-				.replace( /&/g, '&amp;' )
-				.replace( /</g, '&lt;' )
-				.replace( />/g, '&gt;' )
-				.replace( /\"/g, '&quot;' );
-		},
-		getStatementHtml: function getStatementHtml( property, object ) {
+			suggestions.push( {
+				statement: QID + '\tP1082\t-1234',
+				state: ps.globals.STATEMENT_STATES.unapproved,
+				id: 0,
+				format: ps.globals.STATEMENT_FORMAT
+			} );
+			suggestions.push( {
+				statement: QID + '\tP625\t@-12.12334556/23.1234',
+				state: ps.globals.STATEMENT_STATES.unapproved,
+				id: 0,
+				format: ps.globals.STATEMENT_FORMAT
+			} );
+			suggestions.push( {
+				statement: QID + '\tP646\t"/m/05zhl_"',
+				state: ps.globals.STATEMENT_STATES.unapproved,
+				id: 0,
+				format: ps.globals.STATEMENT_FORMAT
+			} );
+			suggestions.push( {
+				statement: QID + '\tP569\t+1840-01-01T00:00:00Z/11\tS854\t"https://lists.wikimedia.org/pipermail/wikidata-l/2013-July/002518.html"',
+				state: ps.globals.STATEMENT_STATES.unapproved,
+				id: 0,
+				format: ps.globals.STATEMENT_FORMAT
+			} );
+		}
+
+		ps.commons.preloadEntityLabels( statements );
+
+		statements.forEach( function ( statement ) {
+			var predicate = statement.predicate,
+				key = statement.key;
+
+			parsed[ predicate ] = parsed[ predicate ] || {};
+			if ( !parsed[ predicate ][ key ] ) {
+				parsed[ predicate ][ key ] = {
+					id: statement.id,
+					dataset: statement.dataset,
+					object: statement.object,
+					qualifiers: statement.qualifiers,
+					sources: []
+				};
+			}
+
+			if ( statement.source.length > 0 ) {
+				parsed[ predicate ][ key ].sources.push( statement.source );
+			}
+		} );
+		return parsed;
+	}
+	// END: 1. pre-process suggestions from primary sources back end
+
+	// BEGIN: 2. fill HTML templates
+	function escapeHtml( html ) {
+		return html
+			.replace( /&/g, '&amp;' )
+			.replace( /</g, '&lt;' )
+			.replace( />/g, '&gt;' )
+			.replace( /"/g, '&quot;' );
+	}
+
+	function getQualifiersHtml( qualifiers ) {
+		var qualifierPromises = qualifiers.map( function ( qualifier ) {
 			return $.when(
-				ps.itemCuration.getQualifiersHtml( object.qualifiers ),
-				ps.itemCuration.getSourcesHtml( object.sources, property, object ),
-				ps.commons.getValueHtml( object.object, property )
-			).then( function ( qualifiersHtml, sourcesHtml, formattedValue ) {
-				return ps.templates.statementViewHtml
-					.replace( /\{\{object\}\}/g, formattedValue )
-					.replace( /\{\{data-object\}\}/g, ps.itemCuration.escapeHtml( object.object ) )
-					.replace( /\{\{data-property\}\}/g, property )
-					.replace( /\{\{references\}\}/g,
-						object.sources.length === 1 ?
-							object.sources.length + ' reference' :
-							object.sources.length + ' references' )
-					.replace( /\{\{sources\}\}/g, sourcesHtml )
-					.replace( /\{\{qualifiers\}\}/g, qualifiersHtml )
-					.replace( /\{\{statement-id\}\}/g, object.id )
-					.replace( /\{\{data-dataset\}\}/g, object.dataset )
-					.replace( /\{\{data-qualifiers\}\}/g, ps.itemCuration.escapeHtml( JSON.stringify(
-						object.qualifiers ) ) )
-					.replace( /\{\{data-sources\}\}/g, ps.itemCuration.escapeHtml( JSON.stringify(
-						object.sources ) ) );
+				ps.commons.getValueHtml( qualifier.qualifierProperty ),
+				ps.commons.getValueHtml( qualifier.qualifierObject, qualifier.qualifierProperty )
+			).then( function ( formattedProperty, formattedValue ) {
+				return ps.templates.qualifierHtml
+					.replace( /\{\{qualifier-property-html\}\}/g, formattedProperty )
+					.replace( /\{\{qualifier-object\}\}/g, formattedValue );
 			} );
-		},
-		// END: 2. fill HTML templates
+		} );
 
-		// BEGIN: 3. match existing Wikidata statements
-		getQid: function getQid() {
-			var qidRegEx = /^Q\d+$/;
-			var title = mw.config.get( 'wgTitle' );
-			return qidRegEx.test( title ) ? title : false;
-		},
-		getWikidataEntityData: function getWikidataEntityData( qid, callback ) {
-			var revisionId = mw.config.get( 'wgRevisionId' );
-			$.ajax( {
-				url: ps.globals.API_ENDPOINTS.WIKIDATA_ENTITY_DATA_URL.replace( /\{\{qid\}\}/, qid ) + '?revision=' + mw.config.get( 'wgRevisionId' )
-			} ).done( function ( data ) {
-				return callback( null, data.entities[ qid ] );
-			} ).fail( function () {
-				return callback( 'Invalid revision ID ' + mw.config.get( 'wgRevisionId' ) );
-			} );
-		},
-		getFreebaseEntityData: function getFreebaseEntityData( qid, callback ) {
-			$.ajax( {
-				url: ps.globals.FAKE_OR_RANDOM_DATA ?
-					ps.globals.API_ENDPOINTS.SUGGEST_SERVICE.replace( /\{\{qid\}\}/, 'any' ) : ps.globals.API_ENDPOINTS.SUGGEST_SERVICE.replace( /\{\{qid\}\}/, qid ) + '&dataset=' +
-          ps.globals.DATASET
-			} ).done( function ( data ) {
-				return callback( null, data );
-			} );
-		},
-		createNewSources: function createNewSources( sources, property, object, statementId ) {
-			ps.itemCuration.getSourcesHtml( sources, property, object ).then( function ( html ) {
-				var fragment = document.createDocumentFragment();
-				var child = document.createElement( 'div' );
-				child.innerHTML = html;
-				fragment.appendChild( child );
-				// Need to find the correct reference
-				var container = document
-					.getElementsByClassName( 'wikibase-statement-' + statementId )[ 0 ];
-				// Open the references toggle
-				var toggler = container.querySelector( 'a.ui-toggler' );
-				if ( toggler.classList.contains( 'ui-toggler-toggle-collapsed' ) ) {
-					toggler.click();
-				}
-				var label = toggler.querySelector( '.ui-toggler-label' );
-				var oldLabel =
-          parseInt( label.textContent.replace( /.*?(\d+).*?/, '$1' ), 10 );
-				// Update the label
-				var newLabel = oldLabel += sources.length;
-				newLabel = newLabel === 1 ? '1 reference' : newLabel + ' references';
-				label.textContent = newLabel;
-				// Append the references
-				container = container
-					.querySelector( '.wikibase-statementview-references' );
-				// Create wikibase-listview if not found
-				if ( !container.querySelector( '.wikibase-listview' ) ) {
-					var sourcesListView = document.createElement( 'div' );
-					sourcesListView.className = 'wikibase-listview';
-					container.insertBefore( sourcesListView, container.firstChild );
-				}
-				container = container.querySelector( '.wikibase-listview' );
-				container.appendChild( fragment );
-	      ps.sidebar.appendToNav( document.getElementById( property ) );
-				ps.referencePreview.appendPreviewButton( $( container ).children().last() );
-			} );
-		},
-		prepareNewSources: function prepareNewSources( property, object, wikidataStatement ) {
-			var wikidataSources = ( 'references' in wikidataStatement ) ? wikidataStatement.references : [];
-			var existingSources = {};
-			for ( var i in wikidataSources ) {
-				var snakBag = wikidataSources[ i ].snaks;
-				for ( var prop in snakBag ) {
-					if ( !( prop in existingSources ) ) {
-						existingSources[ prop ] = {};
-					}
-					for ( var j in snakBag[ prop ] ) {
-						var snak = snakBag[ prop ][ j ];
-						if ( snak.snaktype === 'value' ) {
-							existingSources[ prop ]
-								[ ps.commons.jsonToTsvValue( snak.datavalue, snak.datatype ) ] = true;
-						}
-					}
-				}
-			}
-			// Filter already present sources
-			object.sources = object.sources.filter( function ( source ) {
-				return source.filter( function ( snak ) {
-					return !existingSources[ snak.sourceProperty ] ||
-            !existingSources[ snak.sourceProperty ][ snak.sourceObject ];
-				} ).length > 0;
-			} );
+		return $.when.apply( $, qualifierPromises ).then( function () {
+			return Array.prototype.slice.call( arguments ).join( '' );
+		} );
+	}
 
-			return ps.itemCuration.createNewSources(
-				object.sources,
-				property,
-				object,
-				wikidataStatement.id
-			);
-		},
-		createNewStatement: function createNewStatement( property, object ) {
-			ps.itemCuration.getStatementHtml( property, object ).then( function ( html ) {
-				var fragment = document.createDocumentFragment();
-				var child = document.createElement( 'div' );
-				child.innerHTML = html;
-				fragment.appendChild( child.firstChild );
-				var container = document.getElementById( property )
-					.querySelector( '.wikibase-statementlistview-listview' );
-				container.appendChild( fragment );
-				ps.sidebar.appendToNav( document.getElementById( property ) );
-				ps.referencePreview.appendPreviewButton( $( container ).children().last() );
-			} );
-		},
-		createNewClaim: function createNewClaim( property, claims ) {
-			var newClaim = {
-				property: property,
-				objects: []
-			};
-			var objectsLength = Object.keys( claims ).length;
-			var i = 0;
-			for ( var key in claims ) {
-				var object = claims[ key ].object;
-				var id = claims[ key ].id;
-				var claimDataset = claims[ key ].dataset;
-				var sources = claims[ key ].sources;
-				var qualifiers = claims[ key ].qualifiers;
-				newClaim.objects.push( {
-					object: object,
-					id: id,
-					dataset: claimDataset,
-					qualifiers: qualifiers,
-					sources: sources,
-					key: key
+	function getSourcesHtml( sources, property, object ) {
+		var sourcePromises = sources.map( function ( source ) {
+			var sourceItemsPromises = source.map( function ( snak ) {
+				return $.when(
+					ps.commons.getValueHtml( snak.sourceProperty ),
+					ps.commons.getValueHtml( snak.sourceObject, snak.sourceProperty )
+				).then( function ( formattedProperty, formattedValue ) {
+					return ps.templates.sourceItemHtml
+						.replace( /\{\{source-property-html\}\}/g, formattedProperty )
+						.replace( /\{\{source-object\}\}/g, formattedValue );
 				} );
-				( function ( currentNewClaim, currentKey ) {
-					currentNewClaim.objects.forEach( function ( object ) {
-						if ( object.key !== currentKey ) {
-							return;
-						}
-						i++;
-						if ( i === objectsLength ) {
-							return createNewClaimList( currentNewClaim );
-						}
-					} );
-				}( newClaim, key ) );
-			}
-		},
-		createNewClaimList: function createNewClaimList( newClaim ) {
-			var container = document
-				.querySelector( '.wikibase-statementgrouplistview' )
-				.querySelector( '.wikibase-listview' );
-			var statementPromises = newClaim.objects.map( function ( object ) {
-				return ps.itemCuration.getStatementHtml( newClaim.property, object );
 			} );
 
-			ps.commons.getValueHtml( newClaim.property ).done( function ( propertyHtml ) {
-				$.when.apply( $, statementPromises ).then( function () {
-					var statementViewsHtml = Array.prototype.slice.call( arguments ).join( '' );
-					var mainHtml = ps.templates.mainHtml
+			return $.when.apply( $, sourceItemsPromises ).then( function () {
+				return ps.templates.sourceHtml
+					.replace( /\{\{data-source\}\}/g, escapeHtml( JSON.stringify( source ) ) )
+					.replace( /\{\{data-property\}\}/g, property )
+					.replace( /\{\{data-object\}\}/g, escapeHtml( object.object ) )
+					.replace( /\{\{data-dataset\}\}/g, object.dataset )
+					.replace( /\{\{statement-id\}\}/g, source[ 0 ].sourceId )
+					.replace( /\{\{source-html\}\}/g,
+						Array.prototype.slice.call( arguments ).join( '' ) )
+					.replace( /\{\{data-qualifiers\}\}/g, escapeHtml( JSON.stringify(
+						object.qualifiers ) ) );
+			} );
+		} );
+
+		return $.when.apply( $, sourcePromises ).then( function () {
+			return Array.prototype.slice.call( arguments ).join( '' );
+		} );
+	}
+
+	function getStatementHtml( property, object ) {
+		return $.when(
+			getQualifiersHtml( object.qualifiers ),
+			getSourcesHtml( object.sources, property, object ),
+			ps.commons.getValueHtml( object.object, property )
+		).then( function ( qualifiersHtml, sourcesHtml, formattedValue ) {
+			return ps.templates.statementViewHtml
+				.replace( /\{\{object\}\}/g, formattedValue )
+				.replace( /\{\{data-object\}\}/g, escapeHtml( object.object ) )
+				.replace( /\{\{data-property\}\}/g, property )
+				.replace( /\{\{references\}\}/g,
+					object.sources.length === 1 ?
+						object.sources.length + ' reference' :
+						object.sources.length + ' references' )
+				.replace( /\{\{sources\}\}/g, sourcesHtml )
+				.replace( /\{\{qualifiers\}\}/g, qualifiersHtml )
+				.replace( /\{\{statement-id\}\}/g, object.id )
+				.replace( /\{\{data-dataset\}\}/g, object.dataset )
+				.replace( /\{\{data-qualifiers\}\}/g, escapeHtml( JSON.stringify(
+					object.qualifiers ) ) )
+				.replace( /\{\{data-sources\}\}/g, escapeHtml( JSON.stringify(
+					object.sources ) ) );
+		} );
+	}
+	// END: 2. fill HTML templates
+
+	// BEGIN: 3. match existing Wikidata statements
+	function getQid() {
+		var qidRegEx = /^Q\d+$/,
+			title = mw.config.get( 'wgTitle' );
+
+		return qidRegEx.test( title ) ? title : false;
+	}
+
+	function getWikidataEntityData( qid, callback ) {
+		var revisionId = mw.config.get( 'wgRevisionId' );
+		$.ajax( {
+			url: ps.globals.API_ENDPOINTS.WIKIDATA_ENTITY_DATA_URL.replace( /\{\{qid\}\}/, qid ) + '?revision=' + revisionId
+		} ).done( function ( data ) {
+			return callback( null, data.entities[ qid ] );
+		} ).fail( function () {
+			return callback( 'Invalid revision ID ' + revisionId );
+		} );
+	}
+
+	function createNewSources( sources, property, object, statementId ) {
+		getSourcesHtml( sources, property, object ).then( function ( html ) {
+			var sourcesListView,
+				fragment = document.createDocumentFragment(),
+				child = document.createElement( 'div' ),
+				// Need to find the correct reference
+				container = document.getElementsByClassName( 'wikibase-statement-' + statementId )[ 0 ],
+				// Open the references toggle
+				toggler = container.querySelector( 'a.ui-toggler' ),
+				label = toggler.querySelector( '.ui-toggler-label' ),
+				oldSourcesCount = parseInt( label.textContent.replace( /.*?(\d+).*?/, '$1' ), 10 ),
+				// Update the label
+				actualSourcesCount = oldSourcesCount += sources.length;
+
+			child.innerHTML = html;
+			fragment.appendChild( child );
+			if ( toggler.classList.contains( 'ui-toggler-toggle-collapsed' ) ) {
+				toggler.click();
+			}
+
+			actualSourcesCount = actualSourcesCount === 1 ? '1 reference' : actualSourcesCount + ' references';
+			label.textContent = actualSourcesCount;
+			// Append the references
+			container = container.querySelector( '.wikibase-statementview-references' );
+			// Create wikibase-listview if not found
+			if ( !container.querySelector( '.wikibase-listview' ) ) {
+				sourcesListView = document.createElement( 'div' );
+				sourcesListView.className = 'wikibase-listview';
+				container.insertBefore( sourcesListView, container.firstChild );
+			}
+			container = container.querySelector( '.wikibase-listview' );
+			container.appendChild( fragment );
+			ps.sidebar.appendToNav( document.getElementById( property ) );
+			ps.referencePreview.appendPreviewButton( $( container ).children().last() );
+		} );
+	}
+
+	function prepareNewSources( property, object, wikidataStatement ) {
+		var i, j, prop, snakBag, snak,
+			existingSources = {},
+			wikidataSources = ( 'references' in wikidataStatement ) ? wikidataStatement.references : [];
+
+		for ( i in wikidataSources ) {
+			snakBag = wikidataSources[ i ].snaks;
+			for ( prop in snakBag ) {
+				if ( !( prop in existingSources ) ) {
+					existingSources[ prop ] = {};
+				}
+				for ( j in snakBag[ prop ] ) {
+					snak = snakBag[ prop ][ j ];
+					if ( snak.snaktype === 'value' ) {
+						existingSources[ prop ][ ps.commons.jsonToTsvValue( snak.datavalue, snak.datatype ) ] = true;
+					}
+				}
+			}
+		}
+		// Filter already present sources
+		object.sources = object.sources.filter( function ( source ) {
+			return source.filter( function ( snak ) {
+				return !existingSources[ snak.sourceProperty ] ||
+		!existingSources[ snak.sourceProperty ][ snak.sourceObject ];
+			} ).length > 0;
+		} );
+
+		return createNewSources(
+			object.sources,
+			property,
+			object,
+			wikidataStatement.id
+		);
+	}
+
+	function createNewStatement( property, object ) {
+		getStatementHtml( property, object ).then( function ( html ) {
+			var fragment = document.createDocumentFragment(),
+				child = document.createElement( 'div' ),
+				container = document.getElementById( property ).querySelector( '.wikibase-statementlistview-listview' );
+
+			child.innerHTML = html;
+			fragment.appendChild( child.firstChild );
+			container.appendChild( fragment );
+			ps.sidebar.appendToNav( document.getElementById( property ) );
+			ps.referencePreview.appendPreviewButton( $( container ).children().last() );
+		} );
+	}
+
+	function createNewClaimList( newClaim ) {
+		var container = document
+				.querySelector( '.wikibase-statementgrouplistview' )
+				.querySelector( '.wikibase-listview' ),
+			statementPromises = newClaim.objects.map( function ( object ) {
+				return getStatementHtml( newClaim.property, object );
+			} );
+
+		ps.commons.getValueHtml( newClaim.property ).done( function ( propertyHtml ) {
+			$.when.apply( $, statementPromises ).then( function () {
+				var statementViewsHtml = Array.prototype.slice.call( arguments ).join( '' ),
+					mainHtml = ps.templates.mainHtml
 						.replace( /\{\{statement-views\}\}/g, statementViewsHtml )
 						.replace( /\{\{property\}\}/g, newClaim.property )
 						.replace( /\{\{data-property\}\}/g, newClaim.property )
 						.replace( /\{\{data-dataset\}\}/g, newClaim.dataset )
-						.replace( /\{\{property-html\}\}/g, propertyHtml );
+						.replace( /\{\{property-html\}\}/g, propertyHtml ),
+					fragment = document.createDocumentFragment(),
+					child = document.createElement( 'div' );
 
-					var fragment = document.createDocumentFragment();
-					var child = document.createElement( 'div' );
-					child.innerHTML = mainHtml;
-					fragment.appendChild( child.firstChild );
-					container.appendChild( fragment );
-					ps.sidebar.appendToNav( container.lastChild );
-					ps.referencePreview.appendPreviewButton( $( container ).children().last() );
-				} );
+				child.innerHTML = mainHtml;
+				fragment.appendChild( child.firstChild );
+				container.appendChild( fragment );
+				ps.sidebar.appendToNav( container.lastChild );
+				ps.referencePreview.appendPreviewButton( $( container ).children().last() );
 			} );
-		},
-		matchClaims: function matchClaims( wikidataClaims, freebaseClaims ) {
-			var existingClaims = {};
-			var newClaims = {};
-			for ( var property in freebaseClaims ) {
-				if ( wikidataClaims[ property ] ) {
-					existingClaims[ property ] = freebaseClaims[ property ];
-					var propertyLinks =
-            document.querySelectorAll( 'a[title="Property:' + property + '"]' );
-					[].forEach.call( propertyLinks, function ( propertyLink ) {
-						propertyLink.parentNode.parentNode.classList
-							.add( 'existing-property' );
-					} );
-					for ( var freebaseKey in freebaseClaims[ property ] ) {
-						var freebaseObject = freebaseClaims[ property ][ freebaseKey ];
-						var existingWikidataObjects = {};
-						var lenI = wikidataClaims[ property ].length;
-						for ( var i = 0; i < lenI; i++ ) {
-							var wikidataObject = wikidataClaims[ property ][ i ];
-							ps.commons.buildValueKeysFromWikidataStatement( wikidataObject )
-								.forEach( function ( key ) {
-									existingWikidataObjects[ key ] = wikidataObject;
+		} );
+	}
+
+	function createNewClaim( property, claims ) {
+		var key, object, id, claimDataset, sources, qualifiers,
+			i = 0,
+			newClaim = {
+				property: property,
+				objects: []
+			},
+			objectsLength = Object.keys( claims ).length;
+
+		for ( key in claims ) {
+			object = claims[ key ].object;
+			id = claims[ key ].id;
+			claimDataset = claims[ key ].dataset;
+			sources = claims[ key ].sources;
+			qualifiers = claims[ key ].qualifiers;
+			newClaim.objects.push( {
+				object: object,
+				id: id,
+				dataset: claimDataset,
+				qualifiers: qualifiers,
+				sources: sources,
+				key: key
+			} );
+			( function ( currentNewClaim, currentKey ) {
+				currentNewClaim.objects.forEach( function ( object ) {
+					if ( object.key !== currentKey ) {
+						return;
+					}
+					i++;
+					if ( i === objectsLength ) {
+						return createNewClaimList( currentNewClaim );
+					}
+				} );
+			}( newClaim, key ) );
+		}
+	}
+
+	function matchClaims( wikidataClaims, primarySourcesClaims ) {
+		var property, propertyLinks,
+			primarySourcesKey, primarySourcesObject, existingWikidataObjects,
+			lenI, i, wikidataObject, isDuplicate, j, claims,
+			existingClaims = {},
+			newClaims = {};
+
+		for ( property in primarySourcesClaims ) {
+			if ( wikidataClaims[ property ] ) {
+				existingClaims[ property ] = primarySourcesClaims[ property ];
+				propertyLinks = document.querySelectorAll( 'a[title="Property:' + property + '"]' );
+				[].forEach.call( propertyLinks, function ( propertyLink ) {
+					propertyLink.parentNode.parentNode.classList
+						.add( 'existing-property' );
+				} );
+				for ( primarySourcesKey in primarySourcesClaims[ property ] ) {
+					primarySourcesObject = primarySourcesClaims[ property ][ primarySourcesKey ];
+					existingWikidataObjects = {};
+					lenI = wikidataClaims[ property ].length;
+					for ( i = 0; i < lenI; i++ ) {
+						wikidataObject = wikidataClaims[ property ][ i ];
+						ps.commons.buildValueKeysFromWikidataStatement( wikidataObject )
+							.forEach( function ( key ) {
+								existingWikidataObjects[ key ] = wikidataObject;
+							} );
+					}
+					if ( existingWikidataObjects[ primarySourcesKey ] ) {
+						// Existing object
+						if ( primarySourcesObject.sources.length === 0 ) {
+							// No source, duplicate statement
+							ps.commons.setStatementState( primarySourcesObject.id, ps.globals.STATEMENT_STATES.duplicate, primarySourcesObject.dataset, 'claim' )
+								.done( function () {
+									console.info( 'PRIMARY SOURCES TOOL: Marked as duplicate existing claim with no reference [' + primarySourcesObject.id + ']' );
 								} );
+						} else {
+							// Maybe new sources
+							prepareNewSources(
+								property,
+								primarySourcesObject,
+								existingWikidataObjects[ primarySourcesKey ]
+							);
 						}
-						if ( existingWikidataObjects[ freebaseKey ] ) {
-							// Existing object
-							if ( freebaseObject.sources.length === 0 ) {
-								// No source, duplicate statement
-								ps.commons.setStatementState( freebaseObject.id, ps.globals.STATEMENT_STATES.duplicate, freebaseObject.dataset, 'claim' )
-									.done( function () {
-										console.info( 'PRIMARY SOURCES TOOL: Marked as duplicate existing claim with no reference [' + freebaseObject.id + ']' );
-									} );
-							} else {
-								// maybe new sources
-								ps.itemCuration.prepareNewSources(
+					} else {
+						// New object
+						isDuplicate = false;
+						for ( j = 0; j < wikidataClaims[ property ].length; j++ ) {
+							wikidataObject = wikidataClaims[ property ][ j ];
+							if ( wikidataObject.mainsnak.snaktype === 'value' &&
+							ps.commons.jsonToTsvValue( wikidataObject.mainsnak.datavalue ) === primarySourcesObject.object ) {
+								isDuplicate = true;
+								console.info( 'PRIMARY SOURCES TOOL: Found existing claim [' + primarySourcesObject.id + ']' );
+								// Add new sources to existing statement
+								prepareNewSources(
 									property,
-									freebaseObject,
-									existingWikidataObjects[ freebaseKey ]
+									primarySourcesObject,
+									wikidataObject
 								);
 							}
-						} else {
-							// New object
-							var isDuplicate = false;
-							for ( var c = 0; c < wikidataClaims[ property ].length; c++ ) {
-								var wikidataObject = wikidataClaims[ property ][ c ];
-
-								if ( wikidataObject.mainsnak.snaktype === 'value' &&
-                  ps.commons.jsonToTsvValue( wikidataObject.mainsnak.datavalue ) === freebaseObject.object ) {
-									isDuplicate = true;
-									console.info( 'PRIMARY SOURCES TOOL: Found existing claim [' + freebaseObject.id + ']' );
-
-									// Add new sources to existing statement
-									ps.itemCuration.prepareNewSources(
-										property,
-										freebaseObject,
-										wikidataObject
-									);
-								}
-							}
-
-							if ( !isDuplicate ) {
-								ps.itemCuration.createNewStatement( property, freebaseObject );
-							}
+						}
+						if ( !isDuplicate ) {
+							createNewStatement( property, primarySourcesObject );
 						}
 					}
-				} else {
-					newClaims[ property ] = freebaseClaims[ property ];
 				}
+			} else {
+				newClaims[ property ] = primarySourcesClaims[ property ];
 			}
-			for ( var property in newClaims ) {
-				var claims = newClaims[ property ];
-				console.info( 'PRIMARY SOURCES TOOL: New claim with property [' + property + ']' );
-				createNewClaim( property, claims );
-			}
-		},
-		// END 3. match existing Wikidata statements
-
-		/**
-     * 4. Handle curation actions: approval and rejection.
-     * In other words, handle clicks on the following buttons:
-     * -approve;
-     * -reject.
-     */
-		addClickHandlers: function addClickHandlers() {
-			var contentDiv = document.getElementById( 'content' );
-			contentDiv.addEventListener( 'click', function ( event ) {
-				var classList = event.target.classList;
-				if ( !classList.contains( 'f2w-button' ) ) {
-					return;
-				}
-				event.preventDefault();
-				event.target.innerHTML = '<img src="https://upload.wikimedia.org/' +
-          'wikipedia/commons/f/f8/Ajax-loader%282%29.gif" class="ajax"/>';
-				var statement = event.target.dataset;
-				var predicate = statement.property;
-				var object = statement.object;
-				var quickStatement = qid + '\t' + predicate + '\t' + object;
-
-				/* BEGIN: reference curation */
-				if ( classList.contains( 'f2w-source' ) ) {
-					/*
-            The reference key is the property/value pair, see ps.commons.parsePrimarySourcesStatment.
-            Use it to build the QuickStatement needed to change the state in the back end.
-            See CurateServlet#parseQuickStatement:
-            https://github.com/marfox/pst-backend
-          */
-					var dataset = statement.dataset;
-					var predicate = statement.property;
-					var object = statement.object;
-					var source = JSON.parse( statement.source );
-					var qualifiers = JSON.parse( statement.qualifiers );
-					var sourceQuickStatement = quickStatement + '\t' + source[ 0 ].key;
-					// Reference approval
-					if ( classList.contains( 'f2w-approve' ) ) {
-						ps.commons.getClaims( qid, predicate, function ( err, claims ) {
-							var objectExists = false;
-							for ( var i = 0, lenI = claims.length; i < lenI; i++ ) {
-								var claim = claims[ i ];
-								if (
-									claim.mainsnak.snaktype === 'value' &&
-                  ps.commons.jsonToTsvValue( claim.mainsnak.datavalue ) === object
-								) {
-									objectExists = true;
-									break;
-								}
-							}
-							// The claim is already in Wikidata: only create the reference
-							if ( objectExists ) {
-								ps.commons.createReference( qid, predicate, object, source,
-									function ( error, data ) {
-										if ( error ) {
-											return ps.commons.reportError( error );
-										}
-										// The back end approves everything
-										ps.commons.setStatementState( sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'reference' )
-											.done( function () {
-												console.info( 'PRIMARY SOURCES TOOL: Approved referenced claim [' + sourceQuickStatement + ']' );
-												if ( data.pageinfo && data.pageinfo.lastrevid ) {
-													document.location.hash = 'revision=' +
-                            data.pageinfo.lastrevid;
-												}
-												return document.location.reload();
-											} );
-									} );
-							}
-							// New referenced claim: entirely create it
-							else {
-								ps.commons.createClaimWithReference( qid, predicate, object, qualifiers,
-									source )
-									.fail( function ( error ) {
-										return ps.commons.reportError( error );
-									} )
-									.done( function ( data ) {
-										// The back end approves everything
-										ps.commons.setStatementState( sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'reference' )
-											.done( function () {
-												console.info( 'PRIMARY SOURCES TOOL: Approved referenced claim [' + sourceQuickStatement + ']' );
-												if ( data.pageinfo && data.pageinfo.lastrevid ) {
-													document.location.hash = 'revision=' +
-                            data.pageinfo.lastrevid;
-												}
-												return document.location.reload();
-											} );
-									} );
-							}
-						} );
-					}
-					// Reference rejection
-					else if ( classList.contains( 'f2w-reject' ) ) {
-						ps.commons.setStatementState( sourceQuickStatement, ps.globals.STATEMENT_STATES.rejected, dataset, 'reference' ).done( function () {
-							console.info( 'PRIMARY SOURCES TOOL: Rejected referenced claim [' + sourceQuickStatement + ']' );
-							return document.location.reload();
-						} );
-					}
-					// Reference edit
-					else if ( classList.contains( 'f2w-edit' ) ) {
-						var a = document.getElementById( 'f2w-' + sourceQuickStatement );
-
-						var onClick = function ( e ) {
-							if ( ps.commons.isUrl( e.target.textContent ) ) {
-								a.style.textDecoration = 'none';
-								a.href = e.target.textContent;
-							} else {
-								a.style.textDecoration = 'line-through';
-							}
-						};
-						a.addEventListener( 'input', onClick );
-
-						a.addEventListener( 'blur', function () {
-							a.removeEventListener( onClick );
-							a.onClick = function () {
-								return true;
-							};
-							a.contentEditable = false;
-							event.target.textContent = 'edit';
-							var buttons = event.target.parentNode.parentNode
-								.querySelectorAll( 'a' );
-							[].forEach.call( buttons, function ( button ) {
-								button.dataset.sourceObject = a.href;
-							} );
-						} );
-
-						a.contentEditable = true;
-					}
-				}
-				/* END: reference curation */
-			} );
 		}
-	};
+
+		for ( property in newClaims ) {
+			claims = newClaims[ property ];
+			console.info( 'PRIMARY SOURCES TOOL: New claim with property [' + property + ']' );
+			createNewClaim( property, claims );
+		}
+	}
+	// END 3. match existing Wikidata statements
+
+	/*
+	 * 4. Handle curation actions: approval and rejection.
+	 * In other words, handle clicks on the following buttons:
+	 * -approve;
+	 * -reject.
+	 */
+	function addClickHandlers() {
+		var contentDiv = document.getElementById( 'content' );
+		contentDiv.addEventListener( 'click', function ( event ) {
+			var dataset, predicate, object, source, qualifiers, sourceQuickStatement,
+				anchor, onClick,
+				classList = event.target.classList,
+				statement = event.target.dataset,
+				quickStatement = QID + '\t' + predicate + '\t' + object;
+
+			if ( !classList.contains( 'f2w-button' ) ) {
+				return;
+			}
+
+			event.preventDefault();
+			event.target.innerHTML = '<img src="https://upload.wikimedia.org/' +
+			'wikipedia/commons/f/f8/Ajax-loader%282%29.gif" class="ajax"/>';
+
+			/* BEGIN: reference curation */
+			if ( classList.contains( 'f2w-source' ) ) {
+				/*
+				 * The reference key is the property/value pair, see ps.commons.parsePrimarySourcesStatment.
+				 * Use it to build the QuickStatement needed to change the state in the back end.
+				 * See CurateServlet#parseQuickStatement:
+				 * https://github.com/marfox/pst-backend
+				*/
+				dataset = statement.dataset;
+				predicate = statement.property;
+				object = statement.object;
+				source = JSON.parse( statement.source );
+				qualifiers = JSON.parse( statement.qualifiers );
+				sourceQuickStatement = quickStatement + '\t' + source[ 0 ].key;
+				// Reference approval
+				if ( classList.contains( 'f2w-approve' ) ) {
+					ps.commons.getClaims( QID, predicate, function ( err, claims ) {
+						var i, lenI, claim,
+							objectExists = false;
+						for ( i = 0, lenI = claims.length; i < lenI; i++ ) {
+							claim = claims[ i ];
+							if ( claim.mainsnak.snaktype === 'value' &&
+							ps.commons.jsonToTsvValue( claim.mainsnak.datavalue ) === object ) {
+								objectExists = true;
+								break;
+							}
+						}
+						if ( objectExists ) {
+							// The claim is already in Wikidata: only create the reference
+							ps.commons.createReference( QID, predicate, object, source,
+								function ( error, data ) {
+									if ( error ) {
+										return ps.commons.reportError( error );
+									}
+									// The back end approves everything
+									ps.commons.setStatementState( sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'reference' )
+										.done( function () {
+											console.info( 'PRIMARY SOURCES TOOL: Approved referenced claim [' + sourceQuickStatement + ']' );
+											if ( data.pageinfo && data.pageinfo.lastrevid ) {
+												document.location.hash = 'revision=' + data.pageinfo.lastrevid;
+											}
+											return document.location.reload();
+										} );
+								} );
+						} else {
+							// New referenced claim: entirely create it
+							ps.commons.createClaimWithReference( QID, predicate, object, qualifiers, source )
+								.fail( function ( error ) {
+									return ps.commons.reportError( error );
+								} )
+								.done( function ( data ) {
+									// The back end approves everything
+									ps.commons.setStatementState( sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'reference' )
+										.done( function () {
+											console.info( 'PRIMARY SOURCES TOOL: Approved referenced claim [' + sourceQuickStatement + ']' );
+											if ( data.pageinfo && data.pageinfo.lastrevid ) {
+												document.location.hash = 'revision=' + data.pageinfo.lastrevid;
+											}
+											return document.location.reload();
+										} );
+								} );
+						}
+					} );
+				} else if ( classList.contains( 'f2w-reject' ) ) {
+					// Reference rejection
+					ps.commons.setStatementState( sourceQuickStatement, ps.globals.STATEMENT_STATES.rejected, dataset, 'reference' ).done( function () {
+						console.info( 'PRIMARY SOURCES TOOL: Rejected referenced claim [' + sourceQuickStatement + ']' );
+						return document.location.reload();
+					} );
+				} else if ( classList.contains( 'f2w-edit' ) ) {
+					// Reference edit
+					anchor = document.getElementById( 'f2w-' + sourceQuickStatement );
+					onClick = function ( e ) {
+						if ( ps.commons.isUrl( e.target.textContent ) ) {
+							anchor.style.textDecoration = 'none';
+							anchor.href = e.target.textContent;
+						} else {
+							anchor.style.textDecoration = 'line-through';
+						}
+					};
+					anchor.addEventListener( 'input', onClick );
+					anchor.addEventListener( 'blur', function () {
+						var buttons = event.target.parentNode.parentNode.querySelectorAll( 'a' );
+
+						anchor.removeEventListener( onClick );
+						anchor.onClick = function () {
+							return true;
+						};
+						anchor.contentEditable = false;
+						event.target.textContent = 'edit';
+						[].forEach.call( buttons, function ( button ) {
+							button.dataset.sourceObject = anchor.href;
+						} );
+					} );
+
+					anchor.contentEditable = true;
+				}
+			}
+			/* END: reference curation */
+		} );
+	}
 
 	mw.ps = ps;
 
 	$.getScript( 'https://www.wikidata.org/w/index.php?title=User:Kiailandi/async.js&action=raw&ctype=text%2Fjavascript' ).done(
 		function init() {
-
-			ps.itemCuration.addClickHandlers();
+			addClickHandlers();
 
 			if ( ( mw.config.get( 'wgPageContentModel' ) !== 'wikibase-item' ) ||
-        ( mw.config.get( 'wgIsRedirect' ) ) ||
-        // Do not run on diff pages
-        ( document.location.search.indexOf( '&diff=' ) !== -1 ) ||
-        // Do not run on history pages
-        ( document.location.search.indexOf( '&action=history' ) !== -1 ) ) {
+			( mw.config.get( 'wgIsRedirect' ) ) ||
+			// Do not run on diff pages
+			( document.location.search.indexOf( '&diff=' ) !== -1 ) ||
+			// Do not run on history pages
+			( document.location.search.indexOf( '&action=history' ) !== -1 ) ) {
 				return 0;
 			}
-			qid = ps.itemCuration.getQid();
-			if ( !qid ) {
+
+			QID = getQid();
+			if ( !QID ) {
 				return console.warn( 'PRIMARY SOURCES TOOL: Could not retrieve the QID of the current page' );
 			}
 
 			async.parallel( {
 				blacklistedSourceUrls: ps.commons.getBlacklistedSourceUrlsWithCallback,
 				whitelistedSourceUrls: ps.commons.getWhitelistedSourceUrlsWithCallback,
-				wikidataEntityData: ps.itemCuration.getWikidataEntityData.bind( null, qid ),
-				freebaseEntityData: ps.itemCuration.getFreebaseEntityData.bind( null, qid )
+				wikidata: getWikidataEntityData.bind( null, QID ),
+				primarySources: getEntitySuggestions.bind( null, QID )
 			}, function ( err, results ) {
+				// See https://www.mediawiki.org/wiki/Wikibase/Notes/JSON
+				var wikidataClaims = results.wikidata.claims || {},
+					primarySourcesClaims = parseEntitySuggestions( results.primarySources, results.blacklistedSourceUrls );
+
 				if ( err ) {
 					ps.commons.reportError( err );
 				}
-				// See https://www.mediawiki.org/wiki/Wikibase/Notes/JSON
-				var wikidataEntityData = results.wikidataEntityData;
-				var wikidataClaims = wikidataEntityData.claims || {};
-
-				var freebaseEntityData = results.freebaseEntityData;
-				var blacklistedSourceUrls = results.blacklistedSourceUrls;
-				var freebaseClaims = ps.itemCuration.parseFreebaseClaims( freebaseEntityData,
-					blacklistedSourceUrls );
-
-				ps.itemCuration.matchClaims( wikidataClaims, freebaseClaims );
+				matchClaims( wikidataClaims, primarySourcesClaims );
 			} );
 		} );
 
