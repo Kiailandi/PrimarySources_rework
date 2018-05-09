@@ -8,12 +8,15 @@
 	},
 	"globals": {
 		"mediaWiki": false,
-		"OO": false
+		"OO": false,
+		"wikibase": false,
+		"async": false
 	},
 	"parserOptions": {
 		"ecmaVersion": 6
 	},
 	"rules": {
-		"no-console": "off"
+		"no-console": "off",
+		"no-loop-func": "off"
 	}
 }
