@@ -478,11 +478,10 @@
 	function addClickHandlers() {
 		var contentDiv = document.getElementById( 'content' );
 		contentDiv.addEventListener( 'click', function ( event ) {
-			var dataset, predicate, object, source, qualifiers, sourceQuickStatement,
+			var dataset, predicate, object, source, qualifiers, quickStatement, sourceQuickStatement,
 				anchor, onClick,
 				classList = event.target.classList,
-				statement = event.target.dataset,
-				quickStatement = QID + '\t' + predicate + '\t' + object;
+				statement = event.target.dataset;
 
 			if ( !classList.contains( 'f2w-button' ) ) {
 				return;
@@ -505,6 +504,7 @@
 				object = statement.object;
 				source = JSON.parse( statement.source );
 				qualifiers = JSON.parse( statement.qualifiers );
+				quickStatement = QID + '\t' + predicate + '\t' + object;
 				sourceQuickStatement = quickStatement + '\t' + source[ 0 ].key;
 				// Reference approval
 				if ( classList.contains( 'f2w-approve' ) ) {
