@@ -7,7 +7,37 @@
 	var ps = mw.ps || {},
 		ENTITY_LABEL_CACHE = {},
 		VALUE_HTML_CACHE = {},
-		URL_FORMATTER_CACHE = {};
+		URL_FORMATTER_CACHE = {},
+		// Earth
+		DEFAULT_GLOBE = 'http://www.wikidata.org/entity/Q2',
+		// Gregorian
+		DEFAULT_CALENDAR_MODEL = 'http://www.wikidata.org/entity/Q1985727',
+		/*
+		 * Terminology: https://www.wikidata.org/wiki/Special:ListDatatypes
+		 * QuickStatement: https://www.wikidata.org/wiki/Help:QuickStatements#Command_sequence_syntax
+		 * RDF: https://www.mediawiki.org/wiki/Wikibase/Indexing/RDF_Dump_Format#Value_representation
+		 */
+		MATCHERS = {
+			// Q666
+			ITEM: /^Q\d+$/,
+			// P999
+			PROPERTY: /^P\d+$/,
+			// +/-1234.4567
+			QUANTITY: /^[+-]\d+(\.\d+)?$/,
+			// @43.3111/-16.6655
+			QUICKSTATEMENT_GLOBE_COORDINATE: /^@([+-]?\d+(?:.\d+)?)\/([+-]?\d+(?:.\d+))?$/,
+			// fr:"Les Misérables"
+			QUICKSTATEMENT_MONOLINGUAL_TEXT: /^(\w+):("[^"\\]*(?:\\.[^"\\]*)*")$/,
+			// +2013-01-01T00:00:00Z/10
+			QUICKSTATEMENT_TIME: /^[+-]\d+-\d\d-\d\dT\d\d:\d\d:\d\dZ\/\d+$/,
+			// Point(28.050277777778 -26.145)
+			// Longitude, latitude
+			RDF_GLOBE_COORDINATE: /^Point\(([^\s]+)\s([^\s]+)\)$/,
+			// "Douglas Adams"@en
+			RDF_MONOLINGUAL_TEXT: /^("[^"\\]*(?:\\.[^"\\]*)*")@(\w+)$/,
+			// 2018-02-07T00:00:00Z
+			RDF_TIME: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/
+		};
 
 	/*
 	 * BEGIN: private functions
@@ -557,27 +587,11 @@
 			} );
 		},
 
-		/*
-		 * From https://www.wikidata.org/wiki/Special:ListDatatypes and
-		 * https://de.wikipedia.org/wiki/Wikipedia:Wikidata/Wikidata_Spielwiese
-		 * https://www.wikidata.org/wiki/Special:EntityData/Q90.json
-		 */
+		// Wikidata JSON example: https://www.wikidata.org/wiki/Special:EntityData/Q666.json
 		tsvValueToJson: function tsvValueToJson( value ) {
-			var latitude, longitude, parts,
-				// Q1
-				itemRegEx = /^Q\d+$/,
-				// P1
-				propertyRegEx = /^P\d+$/,
-				// @43.3111/-16.6655
-				coordinatesRegEx = /^@([+\-]?\d+(?:.\d+)?)\/([+\-]?\d+(?:.\d+))?$/,
-				// fr:"Les Misérables"
-				languageStringRegEx = /^(\w+):("[^"\\]*(?:\\.[^"\\]*)*")$/,
-				// +2013-01-01T00:00:00Z/10
-				timeRegEx = /^[+-]\d+-\d\d-\d\dT\d\d:\d\d:\d\dZ\/\d+$/,
-				// +/-1234.4567
-				quantityRegEx = /^[+-]\d+(\.\d+)?$/;
+			var latitude, longitude, parts;
 
-			if ( itemRegEx.test( value ) ) {
+			if ( MATCHERS.ITEM.test( value ) ) {
 				return {
 					type: 'wikibase-item',
 					value: {
@@ -585,7 +599,7 @@
 						'numeric-id': parseInt( value.replace( /^Q/, '' ) )
 					}
 				};
-			} else if ( propertyRegEx.test( value ) ) {
+			} else if ( MATCHERS.PROPERTY.test( value ) ) {
 				return {
 					type: 'wikibase-property',
 					value: {
@@ -593,9 +607,9 @@
 						'numeric-id': parseInt( value.replace( /^P/, '' ) )
 					}
 				};
-			} else if ( coordinatesRegEx.test( value ) ) {
-				latitude = value.replace( coordinatesRegEx, '$1' );
-				longitude = value.replace( coordinatesRegEx, '$2' );
+			} else if ( MATCHERS.QUICKSTATEMENT_GLOBE_COORDINATE.test( value ) ) {
+				latitude = value.replace( MATCHERS.QUICKSTATEMENT_GLOBE_COORDINATE, '$1' );
+				longitude = value.replace( MATCHERS.QUICKSTATEMENT_GLOBE_COORDINATE, '$2' );
 				return {
 					type: 'globe-coordinate',
 					value: {
@@ -603,18 +617,18 @@
 						longitude: parseFloat( longitude ),
 						altitude: null,
 						precision: computeCoordinatesPrecision( latitude, longitude ),
-						globe: 'http://www.wikidata.org/entity/Q2'
+						globe: DEFAULT_GLOBE
 					}
 				};
-			} else if ( languageStringRegEx.test( value ) ) {
+			} else if ( MATCHERS.QUICKSTATEMENT_MONOLINGUAL_TEXT.test( value ) ) {
 				return {
 					type: 'monolingualtext',
 					value: {
-						language: value.replace( languageStringRegEx, '$1' ),
-						text: JSON.parse( value.replace( languageStringRegEx, '$2' ) )
+						language: value.replace( MATCHERS.QUICKSTATEMENT_MONOLINGUAL_TEXT, '$1' ),
+						text: JSON.parse( value.replace( MATCHERS.QUICKSTATEMENT_MONOLINGUAL_TEXT, '$2' ) )
 					}
 				};
-			} else if ( timeRegEx.test( value ) ) {
+			} else if ( MATCHERS.QUICKSTATEMENT_TIME.test( value ) ) {
 				parts = value.split( '/' );
 				return {
 					type: 'time',
@@ -624,10 +638,10 @@
 						before: 0,
 						after: 0,
 						precision: parseInt( parts[ 1 ] ),
-						calendarmodel: 'http://www.wikidata.org/entity/Q1985727'
+						calendarmodel: DEFAULT_CALENDAR_MODEL
 					}
 				};
-			} else if ( quantityRegEx.test( value ) ) {
+			} else if ( MATCHERS.QUANTITY.test( value ) ) {
 				return {
 					type: 'quantity',
 					value: {
@@ -638,7 +652,8 @@
 			} else {
 				try {
 					value = JSON.parse( value );
-				} catch ( e ) { // If it is an invalid JSON we assume it is the value
+				} catch ( e ) {
+					// If it is an invalid JSON, we assume it is the value
 					if ( !( e instanceof SyntaxError ) ) {
 						throw e;
 					}
@@ -658,22 +673,9 @@
 		},
 
 		rdfValueToJson: function rdfValueToJson( value ) {
-			var longitude, latitude, parts,
-				// Q666
-				itemRegEx = /^Q\d+$/,
-				// P1269
-				propertyRegEx = /^P\d+$/,
-				// Point(28.050277777778 -26.145)
-				// Longitude, latitude
-				coordinatesRegEx = /^Point\(([\s]+)\s([\)]+)\)$/,
-				// "Douglas Adams"@en
-				languageStringRegEx = /^("[^"\\]*(?:\\.[^"\\]*)*")@(\w+)$/,
-				// 2018-02-07T00:00:00Z
-				timeRegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/,
-				// +/-1234.4567
-				quantityRegEx = /^[+-]\d+(\.\d+)?$/;
+			var longitude, latitude, parts;
 
-			if ( itemRegEx.test( value ) ) {
+			if ( MATCHERS.ITEM.test( value ) ) {
 				return {
 					type: 'wikibase-item',
 					value: {
@@ -681,7 +683,7 @@
 						'numeric-id': parseInt( value.replace( /^Q/, '' ) )
 					}
 				};
-			} else if ( propertyRegEx.test( value ) ) {
+			} else if ( MATCHERS.PROPERTY.test( value ) ) {
 				return {
 					type: 'wikibase-property',
 					value: {
@@ -689,9 +691,9 @@
 						'numeric-id': parseInt( value.replace( /^P/, '' ) )
 					}
 				};
-			} else if ( coordinatesRegEx.test( value ) ) {
-				longitude = value.replace( coordinatesRegEx, '$1' );
-				latitude = value.replace( coordinatesRegEx, '$2' );
+			} else if ( MATCHERS.RDF_GLOBE_COORDINATE.test( value ) ) {
+				longitude = value.replace( MATCHERS.RDF_GLOBE_COORDINATE, '$1' );
+				latitude = value.replace( MATCHERS.RDF_GLOBE_COORDINATE, '$2' );
 				return {
 					type: 'globe-coordinate',
 					value: {
@@ -699,18 +701,18 @@
 						longitude: parseFloat( longitude ),
 						altitude: null,
 						precision: computeCoordinatesPrecision( latitude, longitude ),
-						globe: 'http://www.wikidata.org/entity/Q2'
+						globe: DEFAULT_GLOBE
 					}
 				};
-			} else if ( languageStringRegEx.test( value ) ) {
+			} else if ( MATCHERS.RDF_MONOLINGUAL_TEXT.test( value ) ) {
 				return {
 					type: 'monolingualtext',
 					value: {
-						language: value.replace( languageStringRegEx, '$2' ),
-						text: JSON.parse( value.replace( languageStringRegEx, '$1' ) )
+						language: value.replace( MATCHERS.RDF_MONOLINGUAL_TEXT, '$2' ),
+						text: JSON.parse( value.replace( MATCHERS.RDF_MONOLINGUAL_TEXT, '$1' ) )
 					}
 				};
-			} else if ( timeRegEx.test( value ) ) {
+			} else if ( MATCHERS.RDF_TIME.test( value ) ) {
 				parts = value.split( '/' );
 				return {
 					type: 'time',
@@ -720,10 +722,10 @@
 						before: 0,
 						after: 0,
 						precision: parseInt( parts[ 1 ] ),
-						calendarmodel: 'http://www.wikidata.org/entity/Q1985727'
+						calendarmodel: DEFAULT_CALENDAR_MODEL
 					}
 				};
-			} else if ( quantityRegEx.test( value ) ) {
+			} else if ( MATCHERS.QUANTITY.test( value ) ) {
 				return {
 					type: 'quantity',
 					value: {
@@ -734,7 +736,8 @@
 			} else {
 				try {
 					value = JSON.parse( value );
-				} catch ( e ) { // If it is an invalid JSON we assume it is the value
+				} catch ( e ) {
+					// If it is an invalid JSON we assume it is the value
 					if ( !( e instanceof SyntaxError ) ) {
 						throw e;
 					}
@@ -754,41 +757,28 @@
 		},
 
 		rdfValueToTsv: function rdfValueToTsv( value ) {
-			var longitude, latitude, text, language, match, era,
-				// Q666
-				itemRegEx = /^Q\d+$/,
-				// P1269
-				propertyRegEx = /^P\d+$/,
-				// Point(28.050277777778 -26.145)
-				// longitude latitude
-				coordinatesRegEx = /^Point\(([\s]+)\s([\)]+)\)$/,
-				// "Douglas Adams"@en
-				languageStringRegEx = /^("[^"\\]*(?:\\.[^"\\]*)*")@(\w+)$/,
-				// 2018-02-07T00:00:00Z
-				timeRegEx = /^(-?)\d{3,4}-(\d{2})-(\d{2})T\d{2}:\d{2}:\d{2}Z$/,
-				// +/-1234.4567
-				quantityRegEx = /^[+-]\d+(\.\d+)?$/;
+			var longitude, latitude, text, language, match, era;
 
-			if ( itemRegEx.test( value ) ) {
+			if ( MATCHERS.ITEM.test( value ) ) {
 				return value;
-			} else if ( propertyRegEx.test( value ) ) {
+			} else if ( MATCHERS.PROPERTY.test( value ) ) {
 				return value;
-			} else if ( coordinatesRegEx.test( value ) ) {
-				longitude = value.replace( coordinatesRegEx, '$1' );
-				latitude = value.replace( coordinatesRegEx, '$2' );
+			} else if ( MATCHERS.RDF_GLOBE_COORDINATE.test( value ) ) {
+				longitude = value.replace( MATCHERS.RDF_GLOBE_COORDINATE, '$1' );
+				latitude = value.replace( MATCHERS.RDF_GLOBE_COORDINATE, '$2' );
 				// @43.3111/-16.6655
 				return '@' + latitude + '/' + longitude;
-			} else if ( languageStringRegEx.test( value ) ) {
-				text = value.replace( languageStringRegEx, '$1' );
-				language = value.replace( languageStringRegEx, '$2' );
+			} else if ( MATCHERS.RDF_MONOLINGUAL_TEXT.test( value ) ) {
+				text = value.replace( MATCHERS.RDF_MONOLINGUAL_TEXT, '$1' );
+				language = value.replace( MATCHERS.RDF_MONOLINGUAL_TEXT, '$2' );
 				// en:"Douglas Adams"
 				return language + ':"' + text + '"';
-			} else if ( timeRegEx.test( value ) ) {
-				match = timeRegEx.exec( value );
+			} else if ( MATCHERS.RDF_TIME.test( value ) ) {
+				match = MATCHERS.RDF_TIME.exec( value );
 				era = match[ 1 ] ? match[ 1 ] : '+'; // No initial '-' means '+'
 				// Guess precision based on '01' values
 				if ( parseInt( match[ 3 ] ) > 1 ) { return era + value + '/11'; } else if ( parseInt( match[ 2 ] ) > 1 ) { return era + value + '/10'; } else { return era + value + '/9'; }
-			} else if ( quantityRegEx.test( value ) ) {
+			} else if ( MATCHERS.QUANTITY.test( value ) ) {
 				return value;
 			} else {
 				return '"' + value + '"';
@@ -821,6 +811,7 @@
 
 		jsonToTsvValue: function jsonToTsvValue( dataValue, dataType ) {
 			var time, precision, plainStringOrUrl;
+
 			if ( !dataValue.type ) {
 				console.warn( 'PRIMARY SOURCES TOOL: Wikidata JSON value without data type:', dataValue, 'It will be converted to QuickStatement as is' );
 				return dataValue.value;
@@ -959,12 +950,12 @@
 						if ( blacklisted ) {
 							console.info( 'PRIMARY SOURCES TOOL: Hit a blacklisted reference URL:', url );
 							sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.key;
-							( function ( currentId, currentUrl ) {
+							( function ( currentId ) {
 								ps.commons.setStatementState( currentId, ps.globals.STATEMENT_STATES.blacklisted, dataset, 'reference' )
 									.done( function () {
 										console.info( 'PRIMARY SOURCES TOOL: Blacklisted referenced claim [' + currentId + ']' );
 									} );
-							}( sourceQuickStatement, url ) );
+							}( sourceQuickStatement ) );
 						}
 						// Return the non-blacklisted URLs
 						return !blacklisted;
