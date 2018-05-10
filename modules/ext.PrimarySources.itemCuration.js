@@ -596,7 +596,8 @@
 
 	mw.ps = ps;
 
-	$.getScript( 'https://www.wikidata.org/w/index.php?title=User:Kiailandi/async.js&action=raw&ctype=text%2Fjavascript' ).done(
+	// Run this module with the following async library: https://caolan.github.io/async/
+	$.getScript( ps.globals.ASYNC_SCRIPT ).done(
 		function init() {
 			addClickHandlers();
 

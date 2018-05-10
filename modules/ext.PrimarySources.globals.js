@@ -1,5 +1,4 @@
 ( function ( mw ) {
-
 	// Uncomment the following line to add fake blue statements for testing
 	// localStorage.setItem('f2w_fakeOrRandomData', true);
 
@@ -23,7 +22,6 @@
 			SOURCE_URL_WHITELIST: 'https://wikidata-pst.wmflabs.org/w/api.php?action=parse&format=json&prop=text&page=Testwiki:Primary_sources_tool/URL_whitelist',
 			WIKIDATA_ENTITY_DATA_URL: 'https://wikidata-pst.wmflabs.org/wiki/Special:EntityData/{{qid}}.json'
 		},
-
 		WIKIDATA_API_COMMENT: 'Added via [[Wikidata:Primary sources tool]]',
 		STATEMENT_STATES: {
 			unapproved: 'new',
@@ -34,7 +32,12 @@
 		},
 		STATEMENT_FORMAT: 'QuickStatement',
 		FAKE_OR_RANDOM_DATA: JSON.parse( localStorage.getItem( 'f2w_fakeOrRandomData' ) ) || false,
-		CACHE_EXPIRY: 60 * 60 * 1000
+		CACHE_EXPIRY: 60 * 60 * 1000,
+		/*
+		 * See https://caolan.github.io/async/
+		 * Script taken from https://github.com/caolan/async/blob/master/dist/async.js
+		 */
+		ASYNC_SCRIPT: 'https://www.wikidata.org/w/index.php?title=User:Kiailandi/async.js&action=raw&ctype=text%2Fjavascript'
 	};
 
 	// Get the selected dataset from a cookie
