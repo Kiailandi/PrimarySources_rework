@@ -6,7 +6,6 @@
  * references by building filters in several ways.
  */
 ( function ( mw, $ ) {
-
 	var ps = mw.ps || {},
 		// BEGIN: baked SPARQL queries
 		searchSparqlQuery =

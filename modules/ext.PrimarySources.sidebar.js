@@ -1,5 +1,4 @@
 ( function ( mw, $ ) {
-
 	var ps = mw.ps || {},
 		// Used in multiple functions by the property browser
 		ANCHOR_LIST = [];

@@ -1,5 +1,4 @@
 ( function ( mw, $ ) {
-
 	var ps = mw.ps || {};
 
 	ps.referencePreview = {
