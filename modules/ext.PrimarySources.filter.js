@@ -859,12 +859,12 @@
 					}
 					this.sparql = filledQuery.replace( '{{BINDINGS}}', bindings );
 					this.sparqlOffset = 0;
-                    /*
-                     * Minimal limit value to avoid empty result tables,
-                     * due to SPARQL results merged on the statement_node binding.
-                     * See ListDialog.prototype.displaySearchResult
-                     * 0/50 runs were empty
-                     */
+					/*
+					 * Minimal limit value to avoid empty result tables,
+					 * due to SPARQL results merged on the statement_node binding.
+					 * See ListDialog.prototype.displaySearchResult
+					 * 0/50 runs were empty
+					 */
 					this.sparqlLimit = 175;
 					this.filteredDataset = filteredDataset;
 					this.filteredProperty = null;
