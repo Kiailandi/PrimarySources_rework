@@ -10,7 +10,7 @@
  */
 ( function ( mw, $ ) {
 	var ps = mw.ps || {},
-		// The current entity
+		// The current subject entity
 		QID = null;
 
 	// BEGIN: 1. pre-process suggestions from primary sources back end
@@ -43,7 +43,7 @@
 			} )
 				.filter( function ( entity ) {
 					return entity.format === ps.globals.STATEMENT_FORMAT &&
-					entity.state === ps.globals.STATEMENT_STATES.unapproved;
+					entity.state === ps.globals.STATEMENT_STATES.new;
 				} )
 				.map( function ( entity ) {
 					return ps.commons.parsePrimarySourcesStatement( entity, isBlacklisted );
@@ -58,55 +58,55 @@
 		if ( ps.globals.FAKE_OR_RANDOM_DATA ) {
 			suggestions.push( {
 				statement: QID + '\tP31\tQ1\tP580\t+1840-01-01T00:00:00Z/9\tS143\tQ48183',
-				state: ps.globals.STATEMENT_STATES.unapproved,
+				state: ps.globals.STATEMENT_STATES.new,
 				id: 0,
 				format: ps.globals.STATEMENT_FORMAT
 			} );
 			suggestions.push( {
 				statement: QID + '\tP108\tQ95\tS854\t"http://research.google.com/pubs/vrandecic.html"',
-				state: ps.globals.STATEMENT_STATES.unapproved,
+				state: ps.globals.STATEMENT_STATES.new,
 				id: 0,
 				format: ps.globals.STATEMENT_FORMAT
 			} );
 			suggestions.push( {
 				statement: QID + '\tP108\tQ8288\tP582\t+2013-09-30T00:00:00Z/10\tS854\t"http://simia.net/wiki/Denny"\tS813\t+2015-02-14T00:00:00Z/11',
-				state: ps.globals.STATEMENT_STATES.unapproved,
+				state: ps.globals.STATEMENT_STATES.new,
 				id: 0,
 				format: ps.globals.STATEMENT_FORMAT
 			} );
 			suggestions.push( {
 				statement: QID + '\tP1451\ten:"foo bar"\tP582\t+2013-09-30T00:00:00Z/10\tS854\t"http://www.ebay.com/itm/GNC-Mens-Saw-Palmetto-Formula-60-Tablets/301466378726?pt=LH_DefaultDomain_0&hash=item4630cbe1e6"',
-				state: ps.globals.STATEMENT_STATES.unapproved,
+				state: ps.globals.STATEMENT_STATES.new,
 				id: 0,
 				format: ps.globals.STATEMENT_FORMAT
 			} );
 			suggestions.push( {
 				statement: QID + '\tP108\tQ8288\tP582\t+2013-09-30T00:00:00Z/10\tS854\t"https://lists.wikimedia.org/pipermail/wikidata-l/2013-July/002518.html"',
-				state: ps.globals.STATEMENT_STATES.unapproved,
+				state: ps.globals.STATEMENT_STATES.new,
 				id: 0,
 				format: ps.globals.STATEMENT_FORMAT
 			} );
 			suggestions.push( {
 				statement: QID + '\tP1082\t-1234',
-				state: ps.globals.STATEMENT_STATES.unapproved,
+				state: ps.globals.STATEMENT_STATES.new,
 				id: 0,
 				format: ps.globals.STATEMENT_FORMAT
 			} );
 			suggestions.push( {
 				statement: QID + '\tP625\t@-12.12334556/23.1234',
-				state: ps.globals.STATEMENT_STATES.unapproved,
+				state: ps.globals.STATEMENT_STATES.new,
 				id: 0,
 				format: ps.globals.STATEMENT_FORMAT
 			} );
 			suggestions.push( {
 				statement: QID + '\tP646\t"/m/05zhl_"',
-				state: ps.globals.STATEMENT_STATES.unapproved,
+				state: ps.globals.STATEMENT_STATES.new,
 				id: 0,
 				format: ps.globals.STATEMENT_FORMAT
 			} );
 			suggestions.push( {
 				statement: QID + '\tP569\t+1840-01-01T00:00:00Z/11\tS854\t"https://lists.wikimedia.org/pipermail/wikidata-l/2013-July/002518.html"',
-				state: ps.globals.STATEMENT_STATES.unapproved,
+				state: ps.globals.STATEMENT_STATES.new,
 				id: 0,
 				format: ps.globals.STATEMENT_FORMAT
 			} );
@@ -231,8 +231,9 @@
 
 	function getWikidataEntityData( qid, callback ) {
 		var revisionId = mw.config.get( 'wgRevisionId' );
+
 		$.ajax( {
-			url: ps.globals.API_ENDPOINTS.WIKIDATA_ENTITY_DATA_URL.replace( /\{\{qid\}\}/, qid ) + '?revision=' + revisionId
+			url: ps.globals.WIKIDATA_ENTITY_DATA_URL.replace( /\{\{qid\}\}/, qid ) + '?revision=' + revisionId
 		} ).done( function ( data ) {
 			return callback( null, data.entities[ qid ] );
 		} ).fail( function () {
@@ -296,11 +297,11 @@
 				}
 			}
 		}
-		// Filter already present sources
+		// Filter existing sources
 		object.sources = object.sources.filter( function ( source ) {
 			return source.filter( function ( snak ) {
 				return !existingSources[ snak.sourceProperty ] ||
-		!existingSources[ snak.sourceProperty ][ snak.sourceObject ];
+				!existingSources[ snak.sourceProperty ][ snak.sourceObject ];
 			} ).length > 0;
 		} );
 
@@ -477,13 +478,14 @@
 	 */
 	function addClickHandlers() {
 		var contentDiv = document.getElementById( 'content' );
+
 		contentDiv.addEventListener( 'click', function ( event ) {
 			var dataset, predicate, object, source, qualifiers, quickStatement, sourceQuickStatement,
 				anchor, onClick,
 				classList = event.target.classList,
 				statement = event.target.dataset;
 
-			if ( !classList.contains( 'f2w-button' ) ) {
+			if ( !classList.contains( 'pst-button' ) ) {
 				return;
 			}
 
@@ -492,13 +494,13 @@
 			'wikipedia/commons/f/f8/Ajax-loader%282%29.gif" class="ajax"/>';
 
 			/* BEGIN: reference curation */
-			if ( classList.contains( 'f2w-source' ) ) {
+			if ( classList.contains( 'pst-source' ) ) {
 				/*
 				 * The reference key is the property/value pair, see ps.commons.parsePrimarySourcesStatment.
 				 * Use it to build the QuickStatement needed to change the state in the back end.
 				 * See CurateServlet#parseQuickStatement:
 				 * https://github.com/marfox/pst-backend
-				*/
+				 */
 				dataset = statement.dataset;
 				predicate = statement.property;
 				object = statement.object;
@@ -507,7 +509,7 @@
 				quickStatement = QID + '\t' + predicate + '\t' + object;
 				sourceQuickStatement = quickStatement + '\t' + source[ 0 ].key;
 				// Reference approval
-				if ( classList.contains( 'f2w-approve' ) ) {
+				if ( classList.contains( 'pst-approve' ) ) {
 					ps.commons.getClaims( QID, predicate, function ( err, claims ) {
 						var i, lenI, claim,
 							objectExists = false;
@@ -555,15 +557,15 @@
 								} );
 						}
 					} );
-				} else if ( classList.contains( 'f2w-reject' ) ) {
+				} else if ( classList.contains( 'pst-reject' ) ) {
 					// Reference rejection
 					ps.commons.setStatementState( sourceQuickStatement, ps.globals.STATEMENT_STATES.rejected, dataset, 'reference' ).done( function () {
 						console.info( 'PRIMARY SOURCES TOOL: Rejected referenced claim [' + sourceQuickStatement + ']' );
 						return document.location.reload();
 					} );
-				} else if ( classList.contains( 'f2w-edit' ) ) {
+				} else if ( classList.contains( 'pst-edit' ) ) {
 					// Reference edit
-					anchor = document.getElementById( 'f2w-' + sourceQuickStatement );
+					anchor = document.getElementById( 'pst-' + sourceQuickStatement );
 					onClick = function ( e ) {
 						if ( ps.commons.isUrl( e.target.textContent ) ) {
 							anchor.style.textDecoration = 'none';
@@ -593,8 +595,6 @@
 			/* END: reference curation */
 		} );
 	}
-
-	mw.ps = ps;
 
 	// Run this module with the following async library: https://caolan.github.io/async/
 	$.getScript( ps.globals.ASYNC_SCRIPT ).done(
@@ -631,6 +631,8 @@
 				matchClaims( wikidataClaims, primarySourcesClaims );
 			} );
 		} );
+
+	mw.ps = ps;
 
 	console.info( 'PRIMARY SOURCES TOOL: Item curation loaded' );
 

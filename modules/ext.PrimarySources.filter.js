@@ -7,7 +7,6 @@
  */
 ( function ( mw, $ ) {
 	var ps = mw.ps || {},
-		// BEGIN: baked SPARQL queries
 		searchSparqlQuery =
 		'SELECT {{BINDINGS}} ' +
 		'WHERE {' +
@@ -37,7 +36,6 @@
 		'LIMIT {{LIMIT}}',
 		subjectsSparqlQuery = 'SELECT ?subject WHERE { ?subject a wikibase:Item } OFFSET {{OFFSET}} LIMIT {{LIMIT}}',
 		datasetFilter = 'FILTER STRENDS(str(?dataset), "new") . ';
-		// END: baked SPARQL queries
 
 	/*
 	 * BEGIN: private functions
@@ -107,6 +105,8 @@
 	// The only public function is the one that creates the whole dialog window
 	ps.filter = {
 		initFilterDialog: function initFilterDialog( windowManager, linkToBind ) {
+			/* BEGIN: Query result table rows */
+			// A table row built from a search query, see search* variables at the beginning of this module
 			function SearchResultRow( binding, filteredProperty, filteredItemValue, filteredDataset, isBlacklisted ) {
 				/*
 				 * binding should be:
@@ -249,160 +249,6 @@
 			OO.inheritClass( SearchResultRow, OO.ui.Widget );
 			SearchResultRow.static.tagName = 'tbody';
 
-			function SparqlResultRow( headers, bindings ) {
-				var cells = [];
-				SparqlResultRow.super.call( this, headers, bindings );
-				headers.forEach( function ( header ) {
-					var cell = $( '<td>' ),
-						value, valueType, label;
-					// Handle empty values in case of OPTIONAL clauses
-					if ( bindings.hasOwnProperty( header ) ) {
-						value = bindings[ header ].value;
-						valueType = bindings[ header ].type;
-					} else {
-						value = null;
-						valueType = null;
-					}
-					// Empty cell
-					if ( value === null ) {
-						cells.push( cell );
-					} else if ( valueType === 'uri' && /[QP]\d+$/.test( value ) ) {
-						// Entities: format linked labels
-						ps.commons.getEntityLabel( value.split( '/' ).pop() )
-							.then( function ( label ) {
-								cell.append(
-									$( '<a>' )
-										.attr( 'href', value )
-										.text( label )
-								);
-							} );
-						cells.push( cell );
-					} else if ( valueType === 'uri' ) {
-						// URIs: make a link
-						// Mint readable labels based on expected namespaces
-						if ( value === 'http://www.w3.org/ns/prov#wasDerivedFrom' ) {
-							label = 'RDF reference property';
-						} else if ( value === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' ) {
-							label = 'RDF type';
-						} else if ( value.startsWith( 'http://www.wikidata.org/entity/statement/' ) ) {
-							label = 'RDF statement node';
-						} else if ( value.startsWith( 'http://www.wikidata.org/reference/' ) ) {
-							label = 'RDF reference node';
-						} else {
-							label = value;
-						}
-						cell.append(
-							$( '<a>' )
-								.attr( 'href', value )
-								.text( label )
-						);
-						cells.push( cell );
-					} else {
-						// Literals: return as is
-						cell.text( value );
-						cells.push( cell );
-					}
-				} );
-				this.$element.append(
-					$( '<tr>' ).css( 'text-align', 'center' ).append( cells )
-				);
-			}
-			OO.inheritClass( SparqlResultRow, OO.ui.Widget );
-			SparqlResultRow.static.tagName = 'tbody';
-
-			function ServiceResultRow( entityId ) {
-				var cell = $( '<td>' );
-				ServiceResultRow.super.call( this, entityId );
-				ps.commons.getEntityLabel( entityId )
-					.then( function ( label ) {
-						var link = entityId.startsWith( 'P' ) ? document.location.origin + '/wiki/Property:' + entityId : entityId;
-						cell.append(
-							$( '<a>' )
-								.attr( 'href', link )
-								.text( label )
-						);
-					} );
-				this.$element.append(
-					$( '<tr>' ).css( 'text-align', 'center' ).append( cell )
-				);
-			}
-			OO.inheritClass( ServiceResultRow, OO.ui.Widget );
-			ServiceResultRow.static.tagName = 'tbody';
-
-			function AutocompleteWidget( config ) {
-				OO.ui.SearchInputWidget.call( this, config );
-				OO.ui.mixin.LookupElement.call( this, config );
-				this.cache = config.cache;
-			}
-			OO.inheritClass( AutocompleteWidget, OO.ui.SearchInputWidget );
-			OO.mixinClass( AutocompleteWidget, OO.ui.mixin.LookupElement );
-
-			/**
-			 * @inheritdoc
-			 */
-			AutocompleteWidget.prototype.getLookupRequest = function () {
-				var widget = this,
-					userInput = widget.getValue(),
-					deferred = $.Deferred(),
-					getSuggestions = function ( input, cache ) {
-						var id,
-							suggestions = {};
-						for ( id in cache ) {
-							if ( cache.hasOwnProperty( id ) ) {
-								if ( cache[ id ].toLowerCase().includes( input.toLowerCase() ) ) {
-									suggestions[ id ] = cache[ id ];
-								}
-							}
-						}
-						return suggestions;
-					};
-				if ( widget.cache ) {
-					deferred.resolve( getSuggestions( userInput, widget.cache ) );
-				} else {
-					deferred.resolve( {} );
-				}
-				return deferred.promise( { abort: function () { } } );
-			};
-
-			/**
-			 * @inheritdoc
-			 */
-			AutocompleteWidget.prototype.getLookupCacheDataFromResponse = function ( response ) {
-				return response || {};
-			};
-
-			/**
-			 * @inheritdoc
-			 */
-			AutocompleteWidget.prototype.getLookupMenuOptionsFromData = function ( data ) {
-				var id, label,
-					items = [];
-				for ( id in data ) {
-					if ( data.hasOwnProperty( id ) ) {
-						label = data[ id ];
-						items.push( new OO.ui.MenuOptionWidget( {
-							data: id,
-							label: label
-						} ) );
-					}
-				}
-				return items;
-			};
-
-			/*
-			 * The method implemented in OO.ui.mixin.LookupElement sets the value of the input widget to the DATA of the chosen element.
-			 * Set it to the LABEL instead (and properly set the data).
-			 * Also ensure the lookup menu is not displayed again when the value is set.
-			 * See https://doc.wikimedia.org/oojs-ui/master/js/#!/api/OO.ui.mixin.LookupElement
-			 */
-			AutocompleteWidget.prototype.onLookupMenuItemChoose = function ( item ) {
-				this.setLookupsDisabled( true );
-				this
-					.setValue( item.getLabel() )
-					.setData( item.getData() );
-				this.setLookupsDisabled( false );
-			};
-
 			SearchResultRow.prototype.approve = function () {
 				var i,
 					widget = this,
@@ -512,6 +358,7 @@
 
 			SearchResultRow.prototype.reject = function () {
 				var widget = this;
+
 				widget.showProgressBar();
 				ps.commons.setStatementState( widget.quickStatement, ps.globals.STATEMENT_STATES.rejected, widget.dataset, widget.statementType )
 					.fail( function () {
@@ -528,6 +375,7 @@
 
 			SearchResultRow.prototype.showProgressBar = function () {
 				var progressBar = new OO.ui.ProgressBarWidget();
+
 				progressBar.$element.css( 'max-width', '100%' );
 				this.$element.empty()
 					.append(
@@ -537,8 +385,72 @@
 					);
 			};
 
+			// A table row built from a SPARQL query
+			function SparqlResultRow( headers, bindings ) {
+				var cells = [];
+
+				SparqlResultRow.super.call( this, headers, bindings );
+				headers.forEach( function ( header ) {
+					var cell = $( '<td>' ),
+						value, valueType, label;
+					// Handle empty values in case of OPTIONAL clauses
+					if ( bindings.hasOwnProperty( header ) ) {
+						value = bindings[ header ].value;
+						valueType = bindings[ header ].type;
+					} else {
+						value = null;
+						valueType = null;
+					}
+					// Empty cell
+					if ( value === null ) {
+						cells.push( cell );
+					} else if ( valueType === 'uri' && /[QP]\d+$/.test( value ) ) {
+						// Entities: format linked labels
+						ps.commons.getEntityLabel( value.split( '/' ).pop() )
+							.then( function ( label ) {
+								cell.append(
+									$( '<a>' )
+										.attr( 'href', value )
+										.text( label )
+								);
+							} );
+						cells.push( cell );
+					} else if ( valueType === 'uri' ) {
+						// URIs: make a link
+						// Mint readable labels based on expected namespaces
+						if ( value === 'http://www.w3.org/ns/prov#wasDerivedFrom' ) {
+							label = 'RDF reference property';
+						} else if ( value === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' ) {
+							label = 'RDF type';
+						} else if ( value.startsWith( 'http://www.wikidata.org/entity/statement/' ) ) {
+							label = 'RDF statement node';
+						} else if ( value.startsWith( 'http://www.wikidata.org/reference/' ) ) {
+							label = 'RDF reference node';
+						} else {
+							label = value;
+						}
+						cell.append(
+							$( '<a>' )
+								.attr( 'href', value )
+								.text( label )
+						);
+						cells.push( cell );
+					} else {
+						// Literals: return as is
+						cell.text( value );
+						cells.push( cell );
+					}
+				} );
+				this.$element.append(
+					$( '<tr>' ).css( 'text-align', 'center' ).append( cells )
+				);
+			}
+			OO.inheritClass( SparqlResultRow, OO.ui.Widget );
+			SparqlResultRow.static.tagName = 'tbody';
+
 			SparqlResultRow.prototype.showProgressBar = function () {
 				var progressBar = new OO.ui.ProgressBarWidget();
+
 				progressBar.$element.css( 'max-width', '100%' );
 				this.$element.empty()
 					.append(
@@ -548,11 +460,109 @@
 					);
 			};
 
+			// A table row built from the response of the primary sources tool API
+			function ServiceResultRow( entityId ) {
+				var cell = $( '<td>' );
+				ServiceResultRow.super.call( this, entityId );
+				ps.commons.getEntityLabel( entityId )
+					.then( function ( label ) {
+						var link = entityId.startsWith( 'P' ) ? document.location.origin + '/wiki/Property:' + entityId : entityId;
+						cell.append(
+							$( '<a>' )
+								.attr( 'href', link )
+								.text( label )
+						);
+					} );
+				this.$element.append(
+					$( '<tr>' ).css( 'text-align', 'center' ).append( cell )
+				);
+			}
+			OO.inheritClass( ServiceResultRow, OO.ui.Widget );
+			ServiceResultRow.static.tagName = 'tbody';
+			/* END: Query result table rows */
+
+			/* BEGIN: item value and property filters with autocompletion */
+			function AutocompleteWidget( config ) {
+				OO.ui.SearchInputWidget.call( this, config );
+				OO.ui.mixin.LookupElement.call( this, config );
+				this.cache = config.cache;
+			}
+			OO.inheritClass( AutocompleteWidget, OO.ui.SearchInputWidget );
+			OO.mixinClass( AutocompleteWidget, OO.ui.mixin.LookupElement );
+
+			/**
+			 * @inheritdoc
+			 */
+			AutocompleteWidget.prototype.getLookupRequest = function () {
+				var widget = this,
+					userInput = widget.getValue(),
+					deferred = $.Deferred(),
+					getSuggestions = function ( input, cache ) {
+						var id,
+							suggestions = {};
+						for ( id in cache ) {
+							if ( cache.hasOwnProperty( id ) ) {
+								if ( cache[ id ].toLowerCase().includes( input.toLowerCase() ) ) {
+									suggestions[ id ] = cache[ id ];
+								}
+							}
+						}
+						return suggestions;
+					};
+				if ( widget.cache ) {
+					deferred.resolve( getSuggestions( userInput, widget.cache ) );
+				} else {
+					deferred.resolve( {} );
+				}
+				return deferred.promise( { abort: function () { } } );
+			};
+
+			/**
+			 * @inheritdoc
+			 */
+			AutocompleteWidget.prototype.getLookupCacheDataFromResponse = function ( response ) {
+				return response || {};
+			};
+
+			/**
+			 * @inheritdoc
+			 */
+			AutocompleteWidget.prototype.getLookupMenuOptionsFromData = function ( data ) {
+				var id, label,
+					items = [];
+				for ( id in data ) {
+					if ( data.hasOwnProperty( id ) ) {
+						label = data[ id ];
+						items.push( new OO.ui.MenuOptionWidget( {
+							data: id,
+							label: label
+						} ) );
+					}
+				}
+				return items;
+			};
+
+			/*
+			 * The method implemented in OO.ui.mixin.LookupElement sets the value of the input widget to the DATA of the chosen element.
+			 * Set it to the LABEL instead (and properly set the data).
+			 * Also ensure the lookup menu is not displayed again when the value is set.
+			 * See https://doc.wikimedia.org/oojs-ui/master/js/#!/api/OO.ui.mixin.LookupElement
+			 */
+			AutocompleteWidget.prototype.onLookupMenuItemChoose = function ( item ) {
+				this.setLookupsDisabled( true );
+				this
+					.setValue( item.getLabel() )
+					.setData( item.getData() );
+				this.setLookupsDisabled( false );
+			};
+			/* END: item value and property filters with autocompletion */
+
+			/* BEGIN: filter dialog construction */
 			function FilterDialog( config ) {
 				FilterDialog.super.call( this, config );
 			}
 			OO.inheritClass( FilterDialog, OO.ui.ProcessDialog );
-			FilterDialog.static.name = 'ps-list';
+			FilterDialog.static.name = 'ps-filter';
 			FilterDialog.static.title = 'primary sources filter';
 			FilterDialog.static.size = 'full';
 			FilterDialog.static.actions = [
@@ -562,6 +572,23 @@
 					icon: 'close'
 				}
 			];
+
+			/**
+			 * @inheritdoc
+			 *
+			 * N.B.: Re-implemented here because the MediaWiki Vagrant instance on VPS
+			 * has a dummy implementation, i.e., function(){return;}
+			 * Modify to emit 'enter' on Ctrl/Meta+Enter, instead of plain Enter
+			 */
+			OO.ui.MultilineTextInputWidget.prototype.onKeyPress = function ( e ) {
+				if (
+					( this.getValue() && e.which === OO.ui.Keys.ENTER && ( e.ctrlKey || e.metaKey ) ) ||
+					// Some platforms emit keycode 10 for ctrl+enter in a textarea
+					e.which === 10
+				) {
+					this.emit( 'enter', e );
+				}
+			};
 
 			FilterDialog.prototype.initialize = function () {
 				var widget = this,
@@ -578,6 +605,8 @@
 					} );
 
 				FilterDialog.super.prototype.initialize.apply( this, arguments );
+
+				// 'Dataset' drop-down menu
 				this.datasetInput = new OO.ui.DropdownInputWidget();
 				ps.commons.getDatasets( function ( datasets ) {
 					var options = [ { data: '', label: 'All sources' } ];
@@ -589,10 +618,7 @@
 						.setValue( ps.globals.DATASET );
 				} );
 
-				/**
-				 * Baked filters menu
-				 * @type {OO.iu.DropdownWidget}
-				 */
+				// 'Baked filters' drop-down menu
 				this.bakedFilters = new OO.ui.DropdownWidget( {
 					label: 'Pick one',
 					menu: {
@@ -708,6 +734,7 @@
 					} );
 				this.bakedFilters.getMenu().connect( this, { choose: 'onOptionSubmit' } );
 
+				// 'Entity of interest' autocompletion
 				this.itemValueInput = new AutocompleteWidget( {
 					placeholder: 'Type something you are interested in, like "politician"',
 					cache: itemValueCache
@@ -725,6 +752,7 @@
 						enter: 'onOptionSubmit'
 					} );
 
+				// 'Property of interest' autocompletion
 				this.propertyInput = new AutocompleteWidget( {
 					placeholder: 'Type a property like "date of birth"',
 					cache: propertyCache
@@ -742,10 +770,7 @@
 						enter: 'onOptionSubmit'
 					} );
 
-				/**
-				 * Arbitrary SPARQL query input
-				 * @type {OO.ui.MultilineTextInputWidget}
-				 */
+				// 'SPARQL query' text area
 				this.sparqlQuery = new OO.ui.MultilineTextInputWidget( {
 					placeholder: 'Browse suggestions with SPARQL (limited to 100 results)',
 					autosize: true
@@ -767,6 +792,7 @@
 						enter: 'onOptionSubmit'
 					} );
 
+				// 'Run' button
 				this.loadButton = new OO.ui.ButtonInputWidget( {
 					label: 'Run',
 					flags: [ 'primary', 'progressive' ],
@@ -799,23 +825,13 @@
 				this.$body.append( this.stackLayout.$element );
 			};
 
-			/**
-			 * @inheritdoc
-			 *
-			 * N.B.: Re-implemented here because the MediaWiki Vagrant instance on VPS
-			 * has a dummy implementation, i.e., function(){return;}
-			 * Modify to emit 'enter' on Ctrl/Meta+Enter, instead of plain Enter
-			 */
-			OO.ui.MultilineTextInputWidget.prototype.onKeyPress = function ( e ) {
-				if (
-					( this.getValue() && e.which === OO.ui.Keys.ENTER && ( e.ctrlKey || e.metaKey ) ) ||
-					// Some platforms emit keycode 10 for ctrl+enter in a textarea
-					e.which === 10
-				) {
-					this.emit( 'enter', e );
-				}
+			FilterDialog.prototype.getBodyHeight = function () {
+				return window.innerHeight - 100;
 			};
+			/* END: filter dialog construction */
 
+			/* BEGIN: Handlers for 'Run' and 'Load more' buttons */
+			// On 'Run' button press
 			FilterDialog.prototype.onOptionSubmit = function () {
 				var filledQuery, bindings, bakedFiltersMenu, bakedSelection, baked, query, filteredItemValue, filteredProperty,
 					// The dataset field is needed for all filters but the arbitrary SPARQL query
@@ -824,11 +840,11 @@
 				this.mainPanel.$element.empty();
 				this.table = null;
 
-				// Default search
 				if ( !this.bakedFilters.isDisabled() &&
 				!this.propertyInput.isDisabled() &&
 				!this.itemValueInput.isDisabled() &&
 				!this.sparqlQuery.isDisabled() ) {
+					// Default search
 					filledQuery = searchSparqlQuery.replace( '{{PROPERTY}}', '?property' );
 					bindings = '?subject ?property ?statement_node ?value ?reference_property ?reference_value';
 					if ( filteredDataset ) {
@@ -891,6 +907,11 @@
 								}
 								this.sparql = filledQuery;
 								this.sparqlOffset = 0;
+								/*
+								 * Optimal limit value to avoid empty result tables,
+								 * due to SPARQL results merged on the statement_node binding.
+								 * See ListDialog.prototype.displaySearchResult
+								 */
 								this.sparqlLimit = 100;
 								console.debug( 'PRIMARY SOURCES TOOL: BAKED FILTER triggered. Value query:', this.sparql );
 								this.executeSparqlQuery();
@@ -911,9 +932,11 @@
 								this.sparql = filledQuery.replace( '{{BINDINGS}}', bindings );
 								console.debug( 'PRIMARY SOURCES TOOL: BAKED FILTER triggered. Property query:', this.sparql );
 								this.sparqlOffset = 0;
-								// The Limit value is quite high to avoid empty result tables,
-								// due SPARQL results merged on the statement_node binding.
-								// See ListDialog.prototype.displaySearchResult
+								/*
+								 * The Limit value is quite high to avoid empty result tables,
+								 * due to SPARQL results merged on the statement_node binding.
+								 * See ListDialog.prototype.displaySearchResult
+								 */
 								this.sparqlLimit = 300;
 								this.filteredDataset = filteredDataset;
 								this.filteredProperty = baked;
@@ -970,6 +993,21 @@
 				}
 			};
 
+			// On 'Load more' button press, when executing queries other than a search
+			FilterDialog.prototype.onNextButtonSubmit = function () {
+				this.nextStatementsButton.$element.remove();
+				this.executeSparqlQuery( true );
+			};
+
+			// On 'Load more' button press, when executing a search
+			FilterDialog.prototype.onNextButtonSubmitSearch = function () {
+				this.nextStatementsButton.$element.remove();
+				this.executeSearch( true );
+			};
+			/* END: Handlers for 'Run' and 'Load more' buttons */
+
+			/* BEGIN: query execution */
+			// Call the primary sources tool API endpoints /properties or /values
 			FilterDialog.prototype.executeServiceCall = function ( url ) {
 				var widget = this,
 					progressBar = new OO.ui.ProgressBarWidget();
@@ -1002,20 +1040,7 @@
 					} );
 			};
 
-			FilterDialog.prototype.onNextButtonSubmitSearch = function () {
-				this.nextStatementsButton.$element.remove();
-				this.executeSearch( true );
-			};
-
-			FilterDialog.prototype.onNextButtonSubmit = function () {
-				this.nextStatementsButton.$element.remove();
-				this.executeSparqlQuery( true );
-			};
-
-			FilterDialog.prototype.getBodyHeight = function () {
-				return window.innerHeight - 100;
-			};
-
+			// Call the primary sources tool SPARQL endpoint for a search
 			FilterDialog.prototype.executeSearch = function ( more = false ) {
 				var widget = this,
 					progressBar = new OO.ui.ProgressBarWidget();
@@ -1096,6 +1121,7 @@
 					} );
 			};
 
+			// Call the primary sources tool SPARQL endpoint
 			FilterDialog.prototype.executeSparqlQuery = function ( more = false ) {
 				var label, noticeIcon, noStatements, ids,
 					widget = this,
@@ -1166,7 +1192,9 @@
 						handleSparqlError( xhr, progressBar, widget );
 					} );
 			};
+			/* END: query execution */
 
+			/* BEGIN: query result table display */
 			FilterDialog.prototype.displayServiceResult = function ( result ) {
 				var dataset, entities,
 					widget = this,
@@ -1332,14 +1360,12 @@
 				}
 				this.mainPanel.$element.append( this.table );
 			};
+			/* END: query result display */
 
-			// Add modal to window
 			windowManager.addWindows( [ new FilterDialog() ] );
-
 			linkToBind.click( function () {
-				windowManager.openWindow( 'ps-list' );
+				windowManager.openWindow( 'ps-filter' );
 			} );
-
 		}
 	};
 

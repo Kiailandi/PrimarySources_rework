@@ -64,10 +64,12 @@
 				}
 			} );
 		},
+
 		closeNav: function closeNav() {
 			$( '#myNav' ).width( '0%' );
 			$( '#blackboard' ).html( '' );
 		},
+
 		appendPreviewButton: function appendPreviewButton( container ) {
 			var refs, refLabel;
 
@@ -82,15 +84,13 @@
 							$( item ).parents( '.wikibase-statementgroupview.listview-item' ).find( '.wikibase-statementgroupview-property-label' ).children().text() + '\',\'' +
 							$( item ).parents( '.wikibase-statementview.listview-item.wikibase-toolbar-item' ).find( '.wikibase-statementview-mainsnak .wikibase-snakview-value.wikibase-snakview-variation-valuesnak' ).children().text() + '\',\'' +
 							container.find( item ).closest( '.wikibase-snakview.listview-item' ).find( '.external.free' ).text() + '\',' +
-							'$(this).closest(\'.wikibase-referenceview.listview-item.wikibase-toolbar-item.new-source\').children().find(\'.f2w-button.f2w-source\'))' +
+							'$(this).closest(\'.wikibase-referenceview.listview-item.wikibase-toolbar-item.new-source\').children().find(\'.pst-button.pst-source\'))' +
 						'">Preview</a>' );
 					// }
 				} );
 			}
 		}
 	};
-
-	mw.ps = ps;
 
 	( function appendOverlay() {
 		$( '#content' ).append(
@@ -100,11 +100,14 @@
 			'</div>' );
 	}() );
 
+	// Bind 'q' to close the preview, as 'Esc' conflicts with closing the filter dialog
 	$( document ).keypress( function ( e ) {
 		if ( e.key === 'q' ) {
 			mw.ps.referencePreview.closeNav();
 		}
 	} );
+
+	mw.ps = ps;
 
 	console.info( 'PRIMARY SOURCES TOOL: Reference preview loaded' );
 

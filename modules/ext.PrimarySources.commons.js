@@ -144,17 +144,11 @@
 	 * BEGIN: public functions
 	 */
 	ps.commons = {
-		/**
-         * Return a list of blacklisted reference URLs from
-         * https://www.wikidata.org/wiki/Wikidata:Primary_sources_tool/URL_blacklist
-         * Saved in localStorage.
-         * @return {*}
-         */
 		getBlacklistedSourceUrls: function getBlacklistedSourceUrls() {
 			var blacklist,
 				now = Date.now();
-			if ( localStorage.getItem( 'f2w_blacklist' ) ) {
-				blacklist = JSON.parse( localStorage.getItem( 'f2w_blacklist' ) );
+			if ( localStorage.getItem( 'pst_blacklist' ) ) {
+				blacklist = JSON.parse( localStorage.getItem( 'pst_blacklist' ) );
 				if ( !blacklist.timestamp ) {
 					blacklist.timestamp = 0;
 				}
@@ -164,7 +158,7 @@
 				}
 			}
 			return $.ajax( {
-				url: ps.globals.API_ENDPOINTS.SOURCE_URL_BLACKLIST
+				url: ps.globals.SOURCE_URL_BLACKLIST
 			} ).then( function ( data ) {
 				if ( data && data.parse && data.parse.text && data.parse.text[ '*' ] ) {
 					blacklist = data.parse.text[ '*' ].replace( /\n/g, '' ).replace( /^.*?<ul>(.*?)<\/ul>.*?$/g, '$1' ).replace( /<\/li>/g, '' ).split( '<li>' ).slice( 1 ).map( function ( url ) {
@@ -186,7 +180,7 @@
 						}
 					} );
 					console.info( 'PRIMARY SOURCES TOOL: Caching reference URL blacklist' );
-					localStorage.setItem( 'f2w_blacklist', JSON.stringify( {
+					localStorage.setItem( 'pst_blacklist', JSON.stringify( {
 						timestamp: now,
 						data: blacklist
 					} ) );
@@ -201,8 +195,8 @@
 		getWhitelistedSourceUrls: function getWhitelistedSourceUrls() {
 			var whitelist,
 				now = Date.now();
-			if ( localStorage.getItem( 'f2w_whitelist' ) ) {
-				whitelist = JSON.parse( localStorage.getItem( 'f2w_whitelist' ) );
+			if ( localStorage.getItem( 'pst_whitelist' ) ) {
+				whitelist = JSON.parse( localStorage.getItem( 'pst_whitelist' ) );
 				if ( !whitelist.timestamp ) {
 					whitelist.timestamp = 0;
 				}
@@ -212,7 +206,7 @@
 				}
 			}
 			return $.ajax( {
-				url: ps.globals.API_ENDPOINTS.SOURCE_URL_WHITELIST
+				url: ps.globals.SOURCE_URL_WHITELIST
 			} ).then( function ( data ) {
 				if ( data && data.parse && data.parse.text && data.parse.text[ '*' ] ) {
 					whitelist = data.parse.text[ '*' ]
@@ -240,7 +234,7 @@
 							}
 						} );
 					console.info( 'PRIMARY SOURCES TOOL: Caching reference URL whitelist' );
-					localStorage.setItem( 'f2w_whitelist', JSON.stringify( {
+					localStorage.setItem( 'pst_whitelist', JSON.stringify( {
 						timestamp: now,
 						data: whitelist
 					} ) );
@@ -368,8 +362,8 @@
 		getDatasets: function getDatasets( callback ) {
 			var blacklist,
 				now = Date.now();
-			if ( localStorage.getItem( 'f2w_dataset' ) ) {
-				blacklist = JSON.parse( localStorage.getItem( 'f2w_dataset' ) );
+			if ( localStorage.getItem( 'pst_dataset' ) ) {
+				blacklist = JSON.parse( localStorage.getItem( 'pst_dataset' ) );
 				if ( !blacklist.timestamp ) {
 					blacklist.timestamp = 0;
 				}
@@ -380,7 +374,7 @@
 			$.ajax( {
 				url: ps.globals.API_ENDPOINTS.DATASETS_SERVICE
 			} ).done( function ( data ) {
-				localStorage.setItem( 'f2w_dataset', JSON.stringify( {
+				localStorage.setItem( 'pst_dataset', JSON.stringify( {
 					timestamp: now,
 					data: data
 				} ) );
@@ -400,6 +394,7 @@
 				api = new mw.Api();
 
 			console.debug( 'PRIMARY SOURCES TOOL: Converted QuickStatement value to Wikidata JSON:', object, claimValue );
+
 			return api.postWithToken( 'csrf', {
 				action: 'wbcreateclaim',
 				entity: subject,
@@ -431,14 +426,16 @@
 
 		// https://www.wikidata.org/w/api.php?action=help&modules=wbsetreference
 		createReference: function createReference( subject, predicate, object, sourceSnaks, callback ) {
-			var i, lenI, claimObject, mainSnak,
-				api = new mw.Api();
+			var api = new mw.Api();
+
 			api.get( {
 				action: 'wbgetclaims',
 				entity: subject,
 				property: predicate
 			} ).then( function ( data ) {
-				var index = -1;
+				var i, lenI, claimObject, mainSnak,
+					index = -1;
+
 				for ( i = 0, lenI = data.claims[ predicate ].length; i < lenI; i++ ) {
 					claimObject = data.claims[ predicate ][ i ];
 					mainSnak = claimObject.mainsnak;
@@ -463,6 +460,7 @@
 		// Combines the 2 functions above
 		createClaimWithReference: function createClaimWithReference( subject, predicate, object, qualifiers, sourceSnaks ) {
 			var api = new mw.Api();
+
 			return ps.commons.createClaim( subject, predicate, object, qualifiers ).then( function ( data ) {
 				return api.postWithToken( 'csrf', {
 					action: 'wbsetreference',
@@ -478,6 +476,7 @@
 		// https://www.wikidata.org/w/api.php?action=help&modules=wbgetclaims
 		getClaims: function getClaims( subject, predicate, callback ) {
 			var api = new mw.Api();
+
 			api.get( {
 				action: 'wbgetclaims',
 				entity: subject,
@@ -488,10 +487,10 @@
 				return callback( error );
 			} );
 		},
-		// END:  get existing claims from Wikidata
+		// END: get existing claims from Wikidata
 		/* END: Wikidata API calls */
 
-		// BEGIN: utilities
+		/* BEGIN: utilities */
 		reportError: function reportError( error ) {
 			mw.notify( error, {
 				autoHide: true,
@@ -543,13 +542,13 @@
 		},
 
 		getFewEntityLabels: function getFewEntityLabels( entityIds ) {
-			var id, entity,
-				api = new mw.Api(),
+			var api = new mw.Api(),
 				language = mw.config.get( 'wgUserLanguage' );
 
 			if ( entityIds.length === 0 ) {
 				return $.Deferred().resolve( {} );
 			}
+
 			return api.get( {
 				action: 'wbgetentities',
 				ids: entityIds.join( '|' ),
@@ -557,7 +556,9 @@
 				languages: language,
 				languagefallback: true
 			} ).then( function ( data ) {
-				var labels = {};
+				var id, entity,
+					labels = {};
+
 				for ( id in data.entities ) {
 					entity = data.entities[ id ];
 					if ( entity.labels && entity.labels[ language ] ) {
@@ -589,7 +590,7 @@
 
 		// Wikidata JSON example: https://www.wikidata.org/wiki/Special:EntityData/Q666.json
 		tsvValueToJson: function tsvValueToJson( value ) {
-			var latitude, longitude, parts;
+			var latitude, longitude, timeParts;
 
 			if ( MATCHERS.ITEM.test( value ) ) {
 				return {
@@ -629,15 +630,15 @@
 					}
 				};
 			} else if ( MATCHERS.QUICKSTATEMENT_TIME.test( value ) ) {
-				parts = value.split( '/' );
+				timeParts = value.split( '/' );
 				return {
 					type: 'time',
 					value: {
-						time: parts[ 0 ],
+						time: timeParts[ 0 ],
 						timezone: 0,
 						before: 0,
 						after: 0,
-						precision: parseInt( parts[ 1 ] ),
+						precision: parseInt( timeParts[ 1 ] ),
 						calendarmodel: DEFAULT_CALENDAR_MODEL
 					}
 				};
@@ -673,7 +674,7 @@
 		},
 
 		rdfValueToJson: function rdfValueToJson( value ) {
-			var longitude, latitude, parts;
+			var longitude, latitude, timeParts;
 
 			if ( MATCHERS.ITEM.test( value ) ) {
 				return {
@@ -713,15 +714,15 @@
 					}
 				};
 			} else if ( MATCHERS.RDF_TIME.test( value ) ) {
-				parts = value.split( '/' );
+				timeParts = value.split( '/' );
 				return {
 					type: 'time',
 					value: {
-						time: parts[ 0 ],
+						time: timeParts[ 0 ],
 						timezone: 0,
 						before: 0,
 						after: 0,
-						precision: parseInt( parts[ 1 ] ),
+						precision: parseInt( timeParts[ 1 ] ),
 						calendarmodel: DEFAULT_CALENDAR_MODEL
 					}
 				};
@@ -775,9 +776,16 @@
 				return language + ':"' + text + '"';
 			} else if ( MATCHERS.RDF_TIME.test( value ) ) {
 				match = MATCHERS.RDF_TIME.exec( value );
-				era = match[ 1 ] ? match[ 1 ] : '+'; // No initial '-' means '+'
+				// No initial '-' means '+'
+				era = match[ 1 ] ? match[ 1 ] : '+';
 				// Guess precision based on '01' values
-				if ( parseInt( match[ 3 ] ) > 1 ) { return era + value + '/11'; } else if ( parseInt( match[ 2 ] ) > 1 ) { return era + value + '/10'; } else { return era + value + '/9'; }
+				if ( parseInt( match[ 3 ] ) > 1 ) {
+					return era + value + '/11';
+				} else if ( parseInt( match[ 2 ] ) > 1 ) {
+					return era + value + '/10';
+				} else {
+					return era + value + '/9';
+				}
 			} else if ( MATCHERS.QUANTITY.test( value ) ) {
 				return value;
 			} else {
@@ -810,25 +818,26 @@
 		},
 
 		jsonToTsvValue: function jsonToTsvValue( dataValue, dataType ) {
-			var time, precision, plainStringOrUrl;
+			var time, timePrecision, plainStringOrUrl;
 
 			if ( !dataValue.type ) {
 				console.warn( 'PRIMARY SOURCES TOOL: Wikidata JSON value without data type:', dataValue, 'It will be converted to QuickStatement as is' );
 				return dataValue.value;
 			}
+
 			switch ( dataValue.type ) {
 				case 'quantity':
 					return dataValue.value.amount;
 				case 'time':
 					time = dataValue.value.time;
-					precision = dataValue.value.precision;
-					if ( precision < 11 ) {
+					timePrecision = dataValue.value.precision;
+					if ( timePrecision < 11 ) {
 						time = time.replace( '-00T', '-01T' );
 					}
-					if ( precision < 10 ) {
+					if ( timePrecision < 10 ) {
 						time = time.replace( '-00-', '-01-' );
 					}
-					return time + '/' + precision;
+					return time + '/' + timePrecision;
 				case 'globecoordinate':
 					return '@' + dataValue.value.latitude + '/' + dataValue.value.longitude;
 				case 'monolingualtext':
@@ -845,27 +854,31 @@
 							return 'P' + dataValue.value[ 'numeric-id' ];
 					}
 			}
+
 			console.warn( 'PRIMARY SOURCES TOOL: Wikidata JSON value with unknown data type:' + dataValue, dataValue.type, 'It will be converted to QuickStatement as is' );
+
 			return dataValue.value;
 		},
 
 		jsonToRdfValue: function jsonToRdfValue( dataValue, dataType ) {
-			var time, precision, plainStringOrUrl;
+			var time, timePrecision, plainStringOrUrl;
+
 			if ( !dataValue.type ) {
 				console.warn( 'PRIMARY SOURCES TOOL: Wikidata JSON value without data type:', dataValue, 'It will be converted to RDF as is' );
 				return dataValue.value;
 			}
+
 			switch ( dataValue.type ) {
 				case 'quantity':
 					return dataValue.value.amount;
 				case 'time':
 					// 2018-02-07T00:00:00Z
 					time = dataValue.value.time;
-					precision = dataValue.value.precision;
-					if ( precision < 11 ) {
+					timePrecision = dataValue.value.precision;
+					if ( timePrecision < 11 ) {
 						time = time.replace( '-00T', '-01T' );
 					}
-					if ( precision < 10 ) {
+					if ( timePrecision < 10 ) {
 						time = time.replace( '-00-', '-01-' );
 					}
 					return time.replace( /[+-]/, '' );
@@ -885,7 +898,9 @@
 							return 'P' + dataValue.value[ 'numeric-id' ];
 					}
 			}
+
 			console.warn( 'PRIMARY SOURCES TOOL: Wikidata JSON value with unknown data type:' + dataValue, dataValue.type, 'It will be converted to RDF as is' );
+
 			return dataValue.value;
 		},
 
@@ -898,8 +913,8 @@
 		},
 
 		parsePrimarySourcesStatement: function parsePrimarySourcesStatement( statement, isBlacklisted ) {
-			// The full QuickStatement acts as the ID
 			var i, qualifierKey, url, blacklisted, sourceQuickStatement,
+				// The full QuickStatement acts as the ID
 				id = statement.statement,
 				dataset = statement.dataset,
 				line = statement.statement.split( /\t/ ),
@@ -918,7 +933,7 @@
 					console.warn( 'PRIMARY SOURCES TOOL: Malformed QuickStatement, will skip qualifiers and references:', id );
 					break;
 				}
-				if ( /^P\d+$/.exec( line[ i ] ) ) {
+				if ( MATCHERS.PROPERTY.test( line[ i ] ) ) {
 					qualifierKey = line[ i ] + '\t' + line[ i + 1 ];
 					qualifiers.push( {
 						qualifierProperty: line[ i ],
@@ -926,7 +941,7 @@
 						key: qualifierKey
 					} );
 					qualifierKeyParts.push( qualifierKey );
-				} else if ( /^S\d+$/.exec( line[ i ] ) ) {
+				} else if ( /^S\d+$/.test( line[ i ] ) ) {
 					source.push( {
 						sourceProperty: line[ i ].replace( /^S/, 'P' ),
 						sourceObject: line[ i + 1 ],
@@ -978,6 +993,7 @@
 
 		preloadEntityLabels: function preloadEntityLabels( statements ) {
 			var entityIds = [];
+
 			statements.forEach( function ( statement ) {
 				entityIds = entityIds.concat( extractEntityIdsFromStatement( statement ) );
 			} );
@@ -993,7 +1009,7 @@
 				return uri;
 			}
 		}
-		// END: utilities
+		/* END: utilities */
 	};
 
 	mw.ps = ps;

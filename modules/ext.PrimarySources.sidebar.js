@@ -3,12 +3,31 @@
 		// Used in multiple functions by the property browser
 		ANCHOR_LIST = [];
 
+	// Private function
+	function scrollFollowTop( $sidebar ) {
+		var $window = $( window ),
+			offset = $sidebar.offset(),
+			topPadding = 15;
+
+		$window.scroll( function () {
+			if ( $window.scrollTop() > offset.top ) {
+				$sidebar.stop().animate( {
+					marginTop: $window.scrollTop() - offset.top + topPadding
+				}, 200 );
+			} else {
+				$sidebar.stop().animate( {
+					marginTop: 0
+				}, 200 );
+			}
+		} );
+	}
+
 	/*
 	 * BEGIN: public functions
 	 */
 	ps.sidebar = {
 		/* BEGIN: dataset selection */
-		initConfigDialog: function initConfigDialog( winMan, button ) {
+		initConfigDialog: function initConfigDialog( windowManager, button ) {
 			function ConfigDialog( config ) {
 				ConfigDialog.super.call( this, config );
 			}
@@ -126,15 +145,14 @@
 					uploaderWidget = this.uploaderWidget,
 					selected = this.datasetSelection.findSelectedItem();
 				/*
-				IF:
-				1. we switch off the info panel;
-				2. the user clicks on 'cancel';
-				3. the user reopens the dialog;
-				4. the user selects a dataset;
-				THEN the dialog height will not fit.
-
-				Replace with empty labels instead.
-				*/
+				 * IF:
+				 * 1. we switch off the info panel;
+				 * 2. the user clicks on 'cancel';
+				 * 3. the user reopens the dialog;
+				 * 4. the user selects a dataset;
+				 * THEN the dialog height will not fit.
+				 * Replace with empty labels instead.
+				 */
 				if ( selected.getLabel() === 'All' ) {
 					datasetDescriptionWidget.setLabel();
 					missingStatementsWidget.setLabel();
@@ -168,16 +186,16 @@
 				return ConfigDialog.super.prototype.getActionProcess.call( this, action );
 			};
 
-			winMan.addWindows( [ new ConfigDialog() ] );
-
+			windowManager.addWindows( [ new ConfigDialog() ] );
 			button.click( function () {
-				winMan.openWindow( 'ps-config' );
+				windowManager.openWindow( 'ps-config' );
 			} );
 		},
 		/* END: dataset selection */
 
 		alphaPos: function alphaPos( text ) {
 			var i;
+
 			if ( text <= ANCHOR_LIST[ 0 ] ) {
 				return 0;
 			}
@@ -192,6 +210,7 @@
 		appendToNav: function appendToNav( container ) {
 			var anchor, textWithoutSpace, textWithSpace, pos,
 				firstNewObj = $( container ).find( '.new-object' )[ 0 ] || $( container ).find( '.new-source' )[ 0 ];
+
 			if ( firstNewObj ) {
 				anchor = {
 					title: $( container ).find( '.wikibase-statementgroupview-property-label' ),
@@ -218,24 +237,6 @@
 	/*
 	 * END: public functions
 	 */
-
-	function scrollFollowTop( $sidebar ) {
-		var $window = $( window ),
-			offset = $sidebar.offset(),
-			topPadding = 15;
-
-		$window.scroll( function () {
-			if ( $window.scrollTop() > offset.top ) {
-				$sidebar.stop().animate( {
-					marginTop: $window.scrollTop() - offset.top + topPadding
-				}, 200 );
-			} else {
-				$sidebar.stop().animate( {
-					marginTop: 0
-				}, 200 );
-			}
-		} );
-	}
 
 	/* BEGIN: sidebar links, self-invoking */
 	mw.loader.using( [ 'mediawiki.util', 'mediawiki.Title', 'oojs-ui', 'wikibase.dataTypeStore' ], function createSidebarLinks() {
