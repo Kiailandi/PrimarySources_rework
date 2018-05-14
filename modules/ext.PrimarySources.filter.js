@@ -859,7 +859,13 @@
 					}
 					this.sparql = filledQuery.replace( '{{BINDINGS}}', bindings );
 					this.sparqlOffset = 0;
-					this.sparqlLimit = 100;
+                    /*
+                     * Minimal limit value to avoid empty result tables,
+                     * due to SPARQL results merged on the statement_node binding.
+                     * See ListDialog.prototype.displaySearchResult
+                     * 0/50 runs were empty
+                     */
+					this.sparqlLimit = 175;
 					this.filteredDataset = filteredDataset;
 					this.filteredProperty = null;
 					this.filteredItemValue = null;
@@ -907,11 +913,6 @@
 								}
 								this.sparql = filledQuery;
 								this.sparqlOffset = 0;
-								/*
-								 * Optimal limit value to avoid empty result tables,
-								 * due to SPARQL results merged on the statement_node binding.
-								 * See ListDialog.prototype.displaySearchResult
-								 */
 								this.sparqlLimit = 100;
 								console.debug( 'PRIMARY SOURCES TOOL: BAKED FILTER triggered. Value query:', this.sparql );
 								this.executeSparqlQuery();
@@ -933,7 +934,7 @@
 								console.debug( 'PRIMARY SOURCES TOOL: BAKED FILTER triggered. Property query:', this.sparql );
 								this.sparqlOffset = 0;
 								/*
-								 * The Limit value is quite high to avoid empty result tables,
+								 * The limit value is quite high to avoid empty result tables,
 								 * due to SPARQL results merged on the statement_node binding.
 								 * See ListDialog.prototype.displaySearchResult
 								 */
