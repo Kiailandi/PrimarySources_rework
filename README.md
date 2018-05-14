@@ -1,2 +1,4 @@
-# PrimarySources_rework
-A temporary, WIP, unstable, ugly version of the reworked of the Primary Sources tool (now a wikibase extension wannabe)
+# Wikidata primary sources tool
+
+# License
+The source code is under the terms of the [GNU General Public License, version 3](http://www.gnu.org/licenses/gpl.html).
