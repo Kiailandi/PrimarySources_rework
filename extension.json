@@ -2,8 +2,8 @@
 	"name": "PrimarySources",
 	"type": "wikibase",
 	"author": [
-		"Marco Fossati ([https://www.mediawiki.org/wiki/User:Hjfocs Hjfocs])",
-		"Tommaso Montefusco ([https://www.mediawiki.org/wiki/User:Kiailandi Kiailandi])"
+		"Marco Fossati ('''[https://www.mediawiki.org/wiki/User:Hjfocs Hjfocs]''')",
+		"Tommaso Montefusco ('''[https://www.mediawiki.org/wiki/User:Kiailandi Kiailandi]''')"
 	],
 	"version": "2.0",
 	"url": "https://www.mediawiki.org/wiki/Extension:PrimarySources",
