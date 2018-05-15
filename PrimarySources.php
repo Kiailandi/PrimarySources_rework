@@ -16,91 +16,108 @@
  * @license GNU General Public Licence 3.0
  */
 
- // See https://www.mediawiki.org/wiki/Manual:$wgExtensionCredits
-$wgExtensionCredits['datavalues'][] = array(
-    'path' => __FILE__,
-    'name' => 'PrimarySources',
-    'author' => array(
-        'Marco Fossati',
-        'Tommaso Montefusco'
-    ),
-    'version'  => '2.0',
-    'url' => 'https://www.mediawiki.org/wiki/Extension:PrimarySources',
-    'descriptionmsg' => 'PrimarySources-desc'
-);
+if ( function_exists( 'wfLoadExtension' ) ) {
+	// Extension registration for MediaWiki 1.25 and later
+	// See https://www.mediawiki.org/wiki/Manual:Extension_registration#Migration_for_extension_developers
+	wfLoadExtension( 'PrimarySources' );
+	// Keep i18n globals so mergeMessageFileList.php doesn't break
+	$wgMessagesDirs['PrimarySources'] = __DIR__ . '/i18n';
+	$wgExtensionMessagesFiles['PrimarySourcesAlias'] = __DIR__ . '/PrimarySources.alias.php';
+	wfWarn(
+		'Deprecated PHP entry point used for the PrimarySources extension. ' .
+		'Please use wfLoadExtension instead, ' .
+		'see https://www.mediawiki.org/wiki/Extension_registration for more details.'
+	);
+	return;
+} else {
+	// Old registration way for previous versions of MediaWiki
 
-$dir = dirname( __FILE__ );
-$dirbasename = basename( $dir );
+	// See https://www.mediawiki.org/wiki/Manual:$wgExtensionCredits
+	$wgExtensionCredits['datavalues'][] = array(
+		'path' => __FILE__,
+		'name' => 'PrimarySources',
+		'author' => array(
+			'Marco Fossati',
+			'Tommaso Montefusco'
+		),
+		'version'  => '2.0',
+		'url' => 'https://www.mediawiki.org/wiki/Extension:PrimarySources',
+		'descriptionmsg' => 'PrimarySources-desc'
+	);
 
-// Register files
-$wgAutoloadClasses['PrimarySourcesHooks'] = $dir . '/PrimarySources.hooks.php';
-$wgAutoloadClasses['SpecialPrimarySources'] = $dir . '/SpecialPrimarySources.php';
+	$dir = dirname( __FILE__ );
+	$dirbasename = basename( $dir );
 
-$wgMessagesDirs['PrimarySources'] = __DIR__ . '/i18n';
-$wgExtensionMessagesFiles['PrimarySourcesAlias'] = $dir . '/PrimarySources.i18n.alias.php';
-$wgExtensionMessagesFiles['PrimarySourcesMagic'] = $dir . '/PrimarySources.i18n.magic.php';
+	// Register files
+	$wgAutoloadClasses['PrimarySourcesHooks'] = $dir . '/PrimarySources.hooks.php';
+	$wgAutoloadClasses['SpecialPrimarySources'] = $dir . '/SpecialPrimarySources.php';
 
-// Register hooks
-$wgHooks['BeforePageDisplay'][] = 'PrimarySourcesHooks::onBeforePageDisplay';
-$wgHooks['ResourceLoaderGetConfigVars'][] = 'PrimarySourcesHooks::onResourceLoaderGetConfigVars';
-$wgHooks['ParserFirstCallInit'][] = 'PrimarySourcesHooks::onParserFirstCallInit';
-$wgHooks['ParserGetVariableValueSwitch'][] = 'PrimarySourcesHooks::onParserGetVariableValueSwitch';
-$wgHooks['LoadExtensionSchemaUpdates'][] = 'PrimarySourcesHooks::onLoadExtensionSchemaUpdates';
-$wgHooks['OutputPageParserOutput'] [] = 'PrimarySourcesHooks::onOutputPageParserOutput';
-$wgHooks['ResourceLoaderTestModules'][] = 'PrimarySourcesHooks::onResourceLoaderTestModules';
+	$wgMessagesDirs['PrimarySources'] = __DIR__ . '/i18n';
+	$wgExtensionMessagesFiles['PrimarySourcesAlias'] = $dir . '/PrimarySources.i18n.alias.php';
+	$wgExtensionMessagesFiles['PrimarySourcesMagic'] = $dir . '/PrimarySources.i18n.magic.php';
 
-// Register special pages
-// See http://www.mediawiki.org/wiki/Manual:Special_pages
-$wgSpecialPages['PrimarySources'] = 'SpecialPrimarySources';
+	// Register hooks
+	$wgHooks['BeforePageDisplay'][] = 'PrimarySourcesHooks::onBeforePageDisplay';
+	$wgHooks['ResourceLoaderGetConfigVars'][] = 'PrimarySourcesHooks::onResourceLoaderGetConfigVars';
+	$wgHooks['ParserFirstCallInit'][] = 'PrimarySourcesHooks::onParserFirstCallInit';
+	$wgHooks['ParserGetVariableValueSwitch'][] = 'PrimarySourcesHooks::onParserGetVariableValueSwitch';
+	$wgHooks['LoadExtensionSchemaUpdates'][] = 'PrimarySourcesHooks::onLoadExtensionSchemaUpdates';
+	$wgHooks['OutputPageParserOutput'] [] = 'PrimarySourcesHooks::onOutputPageParserOutput';
+	$wgHooks['ResourceLoaderTestModules'][] = 'PrimarySourcesHooks::onResourceLoaderTestModules';
 
-// Register JavaScript modules
-// See http://www.mediawiki.org/wiki/Manual:$wgResourceModules
-$wgResourceModules['ext.PrimarySources.globals'] = array(
-    'scripts' => '/modules/ext.PrimarySources.globals.js',
-    'localBasePath' => $dir,
-    'remoteExtPath' => $dirbasename
-);
-$wgResourceModules['ext.PrimarySources.commons'] = array(
-    'scripts' => '/modules/ext.PrimarySources.commons.js',
-    'dependencies' => 'ext.PrimarySources.globals',
-    'localBasePath' => $dir,
-    'remoteExtPath' => $dirbasename
-);
-$wgResourceModules['ext.PrimarySources.templates'] = array(
-    'scripts' => '/modules/ext.PrimarySources.templates.js',
-    'localBasePath' => $dir,
-    'remoteExtPath' => $dirbasename
-);
-$wgResourceModules['ext.PrimarySources.itemCuration'] = array(
-    'scripts' => '/modules/ext.PrimarySources.itemCuration.js',
-    'styles' => '/modules/ext.PrimarySources.itemCuration.css',
-    'dependencies' => array(
-        'ext.PrimarySources.globals',
-        'ext.PrimarySources.commons',
-        'ext.PrimarySources.templates',
-        'ext.PrimarySources.referencePreview'
-    ),
-    'localBasePath' => $dir,
-    'remoteExtPath' => $dirbasename
-);
-$wgResourceModules['ext.PrimarySources.filter'] = array(
-    'scripts' => '/modules/ext.PrimarySources.filter.js',
-    'dependencies' => array(
-        'ext.PrimarySources.globals',
-        'ext.PrimarySources.commons',
-        'ext.PrimarySources.referencePreview'
-    ),
-    'localBasePath' => $dir,
-    'remoteExtPath' => $dirbasename
-);
-$wgResourceModules['ext.PrimarySources.sidebar'] = array(
-    'scripts' => '/modules/ext.PrimarySources.sidebar.js',
-    'styles' => '/modules/ext.PrimarySources.sidebar.css',
-    'dependencies' => array(
-        'ext.PrimarySources.globals',
-        'ext.PrimarySources.commons',
-        'ext.PrimarySources.filter'
-    ),
-    'localBasePath' => $dir,
-    'remoteExtPath' => $dirbasename
-);
+	// Register special pages
+	// See http://www.mediawiki.org/wiki/Manual:Special_pages
+	$wgSpecialPages['PrimarySources'] = 'SpecialPrimarySources';
+
+	// Register JavaScript modules
+	// See http://www.mediawiki.org/wiki/Manual:$wgResourceModules
+	$wgResourceModules['ext.PrimarySources.globals'] = array(
+		'scripts' => '/modules/ext.PrimarySources.globals.js',
+		'localBasePath' => $dir,
+		'remoteExtPath' => $dirbasename
+	);
+	$wgResourceModules['ext.PrimarySources.commons'] = array(
+		'scripts' => '/modules/ext.PrimarySources.commons.js',
+		'dependencies' => 'ext.PrimarySources.globals',
+		'localBasePath' => $dir,
+		'remoteExtPath' => $dirbasename
+	);
+	$wgResourceModules['ext.PrimarySources.templates'] = array(
+		'scripts' => '/modules/ext.PrimarySources.templates.js',
+		'localBasePath' => $dir,
+		'remoteExtPath' => $dirbasename
+	);
+	$wgResourceModules['ext.PrimarySources.itemCuration'] = array(
+		'scripts' => '/modules/ext.PrimarySources.itemCuration.js',
+		'styles' => '/modules/ext.PrimarySources.itemCuration.css',
+		'dependencies' => array(
+			'ext.PrimarySources.globals',
+			'ext.PrimarySources.commons',
+			'ext.PrimarySources.templates',
+			'ext.PrimarySources.referencePreview'
+		),
+		'localBasePath' => $dir,
+		'remoteExtPath' => $dirbasename
+	);
+	$wgResourceModules['ext.PrimarySources.filter'] = array(
+		'scripts' => '/modules/ext.PrimarySources.filter.js',
+		'dependencies' => array(
+			'ext.PrimarySources.globals',
+			'ext.PrimarySources.commons',
+			'ext.PrimarySources.referencePreview'
+		),
+		'localBasePath' => $dir,
+		'remoteExtPath' => $dirbasename
+	);
+	$wgResourceModules['ext.PrimarySources.sidebar'] = array(
+		'scripts' => '/modules/ext.PrimarySources.sidebar.js',
+		'styles' => '/modules/ext.PrimarySources.sidebar.css',
+		'dependencies' => array(
+			'ext.PrimarySources.globals',
+			'ext.PrimarySources.commons',
+			'ext.PrimarySources.filter'
+		),
+		'localBasePath' => $dir,
+		'remoteExtPath' => $dirbasename
+	);
+}
