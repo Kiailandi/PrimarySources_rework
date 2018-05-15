@@ -21,8 +21,7 @@
 		"SpecialPrimarySources": "SpecialPrimarySources.php"
 	},
 	"Hooks": {
-		"BeforePageDisplay": "PrimarySourcesHooks::onBeforePageDisplay",
-		"ResourceLoaderTestModules": "PrimarySourcesHooks::onResourceLoaderTestModules"
+		"BeforePageDisplay": "PrimarySourcesHooks::onBeforePageDisplay"
 	},
 	"SpecialPages":{
 		"PrimarySources": "SpecialPrimarySources"
