@@ -1,7 +1,9 @@
 {
-  "@metadata": {
-    "authors": ["Kiailandi"]
-  },
-  "PrimarySources-placeholder": "FILTER",
-  "primary-sources-desc": "Platform for third-party datasets release and curation"
+	"@metadata": {
+		"authors": [
+			"Hjfocs",
+			"Kiailandi"
+		]
+	},
+	"primary-sources-desc": "Platform for third-party datasets release and curation"
 }

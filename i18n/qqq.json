@@ -1,6 +1,9 @@
 {
-  "@metadata": {
-    "authors": ["Kiailandi"]
-  },
-  "PrimarySources-placeholder": "{{FILTER}}"
+	"@metadata": {
+		"authors": [
+			"Hjfocs",
+			"Kiailandi"
+		]
+	},
+	"primary-sources-desc": "Short description of this extension. It will appear in the 'Special:Version' page"
 }
