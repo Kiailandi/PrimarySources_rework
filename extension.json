@@ -22,9 +22,6 @@
 	},
 	"Hooks": {
 		"BeforePageDisplay": "PrimarySourcesHooks::onBeforePageDisplay",
-		"ResourceLoaderGetConfigVars": "PrimarySourcesHooks::onResourceLoaderGetConfigVars",
-		"ParserGetVariableValueSwitch": "PrimarySourcesHooks::onParserGetVariableValueSwitch",
-		"LoadExtensionSchemaUpdates": "PrimarySourcesHooks::onLoadExtensionSchemaUpdates",
 		"OutputPageParserOutput": "PrimarySourcesHooks::onOutputPageParserOutput",
 		"ResourceLoaderTestModules": "PrimarySourcesHooks::onResourceLoaderTestModules"
 	},
