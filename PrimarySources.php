@@ -42,7 +42,7 @@ if ( function_exists( 'wfLoadExtension' ) ) {
 		),
 		'version'  => '2.0',
 		'url' => 'https://www.mediawiki.org/wiki/Extension:PrimarySources',
-		'descriptionmsg' => 'PrimarySources-desc'
+		'descriptionmsg' => 'primary-sources-desc'
 	);
 
 	$dir = dirname( __FILE__ );
@@ -84,6 +84,12 @@ if ( function_exists( 'wfLoadExtension' ) ) {
 	);
 	$wgResourceModules['ext.PrimarySources.templates'] = array(
 		'scripts' => '/modules/ext.PrimarySources.templates.js',
+		'localBasePath' => $dir,
+		'remoteExtPath' => $dirbasename
+	);
+	$wgResourceModules['ext.PrimarySources.referencePreview'] = array(
+		'scripts' => '/modules/ext.PrimarySources.referencePreview.js',
+		'styles' => '/modules/ext.PrimarySources.referencePreview.css',
 		'localBasePath' => $dir,
 		'remoteExtPath' => $dirbasename
 	);
