@@ -29,7 +29,6 @@ $wgExtensionCredits['datavalues'][] = array(
     'descriptionmsg' => 'PrimarySources-desc'
 );
 
-/* Setup */
 $dir = dirname( __FILE__ );
 $dirbasename = basename( $dir );
 
@@ -57,45 +56,24 @@ $wgSpecialPages['PrimarySources'] = 'SpecialPrimarySources';
 // Register JavaScript modules
 // See http://www.mediawiki.org/wiki/Manual:$wgResourceModules
 $wgResourceModules['ext.PrimarySources.globals'] = array(
-    'scripts' => array(
-        '/modules/ext.PrimarySources.globals.js'
-    ),
-    'styles' => array(),
-    'messages' => array(),
-    'dependencies' => array(),
+    'scripts' => '/modules/ext.PrimarySources.globals.js',
     'localBasePath' => $dir,
     'remoteExtPath' => $dirbasename
 );
 $wgResourceModules['ext.PrimarySources.commons'] = array(
-    'scripts' => array(
-        '/modules/ext.PrimarySources.commons.js'
-    ),
-    'styles' => array(),
-    'messages' => array(),
-    'dependencies' => array(
-        'ext.PrimarySources.globals'
-    ),
+    'scripts' => '/modules/ext.PrimarySources.commons.js',
+    'dependencies' => 'ext.PrimarySources.globals',
     'localBasePath' => $dir,
     'remoteExtPath' => $dirbasename
 );
 $wgResourceModules['ext.PrimarySources.templates'] = array(
-    'scripts' => array(
-        '/modules/ext.PrimarySources.templates.js'
-    ),
-    'styles' => array(),
-    'messages' => array(),
-    'dependencies' => array(),
+    'scripts' => '/modules/ext.PrimarySources.templates.js',
     'localBasePath' => $dir,
     'remoteExtPath' => $dirbasename
 );
 $wgResourceModules['ext.PrimarySources.itemCuration'] = array(
-    'scripts' => array(
-        '/modules/ext.PrimarySources.itemCuration.js'
-    ),
-    'styles' => array(
-        '/modules/ext.PrimarySources.itemCuration.css'
-    ),
-    'messages' => array(),
+    'scripts' => '/modules/ext.PrimarySources.itemCuration.js',
+    'styles' => '/modules/ext.PrimarySources.itemCuration.css',
     'dependencies' => array(
         'ext.PrimarySources.globals',
         'ext.PrimarySources.commons',
@@ -106,11 +84,7 @@ $wgResourceModules['ext.PrimarySources.itemCuration'] = array(
     'remoteExtPath' => $dirbasename
 );
 $wgResourceModules['ext.PrimarySources.filter'] = array(
-    'scripts' => array(
-        '/modules/ext.PrimarySources.filter.js'
-    ),
-    'styles' => array(),
-    'messages' => array(),
+    'scripts' => '/modules/ext.PrimarySources.filter.js',
     'dependencies' => array(
         'ext.PrimarySources.globals',
         'ext.PrimarySources.commons',
@@ -120,13 +94,8 @@ $wgResourceModules['ext.PrimarySources.filter'] = array(
     'remoteExtPath' => $dirbasename
 );
 $wgResourceModules['ext.PrimarySources.sidebar'] = array(
-    'scripts' => array(
-        '/modules/ext.PrimarySources.sidebar.js'
-    ),
-    'styles' => array(
-        '/modules/ext.PrimarySources.sidebar.css'
-    ),
-    'messages' => array(),
+    'scripts' => '/modules/ext.PrimarySources.sidebar.js',
+    'styles' => '/modules/ext.PrimarySources.sidebar.css',
     'dependencies' => array(
         'ext.PrimarySources.globals',
         'ext.PrimarySources.commons',
