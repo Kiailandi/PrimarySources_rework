@@ -16,7 +16,8 @@
  * @license GNU General Public Licence 3.0
  */
 
-$wgExtensionCredits['other'][] = array(
+ // See https://www.mediawiki.org/wiki/Manual:$wgExtensionCredits
+$wgExtensionCredits['datavalues'][] = array(
     'path' => __FILE__,
     'name' => 'PrimarySources',
     'author' => array(
@@ -50,11 +51,11 @@ $wgHooks['OutputPageParserOutput'] [] = 'PrimarySourcesHooks::onOutputPageParser
 $wgHooks['ResourceLoaderTestModules'][] = 'PrimarySourcesHooks::onResourceLoaderTestModules';
 
 // Register special pages
-// See also http://www.mediawiki.org/wiki/Manual:Special_pages
+// See http://www.mediawiki.org/wiki/Manual:Special_pages
 $wgSpecialPages['Ingestion'] = 'SpecialPrimarySources';
 
 // Register JavaScript modules
-// See also http://www.mediawiki.org/wiki/Manual:$wgResourceModules
+// See http://www.mediawiki.org/wiki/Manual:$wgResourceModules
 $wgResourceModules['ext.PrimarySources.globals'] = array(
     'scripts' => array(
         '/modules/ext.PrimarySources.globals.js'
