@@ -55,7 +55,6 @@ if ( function_exists( 'wfLoadExtension' ) ) {
 
 	// Register hooks
 	$wgHooks['BeforePageDisplay'][] = 'PrimarySourcesHooks::onBeforePageDisplay';
-	$wgHooks['OutputPageParserOutput'] [] = 'PrimarySourcesHooks::onOutputPageParserOutput';
 	$wgHooks['ResourceLoaderTestModules'][] = 'PrimarySourcesHooks::onResourceLoaderTestModules';
 
 	// Register special pages
@@ -65,30 +64,30 @@ if ( function_exists( 'wfLoadExtension' ) ) {
 	// Register JavaScript modules
 	// See http://www.mediawiki.org/wiki/Manual:$wgResourceModules
 	$wgResourceModules['ext.PrimarySources.globals'] = array(
-		'scripts' => '/modules/ext.PrimarySources.globals.js',
+		'scripts' => 'modules/ext.PrimarySources.globals.js',
 		'localBasePath' => $dir,
 		'remoteExtPath' => $dirbasename
 	);
 	$wgResourceModules['ext.PrimarySources.commons'] = array(
-		'scripts' => '/modules/ext.PrimarySources.commons.js',
+		'scripts' => 'modules/ext.PrimarySources.commons.js',
 		'dependencies' => 'ext.PrimarySources.globals',
 		'localBasePath' => $dir,
 		'remoteExtPath' => $dirbasename
 	);
 	$wgResourceModules['ext.PrimarySources.templates'] = array(
-		'scripts' => '/modules/ext.PrimarySources.templates.js',
+		'scripts' => 'modules/ext.PrimarySources.templates.js',
 		'localBasePath' => $dir,
 		'remoteExtPath' => $dirbasename
 	);
 	$wgResourceModules['ext.PrimarySources.referencePreview'] = array(
-		'scripts' => '/modules/ext.PrimarySources.referencePreview.js',
-		'styles' => '/modules/ext.PrimarySources.referencePreview.css',
+		'scripts' => 'modules/ext.PrimarySources.referencePreview.js',
+		'styles' => 'modules/ext.PrimarySources.referencePreview.css',
 		'localBasePath' => $dir,
 		'remoteExtPath' => $dirbasename
 	);
 	$wgResourceModules['ext.PrimarySources.itemCuration'] = array(
-		'scripts' => '/modules/ext.PrimarySources.itemCuration.js',
-		'styles' => '/modules/ext.PrimarySources.itemCuration.css',
+		'scripts' => 'modules/ext.PrimarySources.itemCuration.js',
+		'styles' => 'modules/ext.PrimarySources.itemCuration.css',
 		'dependencies' => array(
 			'ext.PrimarySources.globals',
 			'ext.PrimarySources.commons',
@@ -99,7 +98,7 @@ if ( function_exists( 'wfLoadExtension' ) ) {
 		'remoteExtPath' => $dirbasename
 	);
 	$wgResourceModules['ext.PrimarySources.filter'] = array(
-		'scripts' => '/modules/ext.PrimarySources.filter.js',
+		'scripts' => 'modules/ext.PrimarySources.filter.js',
 		'dependencies' => array(
 			'ext.PrimarySources.globals',
 			'ext.PrimarySources.commons',
@@ -109,8 +108,8 @@ if ( function_exists( 'wfLoadExtension' ) ) {
 		'remoteExtPath' => $dirbasename
 	);
 	$wgResourceModules['ext.PrimarySources.sidebar'] = array(
-		'scripts' => '/modules/ext.PrimarySources.sidebar.js',
-		'styles' => '/modules/ext.PrimarySources.sidebar.css',
+		'scripts' => 'modules/ext.PrimarySources.sidebar.js',
+		'styles' => 'modules/ext.PrimarySources.sidebar.css',
 		'dependencies' => array(
 			'ext.PrimarySources.globals',
 			'ext.PrimarySources.commons',
