@@ -3,5 +3,5 @@
     "authors": ["Kiailandi"]
   },
   "PrimarySources-placeholder": "FILTER",
-  "PrimarySources-desc": "Description of the extension"
+  "primary-sources-desc": "Platform for third-party datasets release and curation"
 }

@@ -1,127 +1,81 @@
 {
-  "name": "PrimarySources",
-  "author": "Kiailandi",
-  "type": "other",
-  "MessagesDirs": {
-    "ContentAction": [
-      "i18n"
-    ]
-  },
-  "Hooks": {
-    "BeforePageDisplay": "PrimarySourcesHooks::onBeforePageDisplay",
-    "ResourceLoaderGetConfigVars": "PrimarySourcesHooks::onResourceLoaderGetConfigVars",
-    "ParserGetVariableValueSwitch": "PrimarySourcesHooks::onParserGetVariableValueSwitch",
-    "LoadExtensionSchemaUpdates": "PrimarySourcesHooks::onLoadExtensionSchemaUpdates",
-    "OutputPageParserOutput": "PrimarySourcesHooks::onOutputPageParserOutput",
-    "ResourceLoaderTestModules": "PrimarySourcesHooks::onResourceLoaderTestModules"
-  },
-  "AutoloadClasses": {
-    "PrimarySources": "PrimarySources.php",
-    "PrimarySourcesHooks": "PrimarySources.hooks.php",
-    "SpecialPrimarySources":"/specials/SpecialPrimarySources.php"
-  },
-  "SpecialPages":{
-    "PrimarySources":"SpecialPrimarySources"
-  },
-  "Actions": {
-    "myact": "Example"
-  },
-  "ResourceModules": {
-    "ext.PrimarySources.globals": {
-      "scripts": [
-        "/modules/ext.PrimarySources.globals.js"
-      ],
-      "styles": [
-      ],
-      "messages": [
-      ],
-      "dependencies": [
-      ]
-    },
-    "ext.PrimarySources.commons": {
-      "scripts": [
-        "/modules/ext.PrimarySources.commons.js"
-      ],
-      "styles": [
-      ],
-      "messages": [
-      ],
-      "dependencies": [
-        "ext.PrimarySources.globals"
-      ]
-    },
-    "ext.PrimarySources.templates": {
-      "scripts": [
-        "/modules/ext.PrimarySources.templates.js"
-      ],
-      "styles": [
-      ],
-      "messages": [
-      ],
-      "dependencies": [
-      ]
-    },
-    "ext.PrimarySources.referencePreview": {
-      "scripts": [
-        "/modules/ext.PrimarySources.referencePreview.js"
-      ],
-      "styles": [
-        "/modules/ext.PrimarySources.referencePreview.css"
-      ],
-      "messages": [
-      ],
-      "dependencies": [
-      ]
-    },
-    "ext.PrimarySources.itemCuration": {
-      "scripts": [
-        "/modules/ext.PrimarySources.itemCuration.js"
-      ],
-      "styles": [
-        "/modules/ext.PrimarySources.itemCuration.css"
-      ],
-      "messages": [
-      ],
-      "dependencies": [
-        "ext.PrimarySources.globals",
-        "ext.PrimarySources.commons",
-        "ext.PrimarySources.templates",
-        "ext.PrimarySources.referencePreview"
-      ]
-    },
-    "ext.PrimarySources.filter": {
-      "scripts": [
-        "/modules/ext.PrimarySources.filter.js"
-      ],
-      "styles": [
-      ],
-      "messages": [
-      ],
-      "dependencies": [
-        "ext.PrimarySources.globals",
-        "ext.PrimarySources.commons",
-        "ext.PrimarySources.referencePreview"
-      ]
-    },
-    "ext.PrimarySources.sidebar": {
-      "scripts": [
-        "/modules/ext.PrimarySources.sidebar.js"
-      ],
-      "styles": [
-        "/modules/ext.PrimarySources.sidebar.css"
-      ],
-      "messages": [
-      ],
-      "dependencies": [
-        "ext.PrimarySources.globals",
-        "ext.PrimarySources.commons",
-        "ext.PrimarySources.filter"
-      ]
-    }
-  },
-  "ResourceFileModulePaths": {
-    "localBasePath": "",
-    "remoteExtPath": "PrimarySources"
-  },
-  "manifest_version": 2
+	"name": "PrimarySources",
+	"type": "editor",
+	"author": [
+		"Marco Fossati - [https://www.mediawiki.org/wiki/User:Hjfocs Hjfocs]",
+		"Tommaso Montefusco - [https://www.mediawiki.org/wiki/User:Kiailandi Kiailandi]"
+	],
+	"version": "2.0",
+	"url": "https://www.mediawiki.org/wiki/Extension:PrimarySources",
+	"license-name": "GPL-3.0-or-later",
+	"descriptionmsg": "primary-sources-desc",
+	"manifest_version": 2,
+	"MessagesDirs": {
+		"PrimarySources": [
+			"i18n"
+		]
+	},
+	"AutoloadClasses": {
+		"PrimarySources": "PrimarySources.php",
+		"PrimarySourcesHooks": "PrimarySources.hooks.php",
+		"SpecialPrimarySources":"SpecialPrimarySources.php"
+	},
+	"Hooks": {
+		"BeforePageDisplay": "PrimarySourcesHooks::onBeforePageDisplay",
+		"ResourceLoaderGetConfigVars": "PrimarySourcesHooks::onResourceLoaderGetConfigVars",
+		"ParserGetVariableValueSwitch": "PrimarySourcesHooks::onParserGetVariableValueSwitch",
+		"LoadExtensionSchemaUpdates": "PrimarySourcesHooks::onLoadExtensionSchemaUpdates",
+		"OutputPageParserOutput": "PrimarySourcesHooks::onOutputPageParserOutput",
+		"ResourceLoaderTestModules": "PrimarySourcesHooks::onResourceLoaderTestModules"
+	},
+	"SpecialPages":{
+		"PrimarySources": "SpecialPrimarySources"
+	},
+	"ResourceModules": {
+		"ext.PrimarySources.globals": {
+			"scripts": "modules/ext.PrimarySources.globals.js"
+		},
+		"ext.PrimarySources.commons": {
+			"scripts": "modules/ext.PrimarySources.commons.js",
+			"dependencies": "ext.PrimarySources.globals"
+		},
+		"ext.PrimarySources.templates": {
+			"scripts": "modules/ext.PrimarySources.templates.js"
+		},
+		"ext.PrimarySources.referencePreview": {
+			"scripts": "modules/ext.PrimarySources.referencePreview.js",
+			"styles": "modules/ext.PrimarySources.referencePreview.css"
+		},
+		"ext.PrimarySources.itemCuration": {
+			"scripts": "modules/ext.PrimarySources.itemCuration.js",
+			"styles": "modules/ext.PrimarySources.itemCuration.css",
+			"dependencies": [
+				"ext.PrimarySources.globals",
+				"ext.PrimarySources.commons",
+				"ext.PrimarySources.templates",
+				"ext.PrimarySources.referencePreview"
+			]
+		},
+		"ext.PrimarySources.filter": {
+			"scripts": "modules/ext.PrimarySources.filter.js",
+			"dependencies": [
+				"ext.PrimarySources.globals",
+				"ext.PrimarySources.commons",
+				"ext.PrimarySources.referencePreview"
+			]
+		},
+		"ext.PrimarySources.sidebar": {
+			"scripts": "modules/ext.PrimarySources.sidebar.js",
+			"styles": "modules/ext.PrimarySources.sidebar.css",
+			"dependencies": [
+				"ext.PrimarySources.globals",
+				"ext.PrimarySources.commons",
+				"ext.PrimarySources.filter"
+			]
+		}
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "",
+		"remoteExtPath": "PrimarySources"
+	}
 }
