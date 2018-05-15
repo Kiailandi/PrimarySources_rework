@@ -13,7 +13,7 @@
  * @author Marco Fossati - User:Hjfocs
  * @author Tommaso Montefusco - User:Kiailandi
  * @version 2.0
- * @license GNU General Public Licence 3.0
+ * @license GNU General Public License 3.0
  */
 
 if ( function_exists( 'wfLoadExtension' ) ) {
@@ -22,7 +22,6 @@ if ( function_exists( 'wfLoadExtension' ) ) {
 	wfLoadExtension( 'PrimarySources' );
 	// Keep i18n globals so mergeMessageFileList.php doesn't break
 	$wgMessagesDirs['PrimarySources'] = __DIR__ . '/i18n';
-	$wgExtensionMessagesFiles['PrimarySourcesAlias'] = __DIR__ . '/PrimarySources.alias.php';
 	wfWarn(
 		'Deprecated PHP entry point used for the PrimarySources extension. ' .
 		'Please use wfLoadExtension instead, ' .
@@ -53,8 +52,6 @@ if ( function_exists( 'wfLoadExtension' ) ) {
 	$wgAutoloadClasses['SpecialPrimarySources'] = $dir . '/SpecialPrimarySources.php';
 
 	$wgMessagesDirs['PrimarySources'] = __DIR__ . '/i18n';
-	$wgExtensionMessagesFiles['PrimarySourcesAlias'] = $dir . '/PrimarySources.i18n.alias.php';
-	$wgExtensionMessagesFiles['PrimarySourcesMagic'] = $dir . '/PrimarySources.i18n.magic.php';
 
 	// Register hooks
 	$wgHooks['BeforePageDisplay'][] = 'PrimarySourcesHooks::onBeforePageDisplay';
