@@ -35,7 +35,7 @@ $dirbasename = basename( $dir );
 
 // Register files
 $wgAutoloadClasses['PrimarySourcesHooks'] = $dir . '/PrimarySources.hooks.php';
-$wgAutoloadClasses['SpecialPrimarySources'] = $dir . '/specials/SpecialPrimarySources.php';
+$wgAutoloadClasses['SpecialPrimarySources'] = $dir . '/SpecialPrimarySources.php';
 
 $wgMessagesDirs['PrimarySources'] = __DIR__ . '/i18n';
 $wgExtensionMessagesFiles['PrimarySourcesAlias'] = $dir . '/PrimarySources.i18n.alias.php';
@@ -52,7 +52,7 @@ $wgHooks['ResourceLoaderTestModules'][] = 'PrimarySourcesHooks::onResourceLoader
 
 // Register special pages
 // See http://www.mediawiki.org/wiki/Manual:Special_pages
-$wgSpecialPages['Ingestion'] = 'SpecialPrimarySources';
+$wgSpecialPages['PrimarySources'] = 'SpecialPrimarySources';
 
 // Register JavaScript modules
 // See http://www.mediawiki.org/wiki/Manual:$wgResourceModules
