@@ -24,12 +24,12 @@ class PrimarySourcesHooks {
 	}
 
 	public static function onResourceLoaderTestModules( array &$testModules, ResourceLoader &$resourceLoader ) {
-		$testModules['qunit']['ext.PrimarySources.test'] = array(
-			'scripts' => array( 'tests/ext.PrimarySources.templates.test.js' ),
-			'dependencies' => array( 'ext.PrimarySources.templates' ),
+		$testModules['qunit']['ext.PrimarySources.test'] = [
+			'scripts' => [ 'tests/ext.PrimarySources.templates.test.js' ],
+			'dependencies' => [ 'ext.PrimarySources.templates' ],
 			'localBasePath' => __DIR__,
 			'remoteExtPath' => 'PrimarySources'
-		);
+		];
 
 		return true;
 	}

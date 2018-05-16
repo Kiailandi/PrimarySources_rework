@@ -14,7 +14,7 @@ class SpecialPrimarySources extends SpecialPage {
 
 	/**
 	 * Shows the page to the user.
-	 * @param string $sub: The subpage string argument (if any).
+	 * @param string $sub The subpage string argument (if any).
 	 */
 	public function execute( $sub ) {
 		$BASE_URI = 'https://pst.wmflabs.org/pst/';
@@ -98,8 +98,7 @@ class SpecialPrimarySources extends SpecialPage {
 				</span>
 				</form>' );
 
-		}
-		else {
+		} else {
 			$out->addWikiText( strtoupper( 'please log in to use this feature' ) );
 		}
 	}

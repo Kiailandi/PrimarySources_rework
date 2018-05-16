@@ -32,19 +32,19 @@ if ( function_exists( 'wfLoadExtension' ) ) {
 	// Old registration way for previous versions of MediaWiki
 
 	// See https://www.mediawiki.org/wiki/Manual:$wgExtensionCredits
-	$wgExtensionCredits['datavalues'][] = array(
+	$wgExtensionCredits['datavalues'][] = [
 		'path' => __FILE__,
 		'name' => 'PrimarySources',
-		'author' => array(
+		'author' => [
 			'Marco Fossati',
 			'Tommaso Montefusco'
-		),
+		],
 		'version'  => '2.0',
 		'url' => 'https://www.mediawiki.org/wiki/Extension:PrimarySources',
 		'descriptionmsg' => 'primary-sources-desc'
-	);
+	];
 
-	$dir = dirname( __FILE__ );
+	$dir = __DIR__;
 	$dirbasename = basename( $dir );
 
 	// Register files
@@ -63,59 +63,59 @@ if ( function_exists( 'wfLoadExtension' ) ) {
 
 	// Register JavaScript modules
 	// See http://www.mediawiki.org/wiki/Manual:$wgResourceModules
-	$wgResourceModules['ext.PrimarySources.globals'] = array(
+	$wgResourceModules['ext.PrimarySources.globals'] = [
 		'scripts' => 'modules/ext.PrimarySources.globals.js',
 		'localBasePath' => $dir,
 		'remoteExtPath' => $dirbasename
-	);
-	$wgResourceModules['ext.PrimarySources.commons'] = array(
+	];
+	$wgResourceModules['ext.PrimarySources.commons'] = [
 		'scripts' => 'modules/ext.PrimarySources.commons.js',
 		'dependencies' => 'ext.PrimarySources.globals',
 		'localBasePath' => $dir,
 		'remoteExtPath' => $dirbasename
-	);
-	$wgResourceModules['ext.PrimarySources.templates'] = array(
+	];
+	$wgResourceModules['ext.PrimarySources.templates'] = [
 		'scripts' => 'modules/ext.PrimarySources.templates.js',
 		'localBasePath' => $dir,
 		'remoteExtPath' => $dirbasename
-	);
-	$wgResourceModules['ext.PrimarySources.referencePreview'] = array(
+	];
+	$wgResourceModules['ext.PrimarySources.referencePreview'] = [
 		'scripts' => 'modules/ext.PrimarySources.referencePreview.js',
 		'styles' => 'modules/ext.PrimarySources.referencePreview.css',
 		'localBasePath' => $dir,
 		'remoteExtPath' => $dirbasename
-	);
-	$wgResourceModules['ext.PrimarySources.itemCuration'] = array(
+	];
+	$wgResourceModules['ext.PrimarySources.itemCuration'] = [
 		'scripts' => 'modules/ext.PrimarySources.itemCuration.js',
 		'styles' => 'modules/ext.PrimarySources.itemCuration.css',
-		'dependencies' => array(
+		'dependencies' => [
 			'ext.PrimarySources.globals',
 			'ext.PrimarySources.commons',
 			'ext.PrimarySources.templates',
 			'ext.PrimarySources.referencePreview'
-		),
+		],
 		'localBasePath' => $dir,
 		'remoteExtPath' => $dirbasename
-	);
-	$wgResourceModules['ext.PrimarySources.filter'] = array(
+	];
+	$wgResourceModules['ext.PrimarySources.filter'] = [
 		'scripts' => 'modules/ext.PrimarySources.filter.js',
-		'dependencies' => array(
+		'dependencies' => [
 			'ext.PrimarySources.globals',
 			'ext.PrimarySources.commons',
 			'ext.PrimarySources.referencePreview'
-		),
+		],
 		'localBasePath' => $dir,
 		'remoteExtPath' => $dirbasename
-	);
-	$wgResourceModules['ext.PrimarySources.sidebar'] = array(
+	];
+	$wgResourceModules['ext.PrimarySources.sidebar'] = [
 		'scripts' => 'modules/ext.PrimarySources.sidebar.js',
 		'styles' => 'modules/ext.PrimarySources.sidebar.css',
-		'dependencies' => array(
+		'dependencies' => [
 			'ext.PrimarySources.globals',
 			'ext.PrimarySources.commons',
 			'ext.PrimarySources.filter'
-		),
+		],
 		'localBasePath' => $dir,
 		'remoteExtPath' => $dirbasename
-	);
+	];
 }
