@@ -1,7 +1,7 @@
 <?php
 /**
  * Wikidata primary sources tool version 2.
- * 
+ *
  * This extension is the front-end component of the tool.
  * See the following links for more information:
  * https://www.wikidata.org/wiki/Wikidata:Primary_sources_tool
