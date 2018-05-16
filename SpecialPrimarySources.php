@@ -18,9 +18,6 @@ class SpecialPrimarySources extends SpecialPage {
 	const DATASETS_SERVICE = self::BASE_URI . 'datasets';
 	const UPLOAD_SERVICE = self::BASE_URI . 'upload';
 	const UPDATE_SERVICE = self::BASE_URI . 'update';
-	// JSON keys of the /datasets service response
-	const USER_KEY = 'user';
-	const DATASET_KEY = 'dataset';
 
 	/**
 	 * Initialize this special page.
@@ -38,6 +35,9 @@ class SpecialPrimarySources extends SpecialPage {
 		$out = $this->getOutput();
 		$user = $this->getUser();
 		$out->setPageTitle( 'Upload or update a dataset' );
+		// JSON keys of the /datasets service response
+		$userKey = 'user';
+		$datasetKey = 'dataset';
 
 		if ( $user->isLoggedIn() ) {
 			$datasets = json_decode( file_get_contents( self::DATASETS_SERVICE ) );
@@ -46,9 +46,9 @@ class SpecialPrimarySources extends SpecialPage {
 			$userDatasetCount = count( $userDatasets );
 
 			for ( $i = 0; $i < $datasetCount; $i++ ) {
-				preg_match( '/User:([^\/]+)/', $datasets[$i]->self::USER_KEY, $re );
+				preg_match( '/User:([^\/]+)/', $datasets[$i]->$userKey, $re );
 				if ( $re[1] == $user->getName() ) {
-					array_push( $userDatasets, $datasets[$i]->self::DATASET_KEY );
+					array_push( $userDatasets, $datasets[$i]->$datasetKey );
 				}
 			}
 
