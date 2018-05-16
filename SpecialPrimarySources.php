@@ -13,10 +13,14 @@
 
 class SpecialPrimarySources extends SpecialPage {
 
+	// Back-end API endpoints
 	const BASE_URI = 'https://pst.wmflabs.org/v2/';
 	const DATASETS_SERVICE = self::BASE_URI . 'datasets';
 	const UPLOAD_SERVICE = self::BASE_URI . 'upload';
 	const UPDATE_SERVICE = self::BASE_URI . 'update';
+	// JSON keys of the /datasets service response
+	const USER_KEY = 'user';
+	const DATASET_KEY = 'dataset';
 
 	/**
 	 * Initialize this special page.
@@ -33,20 +37,18 @@ class SpecialPrimarySources extends SpecialPage {
 	public function execute( $sub ) {
 		$out = $this->getOutput();
 		$user = $this->getUser();
-		$out->setPageTitle( 'Upload or update dataset' );
+		$out->setPageTitle( 'Upload or update a dataset' );
 
 		if ( $user->isLoggedIn() ) {
 			$datasets = json_decode( file_get_contents( self::DATASETS_SERVICE ) );
-			$keyUser = "user";
-			$keyDataset = "dataset";
 			$userDatasets = [];
 			$datasetCount = count( $datasets );
 			$userDatasetCount = count( $userDatasets );
 
 			for ( $i = 0; $i < $datasetCount; $i++ ) {
-				preg_match( '/User:([^\/]+)/', $datasets[$i]->$keyUser, $re );
+				preg_match( '/User:([^\/]+)/', $datasets[$i]->self::USER_KEY, $re );
 				if ( $re[1] == $user->getName() ) {
-					array_push( $userDatasets, $datasets[$i]->$keyDataset );
+					array_push( $userDatasets, $datasets[$i]->self::DATASET_KEY );
 				}
 			}
 
@@ -153,6 +155,14 @@ class SpecialPrimarySources extends SpecialPage {
 								<input id="datasetName" type="text" name="name" value="">
 							</td>
 						</tr>
+						<tr class="mw-htmlform-field-HTMLTextField">
+							<td class="mw-label">
+								<label for="datasetDescription">Optional dataset description:</label>
+							</td>
+							<td class="mw-input">
+								<input id="datasetDescription" type="text" name="description" value="">
+							</td>
+						</tr>
 						<tr class="mw-htmlform-field-UploadSourceField">
 							<td class="mw-label">
 								<label for="datasetFiles">Dataset files:</label>
@@ -182,7 +192,7 @@ class SpecialPrimarySources extends SpecialPage {
 			);
 
 		} else {
-			$out->addWikiText( "'''Please log in to use this feature.'''" );
+			$out->addWikiText( "<big>'''Please log in to use this feature.'''</big>" );
 		}
 	}
 
