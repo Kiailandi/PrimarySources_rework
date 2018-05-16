@@ -78,11 +78,11 @@ class SpecialPrimarySources extends SpecialPage {
 				$updateHtml =
 					'<form id="updateForm" action="' . self::UPDATE_SERVICE . '"
 					method="post" enctype="multipart/form-data" style="display:none">
-						<input type="hidden" name="user" value="' . $user->getName() . '">
+						<input type="hidden" name="user" value="' . $user->getName() . ' /">
 						<fieldset>
 							<legend>Update</legend>
 							<table><tbody>
-								<tr class="mw-htmlform-field-">
+								<tr class="mw-htmlform-field-UpdateSourceField">
 									<td class="mw-label">
 										<label for="datasetToUpdate">Dataset name to update:</label>
 									</td>
@@ -105,7 +105,7 @@ class SpecialPrimarySources extends SpecialPage {
 										<label for="datasetToRemove">Dataset file to remove:</label>
 									</td>
 									<td class="mw-input">
-										<input id="datasetToRemove" name="remove" type="file">
+										<input id="datasetToRemove" name="remove" type="file" />
 									</td>
 								</tr>
 								<tr class="mw-htmlform-field-UpdateSourceField">
@@ -113,7 +113,7 @@ class SpecialPrimarySources extends SpecialPage {
 										<label for="datasetToAdd">Dataset file to add:</label>
 									</td>
 									<td class="mw-input">
-										<input id="datasetToAdd" name="add" type="file">
+										<input id="datasetToAdd" name="add" type="file" />
 									</td>
 								</tr>
 								<tr>
@@ -134,7 +134,7 @@ class SpecialPrimarySources extends SpecialPage {
 								} else {
 									submit()
 								}"
-							title="Update your dataset" value="Submit">
+							title="Update your dataset" value="Submit" />
 						</span>
 					</form>';
 				$out->addHTML( $updateHtml );
@@ -143,7 +143,7 @@ class SpecialPrimarySources extends SpecialPage {
 			$out->addHTML(
 				'<form id="uploadForm" action="' . self::UPLOAD_SERVICE . '"
 				method="post" enctype="multipart/form-data">
-					<input type="hidden" name="user" value="' . $user->getName() . '">
+					<input type="hidden" name="user" value="' . $user->getName() . '" />
 					<fieldset>
 					<legend>Upload</legend>
 					<table><tbody>
@@ -152,15 +152,15 @@ class SpecialPrimarySources extends SpecialPage {
 								<label for="datasetName">Dataset name:</label>
 							</td>
 							<td class="mw-input">
-								<input id="datasetName" type="text" name="name" value="">
+								<input id="datasetName" type="text" name="name" />
 							</td>
 						</tr>
 						<tr class="mw-htmlform-field-HTMLTextField">
 							<td class="mw-label">
-								<label for="datasetDescription">Optional dataset description:</label>
+								<label for="datasetDescription">Dataset description (optional):</label>
 							</td>
 							<td class="mw-input">
-								<input id="datasetDescription" type="text" name="description" value="">
+								<textarea id="datasetDescription" name="description"></textarea>
 							</td>
 						</tr>
 						<tr class="mw-htmlform-field-UploadSourceField">
@@ -168,7 +168,7 @@ class SpecialPrimarySources extends SpecialPage {
 								<label for="datasetFiles">Dataset files:</label>
 							</td>
 							<td class="mw-input">
-								<input id="datasetFiles" type="file" name="dataset" multiple>
+								<input id="datasetFiles" type="file" name="dataset" multiple />
 							</td>
 						</tr>
 						<tr>
@@ -186,7 +186,7 @@ class SpecialPrimarySources extends SpecialPage {
 							} else {
 								submit()
 							}"
-						title="Upload your dataset" value="Submit">
+						title="Upload your dataset" value="Submit" />
 					</span>
 				</form>'
 			);
