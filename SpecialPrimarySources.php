@@ -13,6 +13,11 @@
 
 class SpecialPrimarySources extends SpecialPage {
 
+	const BASE_URI = 'https://pst.wmflabs.org/v2/';
+	const DATASETS_SERVICE = self::BASE_URI . 'datasets';
+	const UPLOAD_SERVICE = self::BASE_URI . 'upload';
+	const UPDATE_SERVICE = self::BASE_URI . 'update';
+
 	/**
 	 * Initialize this special page.
 	 */
@@ -26,17 +31,12 @@ class SpecialPrimarySources extends SpecialPage {
 	 * @param string $sub The subpage string argument (if any).
 	 */
 	public function execute( $sub ) {
-		$BASE_URI = 'https://pst.wmflabs.org/pst/';
-		$DATASETS_SERVICE = $BASE_URI . 'datasets';
-		$UPLOAD_SERVICE = $BASE_URI . 'upload';
-		$UPDATE_SERVICE = $BASE_URI . 'update';
-
 		$out = $this->getOutput();
 		$user = $this->getUser();
 		$out->setPageTitle( 'Upload or update dataset' );
 
 		if ( $user->isLoggedIn() ) {
-			$datasets = json_decode( file_get_contents( $DATASETS_SERVICE ) );
+			$datasets = json_decode( file_get_contents( self::DATASETS_SERVICE ) );
 			$keyUser = "user";
 			$keyDataset = "dataset";
 			$userDatasets = [];
@@ -74,7 +74,7 @@ class SpecialPrimarySources extends SpecialPage {
 				);
 
 				$updateHtml =
-					'<form id="updateForm" action="' . $UPDATE_SERVICE . '"
+					'<form id="updateForm" action="' . self::UPDATE_SERVICE . '"
 					method="post" enctype="multipart/form-data" style="display:none">
 						<input type="hidden" name="user" value="' . $user->getName() . '">
 						<fieldset>
@@ -139,7 +139,7 @@ class SpecialPrimarySources extends SpecialPage {
 			}
 
 			$out->addHTML(
-				'<form id="uploadForm" action="' . $UPLOAD_SERVICE . '"
+				'<form id="uploadForm" action="' . self::UPLOAD_SERVICE . '"
 				method="post" enctype="multipart/form-data">
 					<input type="hidden" name="user" value="' . $user->getName() . '">
 					<fieldset>
@@ -182,7 +182,7 @@ class SpecialPrimarySources extends SpecialPage {
 			);
 
 		} else {
-			$out->addWikiText( "'''Please log in to use this feature'''" );
+			$out->addWikiText( "'''Please log in to use this feature.'''" );
 		}
 	}
 
