@@ -1,9 +1,13 @@
 <?php
 /**
- * Hooks for the PrimarySources extension.
+ * PrimarySources extension hooks.
  *
  * @file
  * @ingroup Extensions
+ * @author Marco Fossati - User:Hjfocs
+ * @author Tommaso Montefusco - User:Kiailandi
+ * @version 2.0
+ * @license GNU General Public License 3.0
  */
 
 class PrimarySourcesHooks {
@@ -20,9 +24,9 @@ class PrimarySourcesHooks {
 	}
 
 	public static function onResourceLoaderTestModules( array &$testModules, ResourceLoader &$resourceLoader ) {
-		$testModules['qunit']['ext.PrimarySources.tests'] = array(
-			'scripts' => 'tests/qunit/ext.PrimarySources.templates.test.js',
-			'dependencies' => 'ext.PrimarySources.templates',
+		$testModules['qunit']['ext.PrimarySources.test'] = array(
+			'scripts' => array( 'tests/ext.PrimarySources.templates.test.js' ),
+			'dependencies' => array( 'ext.PrimarySources.templates' ),
 			'localBasePath' => __DIR__,
 			'remoteExtPath' => 'PrimarySources'
 		);
