@@ -13,12 +13,12 @@
  * @author Marco Fossati - User:Hjfocs
  * @author Tommaso Montefusco - User:Kiailandi
  * @version 2.0
- * @license GNU General Public License 3.0
+ * @license GPL-3.0-or-later
  */
 
 if ( function_exists( 'wfLoadExtension' ) ) {
 	// Extension registration for MediaWiki 1.25 and later
-	// See https://www.mediawiki.org/wiki/Manual:Extension_registration#Migration_for_extension_developers
+	// https://www.mediawiki.org/wiki/Manual:Extension_registration#Migration_for_extension_developers
 	wfLoadExtension( 'PrimarySources' );
 	// Keep i18n globals so mergeMessageFileList.php doesn't break
 	$wgMessagesDirs['PrimarySources'] = __DIR__ . '/i18n';
