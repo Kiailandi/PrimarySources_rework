@@ -17,7 +17,7 @@
 	},
 	"AutoloadClasses": {
 		"PrimarySources": "PrimarySources.php",
-		"PrimarySourcesHooks": "PrimarySources.hooks.php",
+		"PrimarySourcesHooks": "PrimarySourcesHooks.php",
 		"SpecialPrimarySources": "SpecialPrimarySources.php"
 	},
 	"Hooks": {

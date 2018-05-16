@@ -48,7 +48,7 @@ if ( function_exists( 'wfLoadExtension' ) ) {
 	$dirbasename = basename( $dir );
 
 	// Register files
-	$wgAutoloadClasses['PrimarySourcesHooks'] = $dir . '/PrimarySources.hooks.php';
+	$wgAutoloadClasses['PrimarySourcesHooks'] = $dir . '/PrimarySourcesHooks.php';
 	$wgAutoloadClasses['SpecialPrimarySources'] = $dir . '/SpecialPrimarySources.php';
 
 	$wgMessagesDirs['PrimarySources'] = __DIR__ . '/i18n';
