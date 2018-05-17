@@ -45,8 +45,8 @@ class SpecialIngestDataset extends SpecialPage {
 		// This does not seem to work, so add it here to the output page
 		$out->addWikiText(
 			'Send your dataset to the primary sources tool back end.
-			It must comply with the
-			[[:mw:Wikibase/Indexing/RDF_Dump_Format#Data_model | Wikidata RDF data model]]'
+			Please remember it must comply with the
+			[[:mw:Wikibase/Indexing/RDF_Dump_Format#Data_model | Wikidata RDF data model]].'
 		);
 
 		if ( $user->isLoggedIn() ) {
