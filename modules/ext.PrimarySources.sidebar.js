@@ -1,7 +1,8 @@
 ( function ( mw, $ ) {
 	var ps = mw.ps || {},
 		// Used in multiple functions by the property browser
-		ANCHOR_LIST = [];
+		ANCHOR_LIST = [],
+		SPECIAL_PAGE = 'Special:IngestDataset';
 
 	// Private function
 	function scrollFollowTop( $sidebar ) {
@@ -307,7 +308,7 @@
 		// Dataset upload/update
 		$( mw.util.addPortletLink(
 			'p-pst',
-			mw.Title.newFromText( 'Special:PrimarySources' ).getUrl(),
+			mw.Title.newFromText( SPECIAL_PAGE ).getUrl(),
 			'Upload dataset',
 			'n-pst-upload',
 			'Upload or update a dataset to the primary sources database'
