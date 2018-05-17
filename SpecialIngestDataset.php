@@ -51,9 +51,8 @@ class SpecialIngestDataset extends SpecialPage {
 
 		if ( $user->isLoggedIn() ) {
 			$datasets = json_decode( file_get_contents( self::DATASETS_SERVICE ) );
-			$userDatasets = [];
 			$datasetCount = count( $datasets );
-			$userDatasetCount = count( $userDatasets );
+			$userDatasets = [];
 
 			for ( $i = 0; $i < $datasetCount; $i++ ) {
 				preg_match( '/User:([^\/]+)/', $datasets[$i]->$userKey, $re );
@@ -62,6 +61,7 @@ class SpecialIngestDataset extends SpecialPage {
 				}
 			}
 
+			$userDatasetCount = count( $userDatasets );
 			// Enable update only if the user has uploaded at least a dataset
 			if ( $userDatasetCount > 0 ) {
 				$out->addHTML( '<script>
