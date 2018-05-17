@@ -5,5 +5,9 @@
 			"Kiailandi"
 		]
 	},
-	"primary-sources-desc": "Short description of this extension. It will appear in the 'Special:Version' page"
+	"primarysources-desc": "Short description of this extension, displayed in Special:Version",
+	"specialpages-group-primarysources": "Special pages group name of this extension, displayed in Special:SpecialPages",
+	"ingestdataset": "Name of the 'IngestDataset' special page, displayed in Special:SpecialPages",
+	"ingestdataset-desc": "Short description of the 'IngestDataset' special page, displayed in Special:SpecialPages",
+	"ingestdataset-summary": "Notification on the required compliance with the Wikidata RDF data model"
 }

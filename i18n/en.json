@@ -5,5 +5,9 @@
 			"Kiailandi"
 		]
 	},
-	"primary-sources-desc": "Platform for third-party datasets release and curation"
+	"primarysources-desc": "Platform for third-party datasets release and curation",
+	"specialpages-group-primarysources": "Primary sources tool",
+	"ingestdataset": "Upload or update a dataset",
+	"ingestdataset-desc": "Send your dataset to the primary sources tool back end",
+	"ingestdataset-summary": "Your dataset must comply with the [[:mw:Wikibase/Indexing/RDF_Dump_Format#Data_model|Wikidata RDF data model]]"
 }
