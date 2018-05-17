@@ -35,10 +35,19 @@ class SpecialIngestDataset extends SpecialPage {
 	public function execute( $sub ) {
 		$out = $this->getOutput();
 		$user = $this->getUser();
-		$out->setPageTitle( 'Upload or update a dataset' );
 		// JSON keys of the /datasets service response
 		$userKey = 'user';
 		$datasetKey = 'dataset';
+
+		$this->setHeaders();
+		// According to https://www.mediawiki.org/wiki/Manual:Special_pages#The_localisation_file
+		// setHeaders() should also add the '-summary' message located in the i18n folder.
+		// This does not seem to work, so add it here to the output page
+		$out->addWikiText(
+			'Send your dataset to the primary sources tool back end.
+			It must comply with the
+			[[:mw:Wikibase/Indexing/RDF_Dump_Format#Data_model | Wikidata RDF data model]]'
+		);
 
 		if ( $user->isLoggedIn() ) {
 			$datasets = json_decode( file_get_contents( self::DATASETS_SERVICE ) );
