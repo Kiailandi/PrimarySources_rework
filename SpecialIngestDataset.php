@@ -1,7 +1,8 @@
 <?php
 /**
- * PrimarySources special page.
- * Lets a data provider upload and/or update one or more datasets to the tool back end.
+ * IngestDataset special page.
+ * Lets a data provider upload and/or update one or more datasets
+ * to the primary sources tool back end.
  *
  * @file
  * @ingroup Extensions
@@ -11,7 +12,7 @@
  * @license GPL-3.0-or-later
  */
 
-class SpecialPrimarySources extends SpecialPage {
+class SpecialIngestDataset extends SpecialPage {
 
 	// Back-end API endpoints
 	const BASE_URI = 'https://pst.wmflabs.org/v2/';
@@ -23,7 +24,7 @@ class SpecialPrimarySources extends SpecialPage {
 	 * Initialize this special page.
 	 */
 	public function __construct() {
-		parent::__construct( 'PrimarySources' );
+		parent::__construct( 'IngestDataset' );
 	}
 
 	/**
@@ -197,11 +198,12 @@ class SpecialPrimarySources extends SpecialPage {
 	}
 
 	/**
-	 * Make this special page appear on Special:SpecialPages under the Wikibase section.
+	 * Make this special page appear on Special:SpecialPages under the
+	 * 'Primary sources tool' section.
 	 *
 	 * @return string
 	 */
 	protected function getGroupName() {
-		return 'wikibase';
+		return 'primarysources';
 	}
 }

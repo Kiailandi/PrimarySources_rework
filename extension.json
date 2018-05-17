@@ -8,7 +8,7 @@
 	"version": "2.0",
 	"url": "https://www.mediawiki.org/wiki/Extension:PrimarySources",
 	"license-name": "GPL-3.0-or-later",
-	"descriptionmsg": "primary-sources-desc",
+	"descriptionmsg": "primarysources-desc",
 	"manifest_version": 2,
 	"MessagesDirs": {
 		"PrimarySources": [
@@ -18,14 +18,14 @@
 	"AutoloadClasses": {
 		"PrimarySources": "PrimarySources.php",
 		"PrimarySourcesHooks": "PrimarySourcesHooks.php",
-		"SpecialPrimarySources": "SpecialPrimarySources.php"
+		"SpecialIngestDataset": "SpecialIngestDataset.php"
 	},
 	"Hooks": {
 		"BeforePageDisplay": "PrimarySourcesHooks::onBeforePageDisplay",
 		"ResourceLoaderTestModules": "PrimarySourcesHooks::onResourceLoaderTestModules"
 	},
 	"SpecialPages":{
-		"PrimarySources": "SpecialPrimarySources"
+		"IngestDataset": "SpecialIngestDataset"
 	},
 	"ResourceModules": {
 		"ext.PrimarySources.globals": {
