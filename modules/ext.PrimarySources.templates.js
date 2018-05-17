@@ -24,7 +24,7 @@
 							'<!-- wikibase-listview -->' +
 						'</div>' +
 					'</div>' +
-		'</div>',
+				'</div>',
 		sourceHtml:
 				'<div class="wikibase-referenceview listview-item wikibase-toolbar-item new-source">' + // Remove wikibase-reference-d6e3ab4045fb3f3feea77895bc6b27e663fc878a wikibase-referenceview-d6e3ab4045fb3f3feea77895bc6b27e663fc878a
 					'<div class="wikibase-referenceview-heading new-source">' +
