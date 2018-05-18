@@ -18,8 +18,9 @@
 		$.ajax( {
 			url: ps.globals.FAKE_OR_RANDOM_DATA ?
 				ps.globals.API_ENDPOINTS.RANDOM_SERVICE :
-				ps.globals.API_ENDPOINTS.SUGGEST_SERVICE.replace( /\{\{qid\}\}/, qid ) + '&dataset=' +
-				ps.globals.DATASET
+				ps.globals.API_ENDPOINTS.SUGGEST_SERVICE
+					.replace( /\{\{qid\}\}/, qid ) +
+					'&dataset=' + ps.globals.DATASET
 		} ).done( function ( data ) {
 			return callback( null, data );
 		} );
@@ -57,31 +58,44 @@
 		}
 		if ( ps.globals.FAKE_OR_RANDOM_DATA ) {
 			suggestions.push( {
-				statement: QID + '\tP31\tQ1\tP580\t+1840-01-01T00:00:00Z/9\tS143\tQ48183',
+				statement:
+				QID +
+				'\tP31\tQ1\tP580\t+1840-01-01T00:00:00Z/9\tS143\tQ48183',
 				state: ps.globals.STATEMENT_STATES.new,
 				id: 0,
 				format: ps.globals.STATEMENT_FORMAT
 			} );
 			suggestions.push( {
-				statement: QID + '\tP108\tQ95\tS854\t"http://research.google.com/pubs/vrandecic.html"',
+				statement:
+				QID +
+				'\tP108\tQ95\tS854\t"http://research.google.com/pubs/vrandecic.html"',
 				state: ps.globals.STATEMENT_STATES.new,
 				id: 0,
 				format: ps.globals.STATEMENT_FORMAT
 			} );
 			suggestions.push( {
-				statement: QID + '\tP108\tQ8288\tP582\t+2013-09-30T00:00:00Z/10\tS854\t"http://simia.net/wiki/Denny"\tS813\t+2015-02-14T00:00:00Z/11',
+				statement:
+				QID +
+				'\tP108\tQ8288\tP582\t+2013-09-30T00:00:00Z/10\t' +
+				'S854\t"http://simia.net/wiki/Denny"\tS813\t+2015-02-14T00:00:00Z/11',
 				state: ps.globals.STATEMENT_STATES.new,
 				id: 0,
 				format: ps.globals.STATEMENT_FORMAT
 			} );
 			suggestions.push( {
-				statement: QID + '\tP1451\ten:"foo bar"\tP582\t+2013-09-30T00:00:00Z/10\tS854\t"http://www.ebay.com/itm/GNC-Mens-Saw-Palmetto-Formula-60-Tablets/301466378726?pt=LH_DefaultDomain_0&hash=item4630cbe1e6"',
+				statement:
+				QID +
+				'\tP1451\ten:"foo bar"\tP582\t+2013-09-30T00:00:00Z/10\t' +
+				'S854\t"http://www.ebay.com/"',
 				state: ps.globals.STATEMENT_STATES.new,
 				id: 0,
 				format: ps.globals.STATEMENT_FORMAT
 			} );
 			suggestions.push( {
-				statement: QID + '\tP108\tQ8288\tP582\t+2013-09-30T00:00:00Z/10\tS854\t"https://lists.wikimedia.org/pipermail/wikidata-l/2013-July/002518.html"',
+				statement:
+				QID +
+				'\tP108\tQ8288\tP582\t+2013-09-30T00:00:00Z/10\t' +
+				'S854\t"https://lists.wikimedia.org/pipermail/wikidata-l/2013-July/002518.html"',
 				state: ps.globals.STATEMENT_STATES.new,
 				id: 0,
 				format: ps.globals.STATEMENT_FORMAT
@@ -105,7 +119,10 @@
 				format: ps.globals.STATEMENT_FORMAT
 			} );
 			suggestions.push( {
-				statement: QID + '\tP569\t+1840-01-01T00:00:00Z/11\tS854\t"https://lists.wikimedia.org/pipermail/wikidata-l/2013-July/002518.html"',
+				statement:
+				QID +
+				'\tP569\t+1840-01-01T00:00:00Z/11\t' +
+				'S854\t"https://lists.wikimedia.org/pipermail/wikidata-l/2013-July/002518.html"',
 				state: ps.globals.STATEMENT_STATES.new,
 				id: 0,
 				format: ps.globals.STATEMENT_FORMAT
@@ -233,7 +250,9 @@
 		var revisionId = mw.config.get( 'wgRevisionId' );
 
 		$.ajax( {
-			url: ps.globals.WIKIDATA_ENTITY_DATA_URL.replace( /\{\{qid\}\}/, qid ) + '?revision=' + revisionId
+			url: ps.globals.WIKIDATA_ENTITY_DATA_URL
+				.replace( /\{\{qid\}\}/, qid ) +
+				'?revision=' + revisionId
 		} ).done( function ( data ) {
 			return callback( null, data.entities[ qid ] );
 		} ).fail( function () {
@@ -247,7 +266,9 @@
 				fragment = document.createDocumentFragment(),
 				child = document.createElement( 'div' ),
 				// Need to find the correct reference
-				container = document.getElementsByClassName( 'wikibase-statement-' + statementId )[ 0 ],
+				container = document.getElementsByClassName(
+					'wikibase-statement-' + statementId
+				)[ 0 ],
 				// Open the references toggle
 				toggler = container.querySelector( 'a.ui-toggler' ),
 				label = toggler.querySelector( '.ui-toggler-label' ),
@@ -261,7 +282,9 @@
 				toggler.click();
 			}
 
-			actualSourcesCount = actualSourcesCount === 1 ? '1 reference' : actualSourcesCount + ' references';
+			actualSourcesCount = actualSourcesCount === 1 ?
+				'1 reference' :
+				actualSourcesCount + ' references';
 			label.textContent = actualSourcesCount;
 			// Append the references
 			container = container.querySelector( '.wikibase-statementview-references' );
@@ -281,7 +304,9 @@
 	function prepareNewSources( property, object, wikidataStatement ) {
 		var i, j, prop, snakBag, snak,
 			existingSources = {},
-			wikidataSources = ( 'references' in wikidataStatement ) ? wikidataStatement.references : [];
+			wikidataSources = ( 'references' in wikidataStatement ) ?
+				wikidataStatement.references :
+				[];
 
 		for ( i in wikidataSources ) {
 			snakBag = wikidataSources[ i ].snaks;
@@ -292,7 +317,12 @@
 				for ( j in snakBag[ prop ] ) {
 					snak = snakBag[ prop ][ j ];
 					if ( snak.snaktype === 'value' ) {
-						existingSources[ prop ][ ps.commons.jsonToTsvValue( snak.datavalue, snak.datatype ) ] = true;
+						existingSources[ prop ][
+							ps.commons.jsonToTsvValue(
+								snak.datavalue,
+								snak.datatype
+							)
+						] = true;
 					}
 				}
 			}
@@ -317,7 +347,9 @@
 		getStatementHtml( property, object ).then( function ( html ) {
 			var fragment = document.createDocumentFragment(),
 				child = document.createElement( 'div' ),
-				container = document.getElementById( property ).querySelector( '.wikibase-statementlistview-listview' );
+				container = document
+					.getElementById( property )
+					.querySelector( '.wikibase-statementlistview-listview' );
 
 			child.innerHTML = html;
 			fragment.appendChild( child.firstChild );
@@ -423,9 +455,18 @@
 						// Existing object
 						if ( primarySourcesObject.sources.length === 0 ) {
 							// No source, duplicate statement
-							ps.commons.setStatementState( primarySourcesObject.id, ps.globals.STATEMENT_STATES.duplicate, primarySourcesObject.dataset, 'claim' )
+							ps.commons.setStatementState(
+								primarySourcesObject.id,
+								ps.globals.STATEMENT_STATES.duplicate,
+								primarySourcesObject.dataset,
+								'claim'
+							)
 								.done( function () {
-									console.info( 'PRIMARY SOURCES TOOL: Marked as duplicate existing claim with no reference [' + primarySourcesObject.id + ']' );
+									console.info(
+										'PRIMARY SOURCES TOOL: ' +
+										'Marked as duplicate existing claim with no reference ' +
+										'[' + primarySourcesObject.id + ']'
+									);
 								} );
 						} else {
 							// Maybe new sources
@@ -441,9 +482,15 @@
 						for ( j = 0; j < wikidataClaims[ property ].length; j++ ) {
 							wikidataObject = wikidataClaims[ property ][ j ];
 							if ( wikidataObject.mainsnak.snaktype === 'value' &&
-							ps.commons.jsonToTsvValue( wikidataObject.mainsnak.datavalue ) === primarySourcesObject.object ) {
+								ps.commons.jsonToTsvValue(
+									wikidataObject.mainsnak.datavalue
+								) === primarySourcesObject.object
+							) {
 								isDuplicate = true;
-								console.info( 'PRIMARY SOURCES TOOL: Found existing claim [' + primarySourcesObject.id + ']' );
+								console.info(
+									'PRIMARY SOURCES TOOL: Found existing claim ' +
+									'[' + primarySourcesObject.id + ']'
+								);
 								// Add new sources to existing statement
 								prepareNewSources(
 									property,
@@ -480,8 +527,15 @@
 		var contentDiv = document.getElementById( 'content' );
 
 		contentDiv.addEventListener( 'click', function ( event ) {
-			var dataset, predicate, object, source, qualifiers, quickStatement, sourceQuickStatement,
-				anchor, onClick,
+			var dataset,
+				predicate,
+				object,
+				source,
+				qualifiers,
+				quickStatement,
+				sourceQuickStatement,
+				anchor,
+				onClick,
 				classList = event.target.classList,
 				statement = event.target.dataset;
 
@@ -496,7 +550,8 @@
 			/* BEGIN: reference curation */
 			if ( classList.contains( 'pst-source' ) ) {
 				/*
-				 * The reference key is the property/value pair, see ps.commons.parsePrimarySourcesStatment.
+				 * The reference key is the property/value pair
+				 * See ps.commons.parsePrimarySourcesStatment.
 				 * Use it to build the QuickStatement needed to change the state in the back end.
 				 * See CurateServlet#parseQuickStatement:
 				 * https://github.com/marfox/pst-backend
@@ -529,28 +584,54 @@
 										return ps.commons.reportError( error );
 									}
 									// The back end approves everything
-									ps.commons.setStatementState( sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'reference' )
+									ps.commons.setStatementState(
+										sourceQuickStatement,
+										ps.globals.STATEMENT_STATES.approved,
+										dataset,
+										'reference'
+									)
 										.done( function () {
-											console.info( 'PRIMARY SOURCES TOOL: Approved referenced claim [' + sourceQuickStatement + ']' );
+											console.info(
+												'PRIMARY SOURCES TOOL: ' +
+												'Approved referenced claim ' +
+												'[' + sourceQuickStatement + ']'
+											);
 											if ( data.pageinfo && data.pageinfo.lastrevid ) {
-												document.location.hash = 'revision=' + data.pageinfo.lastrevid;
+												document.location.hash =
+												'revision=' + data.pageinfo.lastrevid;
 											}
 											return document.location.reload();
 										} );
 								} );
 						} else {
 							// New referenced claim: entirely create it
-							ps.commons.createClaimWithReference( QID, predicate, object, qualifiers, source )
+							ps.commons.createClaimWithReference(
+								QID,
+								predicate,
+								object,
+								qualifiers,
+								source
+							)
 								.fail( function ( error ) {
 									return ps.commons.reportError( error );
 								} )
 								.done( function ( data ) {
 									// The back end approves everything
-									ps.commons.setStatementState( sourceQuickStatement, ps.globals.STATEMENT_STATES.approved, dataset, 'reference' )
+									ps.commons.setStatementState(
+										sourceQuickStatement,
+										ps.globals.STATEMENT_STATES.approved,
+										dataset,
+										'reference'
+									)
 										.done( function () {
-											console.info( 'PRIMARY SOURCES TOOL: Approved referenced claim [' + sourceQuickStatement + ']' );
+											console.info(
+												'PRIMARY SOURCES TOOL: ' +
+												'Approved referenced claim ' +
+												'[' + sourceQuickStatement + ']'
+											);
 											if ( data.pageinfo && data.pageinfo.lastrevid ) {
-												document.location.hash = 'revision=' + data.pageinfo.lastrevid;
+												document.location.hash =
+												'revision=' + data.pageinfo.lastrevid;
 											}
 											return document.location.reload();
 										} );
@@ -559,8 +640,16 @@
 					} );
 				} else if ( classList.contains( 'pst-reject' ) ) {
 					// Reference rejection
-					ps.commons.setStatementState( sourceQuickStatement, ps.globals.STATEMENT_STATES.rejected, dataset, 'reference' ).done( function () {
-						console.info( 'PRIMARY SOURCES TOOL: Rejected referenced claim [' + sourceQuickStatement + ']' );
+					ps.commons.setStatementState(
+						sourceQuickStatement,
+						ps.globals.STATEMENT_STATES.rejected,
+						dataset,
+						'reference'
+					).done( function () {
+						console.info(
+							'PRIMARY SOURCES TOOL: Rejected referenced claim ' +
+							'[' + sourceQuickStatement + ']'
+						);
 						return document.location.reload();
 					} );
 				} else if ( classList.contains( 'pst-edit' ) ) {
@@ -612,7 +701,10 @@
 
 			QID = getQid();
 			if ( !QID ) {
-				return console.warn( 'PRIMARY SOURCES TOOL: Could not retrieve the QID of the current page' );
+				return console.warn(
+					'PRIMARY SOURCES TOOL: ' +
+					'Could not retrieve the QID of the current page'
+				);
 			}
 
 			async.parallel( {
@@ -623,7 +715,10 @@
 			}, function ( err, results ) {
 				// See https://www.mediawiki.org/wiki/Wikibase/Notes/JSON
 				var wikidataClaims = results.wikidata.claims || {},
-					primarySourcesClaims = parseEntitySuggestions( results.primarySources, results.blacklistedSourceUrls );
+					primarySourcesClaims = parseEntitySuggestions(
+						results.primarySources,
+						results.blacklistedSourceUrls
+					);
 
 				if ( err ) {
 					ps.commons.reportError( err );

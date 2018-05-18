@@ -13,9 +13,12 @@
 		// Gregorian
 		DEFAULT_CALENDAR_MODEL = 'http://www.wikidata.org/entity/Q1985727',
 		/*
-		 * Terminology: https://www.wikidata.org/wiki/Special:ListDatatypes
-		 * QuickStatement: https://www.wikidata.org/wiki/Help:QuickStatements#Command_sequence_syntax
-		 * RDF: https://www.mediawiki.org/wiki/Wikibase/Indexing/RDF_Dump_Format#Value_representation
+		 * Terminology:
+		 * https://www.wikidata.org/wiki/Special:ListDatatypes
+		 * QuickStatement:
+		 * https://www.wikidata.org/wiki/Help:QuickStatements#Command_sequence_syntax
+		 * RDF:
+		 * https://www.mediawiki.org/wiki/Wikibase/Indexing/RDF_Dump_Format#Value_representation
 		 */
 		MATCHERS = {
 			// Q666
@@ -161,24 +164,36 @@
 				url: ps.globals.SOURCE_URL_BLACKLIST
 			} ).then( function ( data ) {
 				if ( data && data.parse && data.parse.text && data.parse.text[ '*' ] ) {
-					blacklist = data.parse.text[ '*' ].replace( /\n/g, '' ).replace( /^.*?<ul>(.*?)<\/ul>.*?$/g, '$1' ).replace( /<\/li>/g, '' ).split( '<li>' ).slice( 1 ).map( function ( url ) {
-						return url.trim();
-					} ).filter( function ( url ) {
-						var copy = url;
-						if ( /\s/g.test( copy ) || !/\./g.test( copy ) ) {
-							console.warn( 'PRIMARY SOURCES TOOL: Skipping invalid blacklisted URL:', copy );
-							return false;
-						}
-						if ( !/^https?:\/\//.test( copy ) ) {
-							copy = 'http://' + url;
-						}
-						try {
-							return ( new URL( copy ) ).host !== '';
-						} catch ( e ) {
-							console.warn( 'PRIMARY SOURCES TOOL: Skipping invalid blacklisted URL:', copy );
-							return false;
-						}
-					} );
+					blacklist = data.parse.text[ '*' ]
+						.replace( /\n/g, '' )
+						.replace( /^.*?<ul>(.*?)<\/ul>.*?$/g, '$1' )
+						.replace( /<\/li>/g, '' )
+						.split( '<li>' )
+						.slice( 1 )
+						.map( function ( url ) {
+							return url.trim();
+						} ).filter( function ( url ) {
+							var copy = url;
+							if ( /\s/g.test( copy ) || !/\./g.test( copy ) ) {
+								console.warn(
+									'PRIMARY SOURCES TOOL: Skipping invalid blacklisted URL:',
+									copy
+								);
+								return false;
+							}
+							if ( !/^https?:\/\//.test( copy ) ) {
+								copy = 'http://' + url;
+							}
+							try {
+								return ( new URL( copy ) ).host !== '';
+							} catch ( e ) {
+								console.warn(
+									'PRIMARY SOURCES TOOL: Skipping invalid blacklisted URL:',
+									copy
+								);
+								return false;
+							}
+						} );
 					console.info( 'PRIMARY SOURCES TOOL: Caching reference URL blacklist' );
 					localStorage.setItem( 'pst_blacklist', JSON.stringify( {
 						timestamp: now,
@@ -186,7 +201,10 @@
 					} ) );
 					return blacklist;
 				} else {
-					console.warn( 'PRIMARY SOURCES TOOL: Could not retrieve reference URL blacklist, it will not be used' );
+					console.warn(
+						'PRIMARY SOURCES TOOL: Could not retrieve reference URL blacklist, ' +
+						'it will not be used'
+					);
 					return [];
 				}
 			} );
@@ -220,7 +238,10 @@
 						.filter( function ( url ) {
 							var copy = url;
 							if ( /\s/g.test( copy ) || !/\./g.test( copy ) ) {
-								console.warn( 'PRIMARY SOURCES TOOL: Skipping invalid whitelisted URL:', copy );
+								console.warn(
+									'PRIMARY SOURCES TOOL: Skipping invalid whitelisted URL:',
+									copy
+								);
 								return false;
 							}
 							if ( !/^https?:\/\//.test( copy ) ) {
@@ -229,7 +250,10 @@
 							try {
 								return ( new URL( copy ) ).host !== '';
 							} catch ( e ) {
-								console.warn( 'PRIMARY SOURCES TOOL: Skipping invalid whitelisted URL:', copy );
+								console.warn(
+									'PRIMARY SOURCES TOOL: Skipping invalid whitelisted URL:',
+									copy
+								);
 								return false;
 							}
 						} );
@@ -240,30 +264,41 @@
 					} ) );
 					return whitelist;
 				} else {
-					console.warn( 'PRIMARY SOURCES TOOL: Could not retrieve reference URL whitelist: it will not be used' );
+					console.warn(
+						'PRIMARY SOURCES TOOL: Could not retrieve reference URL whitelist, ' +
+						'it will not be used'
+					);
 					return [];
 				}
 			} );
 		},
 
-		getBlacklistedSourceUrlsWithCallback: function getBlacklistedSourceUrlsWithCallback( callback ) {
+		getBlacklistedSourceUrlsWithCallback:
+		function getBlacklistedSourceUrlsWithCallback( callback ) {
 			ps.commons.getBlacklistedSourceUrls()
 				.done( function ( blacklist ) {
 					callback( null, blacklist );
 				} )
 				.fail( function () {
-					console.warn( 'PRIMARY SOURCES TOOL: Could not retrieve reference URL blacklist: it will not be used' );
+					console.warn(
+						'PRIMARY SOURCES TOOL: Could not retrieve reference URL blacklist, ' +
+						'it will not be used'
+					);
 					callback( null );
 				} );
 		},
 
-		getWhitelistedSourceUrlsWithCallback: function getWhitelistedSourceUrlsWithCallback( callback ) {
+		getWhitelistedSourceUrlsWithCallback:
+		function getWhitelistedSourceUrlsWithCallback( callback ) {
 			ps.commons.getWhitelistedSourceUrls()
 				.done( function ( whitelist ) {
 					callback( null, whitelist );
 				} )
 				.fail( function () {
-					console.warn( 'PRIMARY SOURCES TOOL: Could not retrieve reference URL whitelist: it will not be used' );
+					console.warn(
+						'PRIMARY SOURCES TOOL: Could not retrieve reference URL whitelist, ' +
+						'it will not be used'
+					);
 					callback( null );
 				} );
 		},
@@ -305,16 +340,22 @@
 
 			if ( parsed.type === 'string' ) {
 				// Link to external database
-				VALUE_HTML_CACHE[ cacheKey ] = getUrlFormatter( property ).then( function ( urlFormatter ) {
-					if ( urlFormatter === '' ) {
-						return parsed.value;
-					} else {
-						url = urlFormatter.replace( '$1', parsed.value );
-						return '<a rel="nofollow" class="external free" href="' + url + '">' + parsed.value + '</a>';
-					}
-				} );
+				VALUE_HTML_CACHE[ cacheKey ] = getUrlFormatter( property )
+					.then( function ( urlFormatter ) {
+						if ( urlFormatter === '' ) {
+							return parsed.value;
+						} else {
+							url = urlFormatter.replace( '$1', parsed.value );
+							return '<a rel="nofollow" class="external free" href="' + url + '">' +
+							parsed.value + '</a>';
+						}
+					} );
 			} else if ( parsed.type === 'url' ) {
-				VALUE_HTML_CACHE[ cacheKey ] = $.Deferred().resolve( '<a rel="nofollow" class="external free" href="' + parsed.value + '">' + parsed.value + '</a>' );
+				VALUE_HTML_CACHE[ cacheKey ] = $.Deferred()
+					.resolve(
+						'<a rel="nofollow" class="external free" href="' + parsed.value + '">' +
+						parsed.value + '</a>'
+					);
 			} else if ( parsed.type === 'wikibase-item' || parsed.type === 'wikibase-property' ) {
 				return ps.commons.getEntityLabel( value ).then( function ( label ) {
 					return '<a href="/entity/' + value + '">' + label + '</a>';
@@ -330,8 +371,15 @@
 				} ).then( function ( result ) {
 					// Create links for geocoordinates
 					if ( parsed.type === 'globe-coordinate' ) {
-						url = 'https://tools.wmflabs.org/geohack/geohack.php?language=' + mw.config.get( 'wgUserLanguage' ) + '&params=' + dataValue.value.latitude + '_N_' + dataValue.value.longitude + '_E_globe:earth';
-						return '<a rel="nofollow" class="external free" href="' + url + '">' + result.result + '</a>';
+						url = 'https://tools.wmflabs.org/geohack/geohack.php?language=' +
+						mw.config.get( 'wgUserLanguage' ) +
+						'&params=' +
+						dataValue.value.latitude +
+						'_N_' +
+						dataValue.value.longitude +
+						'_E_globe:earth';
+						return '<a rel="nofollow" class="external free" href="' + url + '">' +
+						result.result + '</a>';
 					}
 					return result.result;
 				} );
@@ -380,7 +428,12 @@
 				} ) );
 				return callback( data );
 			} ).fail( function ( xhr ) {
-				console.warn( 'PRIMARY SOURCES TOOL: Could not retrieve the available datasets. Something went wrong when calling:', ps.globals.API_ENDPOINTS.DATASETS_SERVICE, 'The server responded with status code', xhr.status, 'Reason:', xhr.responseText );
+				console.warn(
+					'PRIMARY SOURCES TOOL: Could not retrieve the available datasets. ' +
+					'Something went wrong when calling:', ps.globals.API_ENDPOINTS.DATASETS_SERVICE,
+					'The server responded with status code', xhr.status,
+					'Reason:', xhr.responseText
+				);
 			} );
 		},
 		/* END: Primary sources tool API calls */
@@ -393,7 +446,11 @@
 				claimValue = ( ps.commons.tsvValueToJson( object ) ).value,
 				api = new mw.Api();
 
-			console.debug( 'PRIMARY SOURCES TOOL: Converted QuickStatement value to Wikidata JSON:', object, claimValue );
+			console.debug(
+				'PRIMARY SOURCES TOOL: Converted QuickStatement value to Wikidata JSON:',
+				object,
+				claimValue
+			);
 
 			return api.postWithToken( 'csrf', {
 				action: 'wbcreateclaim',
@@ -410,7 +467,9 @@
 						return data;
 					}
 
-					qualifierValue = ( ps.commons.tsvValueToJson( qualifier.qualifierObject ) ).value;
+					qualifierValue = (
+						ps.commons.tsvValueToJson( qualifier.qualifierObject )
+					).value;
 					return api.postWithToken( 'csrf', {
 						action: 'wbsetqualifier',
 						claim: data.claim.id,
@@ -425,7 +484,8 @@
 		},
 
 		// https://www.wikidata.org/w/api.php?action=help&modules=wbsetreference
-		createReference: function createReference( subject, predicate, object, sourceSnaks, callback ) {
+		createReference:
+		function createReference( subject, predicate, object, sourceSnaks, callback ) {
 			var api = new mw.Api();
 
 			api.get( {
@@ -439,7 +499,10 @@
 				for ( i = 0, lenI = data.claims[ predicate ].length; i < lenI; i++ ) {
 					claimObject = data.claims[ predicate ][ i ];
 					mainSnak = claimObject.mainsnak;
-					if ( mainSnak.snaktype === 'value' && mw.ps.commons.jsonToTsvValue( mainSnak.datavalue, mainSnak.datatype ) === object ) {
+					if ( mainSnak.snaktype === 'value' &&
+						mw.ps.commons.jsonToTsvValue(
+							mainSnak.datavalue, mainSnak.datatype
+						) === object ) {
 						index = i;
 						break;
 					}
@@ -458,17 +521,19 @@
 		},
 
 		// Combines the 2 functions above
-		createClaimWithReference: function createClaimWithReference( subject, predicate, object, qualifiers, sourceSnaks ) {
+		createClaimWithReference:
+		function createClaimWithReference( subject, predicate, object, qualifiers, sourceSnaks ) {
 			var api = new mw.Api();
 
-			return ps.commons.createClaim( subject, predicate, object, qualifiers ).then( function ( data ) {
-				return api.postWithToken( 'csrf', {
-					action: 'wbsetreference',
-					statement: data.claim.id,
-					snaks: JSON.stringify( formatSourceForSave( sourceSnaks ) ),
-					summary: ps.globals.WIKIDATA_API_COMMENT
+			return ps.commons.createClaim( subject, predicate, object, qualifiers )
+				.then( function ( data ) {
+					return api.postWithToken( 'csrf', {
+						action: 'wbsetreference',
+						statement: data.claim.id,
+						snaks: JSON.stringify( formatSourceForSave( sourceSnaks ) ),
+						summary: ps.globals.WIKIDATA_API_COMMENT
+					} );
 				} );
-			} );
 		},
 		// END: post approved claims to Wikidata
 
@@ -626,7 +691,9 @@
 					type: 'monolingualtext',
 					value: {
 						language: value.replace( MATCHERS.QUICKSTATEMENT_MONOLINGUAL_TEXT, '$1' ),
-						text: JSON.parse( value.replace( MATCHERS.QUICKSTATEMENT_MONOLINGUAL_TEXT, '$2' ) )
+						text: JSON.parse(
+							value.replace( MATCHERS.QUICKSTATEMENT_MONOLINGUAL_TEXT, '$2' )
+						)
 					}
 				};
 			} else if ( MATCHERS.QUICKSTATEMENT_TIME.test( value ) ) {
@@ -793,7 +860,8 @@
 			}
 		},
 
-		buildValueKeysFromWikidataStatement: function buildValueKeysFromWikidataStatement( statement ) {
+		buildValueKeysFromWikidataStatement:
+		function buildValueKeysFromWikidataStatement( statement ) {
 			var qualifierKeyParts,
 				mainSnak = statement.mainsnak,
 				keys = [ ps.commons.jsonToTsvValue( mainSnak.datavalue, mainSnak.datatype ) ];
@@ -821,7 +889,11 @@
 			var time, timePrecision, plainStringOrUrl;
 
 			if ( !dataValue.type ) {
-				console.warn( 'PRIMARY SOURCES TOOL: Wikidata JSON value without data type:', dataValue, 'It will be converted to QuickStatement as is' );
+				console.warn(
+					'PRIMARY SOURCES TOOL: Wikidata JSON value without data type:',
+					dataValue,
+					'It will be converted to QuickStatement as is'
+				);
 				return dataValue.value;
 			}
 
@@ -843,7 +915,8 @@
 				case 'monolingualtext':
 					return dataValue.value.language + ':' + JSON.stringify( dataValue.value.text );
 				case 'string':
-					plainStringOrUrl = ( dataType === 'url' ) ? ps.commons.normalizeUrl( dataValue.value ) :
+					plainStringOrUrl = ( dataType === 'url' ) ?
+						ps.commons.normalizeUrl( dataValue.value ) :
 						dataValue.value;
 					return JSON.stringify( plainStringOrUrl );
 				case 'wikibase-entityid':
@@ -855,7 +928,13 @@
 					}
 			}
 
-			console.warn( 'PRIMARY SOURCES TOOL: Wikidata JSON value with unknown data type:' + dataValue, dataValue.type, 'It will be converted to QuickStatement as is' );
+			console.warn(
+				'PRIMARY SOURCES TOOL: Wikidata JSON value with unknown data type:',
+				dataValue,
+				'Type:',
+				dataValue.type,
+				'It will be converted to QuickStatement as is'
+			);
 
 			return dataValue.value;
 		},
@@ -864,7 +943,11 @@
 			var time, timePrecision, plainStringOrUrl;
 
 			if ( !dataValue.type ) {
-				console.warn( 'PRIMARY SOURCES TOOL: Wikidata JSON value without data type:', dataValue, 'It will be converted to RDF as is' );
+				console.warn(
+					'PRIMARY SOURCES TOOL: Wikidata JSON value without data type:',
+					dataValue,
+					'It will be converted to RDF as is'
+				);
 				return dataValue.value;
 			}
 
@@ -883,11 +966,16 @@
 					}
 					return time.replace( /[+-]/, '' );
 				case 'globecoordinate':
-					return 'Point(' + dataValue.value.longitude + ' ' + dataValue.value.latitude + ')';
+					return 'Point(' +
+					dataValue.value.longitude +
+					' ' +
+					dataValue.value.latitude +
+					')';
 				case 'monolingualtext':
 					return JSON.stringify( dataValue.value.text ) + '@' + dataValue.value.language;
 				case 'string':
-					plainStringOrUrl = ( dataType === 'url' ) ? ps.commons.normalizeUrl( dataValue.value ) :
+					plainStringOrUrl = ( dataType === 'url' ) ?
+						ps.commons.normalizeUrl( dataValue.value ) :
 						dataValue.value;
 					return JSON.stringify( plainStringOrUrl );
 				case 'wikibase-entityid':
@@ -899,7 +987,13 @@
 					}
 			}
 
-			console.warn( 'PRIMARY SOURCES TOOL: Wikidata JSON value with unknown data type:' + dataValue, dataValue.type, 'It will be converted to RDF as is' );
+			console.warn(
+				'PRIMARY SOURCES TOOL: Wikidata JSON value with unknown data type:',
+				dataValue,
+				'Type:',
+				dataValue.type,
+				'It will be converted to RDF as is'
+			);
 
 			return dataValue.value;
 		},
@@ -912,7 +1006,8 @@
 			}
 		},
 
-		parsePrimarySourcesStatement: function parsePrimarySourcesStatement( statement, isBlacklisted ) {
+		parsePrimarySourcesStatement:
+		function parsePrimarySourcesStatement( statement, isBlacklisted ) {
 			var i, qualifierKey, url, blacklisted, sourceQuickStatement,
 				// The full QuickStatement acts as the ID
 				id = statement.statement,
@@ -930,7 +1025,11 @@
 
 			for ( i = 3; i < lineLength; i += 2 ) {
 				if ( i === lineLength - 1 ) {
-					console.warn( 'PRIMARY SOURCES TOOL: Malformed QuickStatement, will skip qualifiers and references:', id );
+					console.warn(
+						'PRIMARY SOURCES TOOL: Malformed QuickStatement,' +
+						'will skip qualifiers and references:',
+						id
+					);
 					break;
 				}
 				if ( MATCHERS.PROPERTY.test( line[ i ] ) ) {
@@ -963,12 +1062,25 @@
 						url = source.sourceObject.replace( /^"/, '' ).replace( /"$/, '' );
 						blacklisted = isBlacklisted( url );
 						if ( blacklisted ) {
-							console.info( 'PRIMARY SOURCES TOOL: Hit a blacklisted reference URL:', url );
-							sourceQuickStatement = subject + '\t' + predicate + '\t' + object + '\t' + source.key;
+							console.info(
+								'PRIMARY SOURCES TOOL: Hit a blacklisted reference URL:',
+								url
+							);
+							sourceQuickStatement = [
+								subject, predicate, object, source.key
+							].join( '\t' );
 							( function ( currentId ) {
-								ps.commons.setStatementState( currentId, ps.globals.STATEMENT_STATES.blacklisted, dataset, 'reference' )
+								ps.commons.setStatementState(
+									currentId,
+									ps.globals.STATEMENT_STATES.blacklisted,
+									dataset,
+									'reference'
+								)
 									.done( function () {
-										console.info( 'PRIMARY SOURCES TOOL: Blacklisted referenced claim [' + currentId + ']' );
+										console.info(
+											'PRIMARY SOURCES TOOL: Blacklisted referenced claim ' +
+											'[' + currentId + ']'
+										);
 									} );
 							}( sourceQuickStatement ) );
 						}
@@ -1005,7 +1117,10 @@
 				// [ "http:", "", "DATASET-LABEL", "STATE" ]
 				return uri.split( '/' )[ 2 ];
 			} else {
-				console.warn( 'PRIMARY SOURCES TOOL: The dataset has an invalid URI: "' + uri + '". Will appear as is' );
+				console.warn(
+					'PRIMARY SOURCES TOOL: The dataset has an invalid URI: ' +
+					'<' + uri + '>. Will appear as is'
+				);
 				return uri;
 			}
 		}

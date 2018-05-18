@@ -165,12 +165,32 @@
 						{ dataset: selected.getData() },
 						function ( data ) {
 							var description = data.description ?
-								new OO.ui.HtmlSnippet( '<i>' + data.description + '</i>' ) :
-								new OO.ui.HtmlSnippet( '<i>Not available</i>' );
+								new OO.ui.HtmlSnippet(
+									'<i>' + data.description + '</i>'
+								) :
+								new OO.ui.HtmlSnippet(
+									'<i>Not available</i>'
+								);
 							datasetDescriptionWidget.setLabel( description );
-							missingStatementsWidget.setLabel( new OO.ui.HtmlSnippet( '<b>' + data.missing_statements.toLocaleString() + '</b>' ) );
-							totalStatementsWidget.setLabel( new OO.ui.HtmlSnippet( '<b>' + data.total_statements.toLocaleString() + '</b>' ) );
-							uploaderWidget.setLabel( new OO.ui.HtmlSnippet( '<a href="' + data.uploader + '">' + data.uploader.split( 'User:' )[ 1 ] + '</a>' ) );
+							missingStatementsWidget.setLabel(
+								new OO.ui.HtmlSnippet(
+									'<b>' +
+									data.missing_statements.toLocaleString() +
+									'</b>'
+								)
+							);
+							totalStatementsWidget.setLabel(
+								new OO.ui.HtmlSnippet(
+									'<b>' +
+									data.total_statements.toLocaleString() +
+									'</b>'
+								)
+							);
+							uploaderWidget.setLabel(
+								new OO.ui.HtmlSnippet(
+									'<a href="' + data.uploader + '">' +
+									data.uploader.split( 'User:' )[ 1 ] +
+									'</a>' ) );
 						}
 					);
 				}
@@ -178,7 +198,10 @@
 
 			ConfigDialog.prototype.getActionProcess = function ( action ) {
 				if ( action === 'save' ) {
-					mw.cookie.set( 'ps-dataset', this.datasetSelection.findSelectedItem().getData() );
+					mw.cookie.set(
+						'ps-dataset',
+						this.datasetSelection.findSelectedItem().getData()
+					);
 					return new OO.ui.Process( function () {
 						location.reload();
 					} );
@@ -210,12 +233,18 @@
 
 		appendToNav: function appendToNav( container ) {
 			var anchor, textWithoutSpace, textWithSpace, pos,
-				firstNewObj = $( container ).find( '.new-object' )[ 0 ] || $( container ).find( '.new-source' )[ 0 ];
+				firstNewObj =
+					$( container ).find( '.new-object' )[ 0 ] ||
+					$( container ).find( '.new-source' )[ 0 ];
 
 			if ( firstNewObj ) {
 				anchor = {
-					title: $( container ).find( '.wikibase-statementgroupview-property-label' ),
-					target: $( firstNewObj ).find( '.valueview-instaticmode' )[ 0 ]
+					title: $( container ).find(
+						'.wikibase-statementgroupview-property-label'
+					),
+					target: $( firstNewObj ).find(
+						'.valueview-instaticmode'
+					)[ 0 ]
 				};
 				textWithoutSpace = anchor.title.text().replace( /\W/g, '' );
 				textWithSpace = anchor.title.text().replace( /[^\w\s]/g, '' );
@@ -223,9 +252,17 @@
 					pos = ps.sidebar.alphaPos( textWithoutSpace );
 					ANCHOR_LIST.splice( pos, 0, textWithoutSpace );
 					if ( pos === 0 ) {
-						$( '#p-ps-nav-list' ).prepend( '<li id="n-ps-anchor-' + textWithoutSpace + '"><a href="#" title="move to ' + textWithSpace + '">' + textWithSpace + '</a></li>' );
+						$( '#p-ps-nav-list' ).prepend(
+							'<li id="n-ps-anchor-' + textWithoutSpace + '">' +
+							'<a href="#" title="move to ' + textWithSpace + '">' +
+							textWithSpace + '</a></li>'
+						);
 					} else {
-						$( '#n-ps-anchor-' + ANCHOR_LIST[ pos - 1 ] ).after( '<li id="n-ps-anchor-' + textWithoutSpace + '"><a href="#" title="move to ' + textWithSpace + '">' + textWithSpace + '</a></li>' );
+						$( '#n-ps-anchor-' + ANCHOR_LIST[ pos - 1 ] ).after(
+							'<li id="n-ps-anchor-' + textWithoutSpace + '">' +
+							'<a href="#" title="move to ' + textWithSpace + '">' +
+							textWithSpace + '</a></li>'
+						);
 					}
 					$( '#n-ps-anchor-' + textWithoutSpace ).click( function ( e ) {
 						e.preventDefault();
@@ -240,96 +277,109 @@
 	 */
 
 	/* BEGIN: sidebar links, self-invoking */
-	mw.loader.using( [ 'mediawiki.util', 'mediawiki.Title', 'oojs-ui', 'wikibase.dataTypeStore' ], function createSidebarLinks() {
-		var filterLink, randomItemLink, datasetSelectionLink,
-			datasetLabel = ps.globals.DATASET ? ps.commons.datasetUriToLabel( ps.globals.DATASET ) : '',
-			windowManager = new OO.ui.WindowManager();
+	mw.loader.using(
+		[ 'mediawiki.util', 'mediawiki.Title', 'oojs-ui', 'wikibase.dataTypeStore' ],
+		function createSidebarLinks() {
+			var filterLink, randomItemLink, datasetSelectionLink,
+				datasetLabel = ps.globals.DATASET ?
+					ps.commons.datasetUriToLabel( ps.globals.DATASET ) :
+					'',
+				windowManager = new OO.ui.WindowManager();
 
-		// Primary sources tool dedicated portlet, before the suggestion browser
-		$( '#p-tb' ).after(
-			$( '<div>' )
-				.addClass( 'portal' )
-				.attr( {
-					role: 'navigation',
-					id: 'p-pst',
-					'aria-labelledby': 'p-pst-label'
-				} )
-				.append( $( '<h3>' )
-					.attr( 'id', 'p-pst-label' )
-					.text( 'Primary sources tool' )
-				)
-				// Needed to style the links
-				.append( $( '<div>' )
-					.addClass( 'body' )
-				)
-		);
+			// Primary sources tool dedicated portlet, before the suggestion browser
+			$( '#p-tb' ).after(
+				$( '<div>' )
+					.addClass( 'portal' )
+					.attr( {
+						role: 'navigation',
+						id: 'p-pst',
+						'aria-labelledby': 'p-pst-label'
+					} )
+					.append( $( '<h3>' )
+						.attr( 'id', 'p-pst-label' )
+						.text( 'Primary sources tool' )
+					)
+					// Needed to style the links
+					.append( $( '<div>' )
+						.addClass( 'body' )
+					)
+			);
 
-		// Filter
-		filterLink = $( mw.util.addPortletLink(
-			'p-pst',
-			'#',
-			'Filter',
-			'n-pst-filter',
-			'Browse and curate available data'
-		) );
+			// Filter
+			filterLink = $( mw.util.addPortletLink(
+				'p-pst',
+				'#',
+				'Filter',
+				'n-pst-filter',
+				'Browse and curate available data'
+			) );
 
-		// Random item
-		randomItemLink = $( mw.util.addPortletLink(
-			'p-pst',
-			'#',
-			'Random ' + datasetLabel + ' item',
-			'n-pst-random',
-			'Go to a random item with statement suggestions'
-		) );
-		// Bind link click to /random service call
-		randomItemLink.children().click( function ( e ) {
-			e.preventDefault();
-			e.target.innerHTML = '<img src="https://upload.wikimedia.org/' +
-			'wikipedia/commons/f/f8/Ajax-loader%282%29.gif" class="ajax"/>';
-			$.ajax( {
-				url: ps.globals.API_ENDPOINTS.RANDOM_SERVICE + '?dataset=' + ps.globals.DATASET
-			} ).done( function ( data ) {
-				var newQid = data[ 0 ].statement.split( /\t/ )[ 0 ];
-				document.location.href = document.location.origin + '/wiki/' + newQid;
-			} ).fail( function () {
-				return ps.commons.reportError( 'Could not obtain random primary sources item' );
+			// Random item
+			randomItemLink = $( mw.util.addPortletLink(
+				'p-pst',
+				'#',
+				'Random ' + datasetLabel + ' item',
+				'n-pst-random',
+				'Go to a random item with statement suggestions'
+			) );
+			// Bind link click to /random service call
+			randomItemLink.children().click( function ( e ) {
+				e.preventDefault();
+				e.target.innerHTML = '<img src="https://upload.wikimedia.org/' +
+				'wikipedia/commons/f/f8/Ajax-loader%282%29.gif" class="ajax"/>';
+				$.ajax( {
+					url: ps.globals.API_ENDPOINTS.RANDOM_SERVICE + '?dataset=' + ps.globals.DATASET
+				} ).done( function ( data ) {
+					var newQid = data[ 0 ].statement.split( /\t/ )[ 0 ];
+					document.location.href = document.location.origin + '/wiki/' + newQid;
+				} ).fail( function () {
+					return ps.commons.reportError( 'Could not obtain random primary sources item' );
+				} );
 			} );
+
+			// Dataset selection
+			datasetSelectionLink = $( mw.util.addPortletLink(
+				'p-pst',
+				'#',
+				'Choose dataset',
+				'n-pst-datasets',
+				'Get info and pick your primary sources dataset'
+			) );
+
+			// Dataset upload/update
+			$( mw.util.addPortletLink(
+				'p-pst',
+				mw.Title.newFromText( SPECIAL_PAGE ).getUrl(),
+				'Upload dataset',
+				'n-pst-upload',
+				'Upload or update a dataset to the primary sources database'
+			) );
+
+			$( 'body' ).append( windowManager.$element );
+			// Bind filter link to filter modal window (function in filter module)
+			ps.filter.initFilterDialog( windowManager, filterLink );
+			// Bind dataset selection link to modal window (function in this module)
+			ps.sidebar.initConfigDialog( windowManager, datasetSelectionLink );
 		} );
-
-		// Dataset selection
-		datasetSelectionLink = $( mw.util.addPortletLink(
-			'p-pst',
-			'#',
-			'Choose dataset',
-			'n-pst-datasets',
-			'Get info and pick your primary sources dataset'
-		) );
-
-		// Dataset upload/update
-		$( mw.util.addPortletLink(
-			'p-pst',
-			mw.Title.newFromText( SPECIAL_PAGE ).getUrl(),
-			'Upload dataset',
-			'n-pst-upload',
-			'Upload or update a dataset to the primary sources database'
-		) );
-
-		$( 'body' ).append( windowManager.$element );
-		// Bind filter link to filter modal window (function in filter module)
-		ps.filter.initFilterDialog( windowManager, filterLink );
-		// Bind dataset selection link to modal window (function in this module)
-		ps.sidebar.initConfigDialog( windowManager, datasetSelectionLink );
-	} );
 	/* END: sidebar links, self-invoking */
 
 	/* BEGIN: browse suggested claims, self-invoking */
 	mw.loader.using( [ 'mediawiki.util' ], function generateNav() {
 		var navigation;
 
-		$( '#mw-panel' ).append( '<div class="portal" role="navigation" id="p-ps-navigation" aria-labelledby="p-ps-navigation-label"><h3 id="p-ps-navigation-label">Browse item suggestions</h3></div>' );
+		$( '#mw-panel' ).append(
+			'<div class="portal" role="navigation" id="p-ps-navigation" ' +
+			'aria-labelledby="p-ps-navigation-label">' +
+			'<h3 id="p-ps-navigation-label">Browse item suggestions</h3>' +
+			'</div>'
+		);
 		navigation = $( '#p-ps-navigation' );
 		navigation.append( '<div class="body"><ul id="p-ps-nav-list"></ul></div>' );
-		$( '#p-ps-nav-list' ).before( '<a href="#" id="n-ps-anchor-btt" title="move to top">&#x25B2 back to top &#x25B2</a>' );
+		$( '#p-ps-nav-list' ).before(
+			'<a href="#" id="n-ps-anchor-btt" title="move to top">' +
+			'&#x25B2 back to top &#x25B2' +
+			'</a>'
+		);
 		$( '#n-ps-anchor-btt' ).click( function ( e ) {
 			e.preventDefault();
 			$( 'html,body' ).animate( {

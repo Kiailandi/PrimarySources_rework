@@ -26,7 +26,9 @@
 		'  GRAPH {{DATASET}} {' +
 		'    ?subject a wikibase:Item ;' +
 		'             {{PROPERTY}} ?statement_node .' +
-		'    { SELECT ?statement_node WHERE { ?statement_node ?statement_property wd:{{VALUE}} . } }' +
+		'    { SELECT ?statement_node WHERE {' +
+		'      ?statement_node ?statement_property wd:{{VALUE}} .' +
+		'    } }' +
 		'    ?statement_node ?statement_property ?value .  ' +
 		'    OPTIONAL { ?value ?reference_property ?reference_value . }' +
 		'  } ' +
@@ -34,7 +36,8 @@
 		'} ' +
 		'OFFSET {{OFFSET}} ' +
 		'LIMIT {{LIMIT}}',
-		subjectsSparqlQuery = 'SELECT ?subject WHERE { ?subject a wikibase:Item } OFFSET {{OFFSET}} LIMIT {{LIMIT}}',
+		subjectsSparqlQuery =
+		'SELECT ?subject WHERE { ?subject a wikibase:Item } OFFSET {{OFFSET}} LIMIT {{LIMIT}}',
 		datasetFilter = 'FILTER STRENDS(str(?dataset), "new") . ';
 
 	/*
@@ -73,7 +76,11 @@
 			}
 		} )
 			.fail( function ( xhr, textStatus ) {
-				console.warn( 'PRIMARY SOURCES TOOL: Could not cache suggestions for autocompletion. The call to ' + service + ' went wrong:', textStatus );
+				console.warn(
+					'PRIMARY SOURCES TOOL: Could not cache suggestions for autocompletion. ' +
+					'The call to', service,
+					'went wrong:', textStatus
+				);
 			} );
 		return cache;
 	}
@@ -82,9 +89,15 @@
 		var exceptionParts, exceptionType, alertIcon, typeMessage, reasonMessage;
 		// A bad request means a bad query
 		if ( xhr.status === 400 ) {
-			// java.util.concurrent.ExecutionException: org.openrdf.query.MalformedQueryException: Encountered " "a" "a "" at line 1, column 1.
+			// java.util.concurrent.ExecutionException:
+			// org.openrdf.query.MalformedQueryException:
+			// Encountered " "a" "a "" at line 1, column 1.
 			exceptionParts = xhr.responseText.split( '\n' )[ 1 ].split( 'Exception' );
-			exceptionType = exceptionParts[ 1 ].split( '.' ).pop().replace( /([A-Z])/g, ' $1' ).trim();
+			exceptionType = exceptionParts[ 1 ]
+				.split( '.' )
+				.pop()
+				.replace( /([A-Z])/g, ' $1' )
+				.trim();
 			progressBar.$element.remove();
 			alertIcon = new OO.ui.IconWidget( {
 				icon: 'alert'
@@ -95,7 +108,11 @@
 			reasonMessage = new OO.ui.LabelWidget( {
 				label: exceptionParts[ 2 ]
 			} );
-			widget.mainPanel.$element.append( alertIcon.$element, typeMessage.$element, reasonMessage.$element );
+			widget.mainPanel.$element.append(
+				alertIcon.$element,
+				typeMessage.$element,
+				reasonMessage.$element
+			);
 		}
 	}
 	/*
@@ -106,8 +123,11 @@
 	ps.filter = {
 		initFilterDialog: function initFilterDialog( windowManager, linkToBind ) {
 			/* BEGIN: Query result table rows */
-			// A table row built from a search query, see search* variables at the beginning of this module
-			function SearchResultRow( binding, filteredProperty, filteredItemValue, filteredDataset, isBlacklisted ) {
+			// A table row built from a search query
+			// See search* variables at the beginning of this module
+			function SearchResultRow(
+				binding, filteredProperty, filteredItemValue, filteredDataset, isBlacklisted
+			) {
 				/*
 				 * binding should be:
 				 * Subject, property, value, reference_property, reference_value, dataset
@@ -137,18 +157,32 @@
 					} ),
 					// Build the QuickStatement needed for the /curate service
 					subject = binding[ 0 ].substring( ( uriPrefix + 'entity/' ).length ),
-					actualProperty = filteredProperty || binding[ 1 ].substring( ( uriPrefix + 'prop/' ).length ),
+					actualProperty = filteredProperty ||
+					binding[ 1 ].substring( ( uriPrefix + 'prop/' ).length ),
 					actualValue, referenceProperty, previewButton, previewParams;
 
-				SearchResultRow.super.call( this, binding, filteredProperty, filteredItemValue, filteredDataset, isBlacklisted );
+				SearchResultRow.super.call(
+					this,
+					binding,
+					filteredProperty,
+					filteredItemValue,
+					filteredDataset,
+					isBlacklisted
+				);
 
 				/*
 				 * Do not show blacklisted URLs.
 				 * Statements will not be blacklisted in the back end.
 				 * The item curation module is responsible for that.
 				 */
-				if ( isBlacklisted && ps.commons.isUrl( referenceValue ) && isBlacklisted( referenceValue ) ) {
-					console.info( 'PRIMARY SOURCES TOOL: Skipping statement with blacklisted reference URL ' + referenceValue );
+				if ( isBlacklisted &&
+					ps.commons.isUrl( referenceValue ) &&
+					isBlacklisted( referenceValue )
+				) {
+					console.info(
+						'PRIMARY SOURCES TOOL: Skipping statement with blacklisted reference URL ' +
+						'<' + referenceValue + '>'
+					);
 					return;
 				}
 
@@ -191,7 +225,9 @@
 						binding[ 2 ];
 				}
 				if ( binding[ 3 ].startsWith( uriPrefix + 'prop/reference/' ) ) {
-					referenceProperty = binding[ 3 ].substring( ( uriPrefix + 'prop/reference/' ).length ).replace( 'P', 'S' );
+					referenceProperty = binding[ 3 ]
+						.substring( ( uriPrefix + 'prop/reference/' ).length )
+						.replace( 'P', 'S' );
 					referenceValue = binding[ 4 ].startsWith( uriPrefix + 'entity/' ) ?
 						binding[ 4 ].substring( ( uriPrefix + 'entity/' ).length ) :
 						binding[ 4 ];
@@ -201,8 +237,18 @@
 				}
 				this.dataset = filteredDataset === '' ? binding[ 5 ] : filteredDataset;
 				this.quickStatement = referenceProperty ?
-					subject + '\t' + actualProperty + '\t' + actualValue + '\t' + referenceProperty + '\t' + referenceValue :
-					subject + '\t' + actualProperty + '\t' + actualValue;
+					[
+						subject,
+						actualProperty,
+						actualValue,
+						referenceProperty,
+						referenceValue
+					].join( '\t' ) :
+					[
+						subject,
+						actualProperty,
+						actualValue
+					].join( '\t' );
 				// Generate the preview button only if we have a reference URL
 				if ( referenceProperty === 'S854' ) {
 					previewButton = new OO.ui.ButtonWidget( {
@@ -211,7 +257,11 @@
 						icon: 'articleSearch'
 					} )
 						.connect( widget, { click: function () {
-							curationButtons.getItems().forEach( function ( item ) { item.setDisabled( false ); } );
+							curationButtons.getItems().forEach(
+								function ( item ) {
+									item.setDisabled( false );
+								}
+							);
 							// Reuse the label from the cells
 							previewParams = [ cells[ 0 ].text() ];
 							if ( filteredProperty ) {
@@ -225,18 +275,33 @@
 								previewParams.push( cells[ 2 ].text() );
 							}
 							previewParams.push( referenceValue );
-							console.debug( 'PRIMARY SOURCES TOOL: Parameters passed to the reference preview:', previewParams );
+							console.debug(
+								'PRIMARY SOURCES TOOL: Parameters passed to the reference preview:',
+								previewParams
+							);
 							ps.referencePreview.openNav(
-								previewParams[ 0 ], previewParams[ 1 ], previewParams[ 2 ], previewParams[ 3 ],
+								previewParams[ 0 ],
+								previewParams[ 1 ],
+								previewParams[ 2 ],
+								previewParams[ 3 ],
 								$( curationButtons.$element )
 							);
 						}
 						} );
 				} else {
-					curationButtons.getItems().forEach( function ( item ) { item.setDisabled( false ); } );
+					curationButtons.getItems().forEach(
+						function ( item ) {
+							item.setDisabled( false );
+						}
+					);
 				}
 				if ( previewButton ) {
-					cells.push( $( '<td>' ).append( previewButton.$element, curationButtons.$element ) );
+					cells.push(
+						$( '<td>' ).append(
+							previewButton.$element,
+							curationButtons.$element
+						)
+					);
 				} else {
 					cells.push( $( '<td>' ).append( curationButtons.$element ) );
 				}
@@ -263,7 +328,10 @@
 
 				for ( i = 3; i < length; i += 2 ) {
 					if ( i === length - 1 ) {
-						console.warn( 'PRIMARY SOURCES TOOL: Malformed QuickStatement, will skip qualifiers and references:', qs );
+						console.warn(
+							'PRIMARY SOURCES TOOL: Malformed QuickStatement, ' +
+							'will skip qualifiers and references:', qs
+						);
 						break;
 					}
 					if ( /^P\d+$/.exec( parts[ i ] ) ) {
@@ -295,7 +363,8 @@
 							break;
 						}
 					}
-					// The claim is already in Wikidata: only add the reference, don't add if no reference
+					// The claim is already in Wikidata
+					// Only add the reference, don't add if no reference
 					if ( objectExists ) {
 						if ( widget.statementType === 'reference' ) {
 							ps.commons.createReference( subject, property, object, references,
@@ -305,12 +374,20 @@
 										return ps.commons.reportError( error );
 									}
 									// The back end approves everything
-									ps.commons.setStatementState( qs, ps.globals.STATEMENT_STATES.approved, widget.dataset, widget.statementType )
+									ps.commons.setStatementState(
+										qs,
+										ps.globals.STATEMENT_STATES.approved,
+										widget.dataset,
+										widget.statementType
+									)
 										.fail( function () {
 											widget.toggle( false ).setDisabled( true );
 										} )
 										.done( function () {
-											console.info( 'PRIMARY SOURCES TOOL: Approved referenced claim [' + qs + ']' );
+											console.info(
+												'PRIMARY SOURCES TOOL: ' +
+												'Approved referenced claim [' + qs + ']'
+											);
 											widget.toggle( false ).setDisabled( true );
 										} );
 								}
@@ -319,18 +396,32 @@
 					} else {
 						// Add a new referenced claim
 						if ( widget.statementType === 'reference' ) {
-							ps.commons.createClaimWithReference( subject, property, object, qualifiers, references )
+							ps.commons.createClaimWithReference(
+								subject,
+								property,
+								object,
+								qualifiers,
+								references
+							)
 								.fail( function ( error ) {
 									widget.toggle( false ).setDisabled( true );
 									return ps.commons.reportError( error );
 								} )
 								.done( function () {
-									ps.commons.setStatementState( qs, ps.globals.STATEMENT_STATES.approved, widget.dataset, widget.statementType )
+									ps.commons.setStatementState(
+										qs,
+										ps.globals.STATEMENT_STATES.approved,
+										widget.dataset,
+										widget.statementType
+									)
 										.fail( function () {
 											widget.toggle( false ).setDisabled( true );
 										} )
 										.done( function () {
-											console.info( 'PRIMARY SOURCES TOOL: Approved referenced claim [' + qs + ']' );
+											console.info(
+												'PRIMARY SOURCES TOOL: ' +
+												'Approved referenced claim [' + qs + ']'
+											);
 											widget.toggle( false ).setDisabled( true );
 										} );
 								} );
@@ -342,12 +433,20 @@
 									return ps.commons.reportError( error );
 								} )
 								.done( function () {
-									ps.commons.setStatementState( qs, ps.globals.STATEMENT_STATES.approved, widget.dataset, widget.statementType )
+									ps.commons.setStatementState(
+										qs,
+										ps.globals.STATEMENT_STATES.approved,
+										widget.dataset,
+										widget.statementType
+									)
 										.fail( function () {
 											widget.toggle( false ).setDisabled( true );
 										} )
 										.done( function () {
-											console.info( 'PRIMARY SOURCES TOOL: Approved claim with no reference [' + qs + ']' );
+											console.info(
+												'PRIMARY SOURCES TOOL: ' +
+												'Approved claim with no reference [' + qs + ']'
+											);
 											widget.toggle( false ).setDisabled( true );
 										} );
 								} );
@@ -360,7 +459,12 @@
 				var widget = this;
 
 				widget.showProgressBar();
-				ps.commons.setStatementState( widget.quickStatement, ps.globals.STATEMENT_STATES.rejected, widget.dataset, widget.statementType )
+				ps.commons.setStatementState(
+					widget.quickStatement,
+					ps.globals.STATEMENT_STATES.rejected,
+					widget.dataset,
+					widget.statementType
+				)
 					.fail( function () {
 						widget.toggle( false ).setDisabled( true );
 					} )
@@ -418,13 +522,21 @@
 					} else if ( valueType === 'uri' ) {
 						// URIs: make a link
 						// Mint readable labels based on expected namespaces
-						if ( value === 'http://www.w3.org/ns/prov#wasDerivedFrom' ) {
+						if (
+							value === 'http://www.w3.org/ns/prov#wasDerivedFrom'
+						) {
 							label = 'RDF reference property';
-						} else if ( value === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' ) {
+						} else if (
+							value === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+						) {
 							label = 'RDF type';
-						} else if ( value.startsWith( 'http://www.wikidata.org/entity/statement/' ) ) {
+						} else if (
+							value.startsWith( 'http://www.wikidata.org/entity/statement/' )
+						) {
 							label = 'RDF statement node';
-						} else if ( value.startsWith( 'http://www.wikidata.org/reference/' ) ) {
+						} else if (
+							value.startsWith( 'http://www.wikidata.org/reference/' )
+						) {
 							label = 'RDF reference node';
 						} else {
 							label = value;
@@ -466,7 +578,9 @@
 				ServiceResultRow.super.call( this, entityId );
 				ps.commons.getEntityLabel( entityId )
 					.then( function ( label ) {
-						var link = entityId.startsWith( 'P' ) ? document.location.origin + '/wiki/Property:' + entityId : entityId;
+						var link = entityId.startsWith( 'P' ) ?
+							document.location.origin + '/wiki/Property:' + entityId :
+							entityId;
 						cell.append(
 							$( '<a>' )
 								.attr( 'href', link )
@@ -543,7 +657,8 @@
 			};
 
 			/*
-			 * The method implemented in OO.ui.mixin.LookupElement sets the value of the input widget to the DATA of the chosen element.
+			 * The method implemented in OO.ui.mixin.LookupElement
+			 * sets the value of the input widget to the DATA of the chosen element.
 			 * Set it to the LABEL instead (and properly set the data).
 			 * Also ensure the lookup menu is not displayed again when the value is set.
 			 * See https://doc.wikimedia.org/oojs-ui/master/js/#!/api/OO.ui.mixin.LookupElement
@@ -582,7 +697,11 @@
 			 */
 			OO.ui.MultilineTextInputWidget.prototype.onKeyPress = function ( e ) {
 				if (
-					( this.getValue() && e.which === OO.ui.Keys.ENTER && ( e.ctrlKey || e.metaKey ) ) ||
+					(
+						this.getValue() &&
+						e.which === OO.ui.Keys.ENTER &&
+						( e.ctrlKey || e.metaKey )
+					) ||
 					// Some platforms emit keycode 10 for ctrl+enter in a textarea
 					e.which === 10
 				) {
@@ -593,9 +712,13 @@
 			FilterDialog.prototype.initialize = function () {
 				var widget = this,
 					// Entity value autocompletion
-					itemValueCache = populateAutocompletionCache( ps.globals.API_ENDPOINTS.VALUES_SERVICE ),
+					itemValueCache = populateAutocompletionCache(
+						ps.globals.API_ENDPOINTS.VALUES_SERVICE
+					),
 					// Property autocompletion
-					propertyCache = populateAutocompletionCache( ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE ),
+					propertyCache = populateAutocompletionCache(
+						ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE
+					),
 					fieldSet = new OO.ui.FieldsetLayout( {
 						classes: [ 'container' ]
 					} ),
@@ -802,12 +925,49 @@
 					.connect( this, { click: 'onOptionSubmit' } );
 
 				fieldSet.addItems( [
-					new OO.ui.FieldLayout( this.datasetInput, { label: 'Dataset', align: 'right' } ),
-					new OO.ui.FieldLayout( this.bakedFilters, { label: 'Baked filters', align: 'right' } ),
-					new OO.ui.FieldLayout( this.itemValueInput, { label: 'Entity of interest', align: 'right' } ),
-					new OO.ui.FieldLayout( this.propertyInput, { label: 'Property of interest', align: 'right' } ),
-					new OO.ui.FieldLayout( this.sparqlQuery, { label: 'SPARQL query', align: 'right' } ),
-					new OO.ui.FieldLayout( this.loadButton, { label: ' ', align: 'right' } ) // Hack to place the button under the other fields
+					new OO.ui.FieldLayout(
+						this.datasetInput,
+						{
+							label: 'Dataset',
+							align: 'right'
+						}
+					),
+					new OO.ui.FieldLayout(
+						this.bakedFilters,
+						{
+							label: 'Baked filters',
+							align: 'right'
+						}
+					),
+					new OO.ui.FieldLayout(
+						this.itemValueInput,
+						{
+							label: 'Entity of interest',
+							align: 'right'
+						}
+					),
+					new OO.ui.FieldLayout(
+						this.propertyInput,
+						{
+							label: 'Property of interest',
+							align: 'right'
+						}
+					),
+					new OO.ui.FieldLayout(
+						this.sparqlQuery,
+						{
+							label: 'SPARQL query',
+							align: 'right'
+						}
+					),
+					new OO.ui.FieldLayout(
+						this.loadButton,
+						{
+							// Hack to place the button under the other fields
+							label: ' ',
+							align: 'right'
+						}
+					)
 				] );
 				formPanel.$element.append( fieldSet.$element );
 
@@ -833,7 +993,14 @@
 			/* BEGIN: Handlers for 'Run' and 'Load more' buttons */
 			// On 'Run' button press
 			FilterDialog.prototype.onOptionSubmit = function () {
-				var filledQuery, bindings, bakedFiltersMenu, bakedSelection, baked, query, filteredItemValue, filteredProperty,
+				var filledQuery,
+					bindings,
+					bakedFiltersMenu,
+					bakedSelection,
+					baked,
+					query,
+					filteredItemValue,
+					filteredProperty,
 					// The dataset field is needed for all filters but the arbitrary SPARQL query
 					filteredDataset = this.datasetInput.getValue();
 
@@ -846,7 +1013,8 @@
 				!this.sparqlQuery.isDisabled() ) {
 					// Default search
 					filledQuery = searchSparqlQuery.replace( '{{PROPERTY}}', '?property' );
-					bindings = '?subject ?property ?statement_node ?value ?reference_property ?reference_value';
+					bindings = '?subject ?property ?statement_node ' +
+					'?value ?reference_property ?reference_value';
 					if ( filteredDataset ) {
 						filledQuery = filledQuery
 							.replace( '{{DATASET}}', '<' + filteredDataset + '>' )
@@ -869,7 +1037,10 @@
 					this.filteredDataset = filteredDataset;
 					this.filteredProperty = null;
 					this.filteredItemValue = null;
-					console.debug( 'PRIMARY SOURCES TOOL: DEFAULT SEARCH triggered. Query:', this.sparql );
+					console.debug(
+						'PRIMARY SOURCES TOOL: DEFAULT SEARCH triggered. Query:',
+						this.sparql
+					);
 					this.executeSearch();
 				} else if ( !this.bakedFilters.isDisabled() ) {
 					// Baked filters
@@ -878,28 +1049,49 @@
 					baked = bakedSelection.getData();
 					// Reset selection and meaningful label
 					bakedFiltersMenu.selectItem();
-					this.bakedFilters.setLabel( new OO.ui.HtmlSnippet( 'Pick one (was <i>' + bakedSelection.getLabel() + '</i>)' ) );
+					this.bakedFilters.setLabel(
+						new OO.ui.HtmlSnippet(
+							'Pick one (was <i>' + bakedSelection.getLabel() + '</i>)'
+						)
+					);
 					switch ( baked ) {
 						case 'subjects':
 							this.sparql = subjectsSparqlQuery;
 							this.sparqlOffset = 0;
 							this.sparqlLimit = 100;
-							console.debug( 'PRIMARY SOURCES TOOL: BAKED FILTER triggered. Subjects-only query:', this.sparql );
+							console.debug(
+								'PRIMARY SOURCES TOOL: BAKED FILTER triggered. ' +
+								'Subjects-only query:',
+								this.sparql
+							);
 							this.executeSparqlQuery();
 							break;
 						case 'properties':
-							console.debug( 'PRIMARY SOURCES TOOL: BAKED FILTER triggered. All properties service call' );
-							this.executeServiceCall( ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE );
+							console.debug(
+								'PRIMARY SOURCES TOOL: BAKED FILTER triggered. ' +
+								'All properties service call'
+							);
+							this.executeServiceCall(
+								ps.globals.API_ENDPOINTS.PROPERTIES_SERVICE
+							);
 							break;
 						case 'values':
-							console.debug( 'PRIMARY SOURCES TOOL: BAKED FILTER triggered. All values service call' );
-							this.executeServiceCall( ps.globals.API_ENDPOINTS.VALUES_SERVICE );
+							console.debug(
+								'PRIMARY SOURCES TOOL: BAKED FILTER triggered. ' +
+								'All values service call'
+							);
+							this.executeServiceCall(
+								ps.globals.API_ENDPOINTS.VALUES_SERVICE
+							);
 							break;
 						default:
 							// QIDs, just display the subjects
 							if ( baked.startsWith( 'Q' ) ) {
 								filledQuery = searchWithValueSparqlQuery
-									.replace( '{{BINDINGS}}', 'DISTINCT (?subject AS ?' + bakedSelection.getLabel() + ')' )
+									.replace(
+										'{{BINDINGS}}',
+										'DISTINCT (?subject AS ?' + bakedSelection.getLabel() + ')'
+									)
 									.replace( '{{PROPERTY}}', '?property' )
 									.replace( '{{VALUE}}', baked );
 								if ( filteredDataset ) {
@@ -914,12 +1106,18 @@
 								this.sparql = filledQuery;
 								this.sparqlOffset = 0;
 								this.sparqlLimit = 100;
-								console.debug( 'PRIMARY SOURCES TOOL: BAKED FILTER triggered. Value query:', this.sparql );
+								console.debug(
+									'PRIMARY SOURCES TOOL: BAKED FILTER triggered. ' +
+									'Value query:',
+									this.sparql
+								);
 								this.executeSparqlQuery();
 							} else {
 								// PIDs, perform a search query
-								bindings = '?subject ?statement_node ?value ?reference_property ?reference_value';
-								filledQuery = searchSparqlQuery.replace( '{{PROPERTY}}', 'p:' + baked );
+								bindings = '?subject ?statement_node ?value ' +
+								'?reference_property ?reference_value';
+								filledQuery = searchSparqlQuery
+									.replace( '{{PROPERTY}}', 'p:' + baked );
 								if ( filteredDataset ) {
 									filledQuery = filledQuery
 										.replace( '{{DATASET}}', '<' + filteredDataset + '>' )
@@ -931,7 +1129,11 @@
 									bindings += ' ?dataset';
 								}
 								this.sparql = filledQuery.replace( '{{BINDINGS}}', bindings );
-								console.debug( 'PRIMARY SOURCES TOOL: BAKED FILTER triggered. Property query:', this.sparql );
+								console.debug(
+									'PRIMARY SOURCES TOOL: BAKED FILTER triggered. ' +
+									'Property query:',
+									this.sparql
+								);
 								this.sparqlOffset = 0;
 								/*
 								 * The limit value is quite high to avoid empty result tables,
@@ -956,18 +1158,25 @@
 					this.executeSparqlQuery();
 				} else {
 					// Property / item value autocompletion
-					filteredItemValue = this.itemValueInput.getValue() ? this.itemValueInput.getData() : null;
-					filteredProperty = this.propertyInput.getValue() ? this.propertyInput.getData() : null;
-					bindings = '?subject {{PROPERTY}} ?statement_node {{VALUE}} ?reference_property ?reference_value';
+					filteredItemValue = this.itemValueInput.getValue() ?
+						this.itemValueInput.getData() :
+						null;
+					filteredProperty = this.propertyInput.getValue() ?
+						this.propertyInput.getData() :
+						null;
+					bindings = '?subject {{PROPERTY}} ?statement_node ' +
+					'{{VALUE}} ?reference_property ?reference_value';
 					if ( filteredItemValue ) {
-						filledQuery = searchWithValueSparqlQuery.replace( '{{VALUE}}', filteredItemValue );
+						filledQuery = searchWithValueSparqlQuery
+							.replace( '{{VALUE}}', filteredItemValue );
 						bindings = bindings.replace( '{{VALUE}}', '' );
 					} else {
 						filledQuery = searchSparqlQuery;
 						bindings = bindings.replace( '{{VALUE}}', '?value' );
 					}
 					if ( filteredProperty ) {
-						filledQuery = filledQuery.replace( '{{PROPERTY}}', 'p:' + filteredProperty );
+						filledQuery = filledQuery
+							.replace( '{{PROPERTY}}', 'p:' + filteredProperty );
 						bindings = bindings.replace( '{{PROPERTY}}', '' );
 					} else {
 						filledQuery = filledQuery.replace( '{{PROPERTY}}', '?property' );
@@ -989,7 +1198,11 @@
 					this.filteredDataset = filteredDataset;
 					this.filteredProperty = filteredProperty;
 					this.filteredItemValue = filteredItemValue;
-					console.debug( 'PRIMARY SOURCES TOOL: AUTOCOMPLETION triggered. Query:', this.sparql );
+					console.debug(
+						'PRIMARY SOURCES TOOL: AUTOCOMPLETION triggered. ' +
+						'Query:',
+						this.sparql
+					);
 					this.executeSearch();
 				}
 			};
@@ -1030,7 +1243,10 @@
 								} );
 							}
 						}
-						console.debug( 'PRIMARY SOURCES TOOL: List of IDs from service call:', ids );
+						console.debug(
+							'PRIMARY SOURCES TOOL: List of IDs from service call:',
+							ids
+						);
 						ps.commons.loadEntityLabels( Array.from( ids ) );
 						widget.displayServiceResult( data );
 					}
@@ -1068,7 +1284,12 @@
 										.map( binding => binding.split( '^^' )[ 0 ] );
 								} );
 							lines.pop();
-							return { headers: headers.replace( /\?/g, '' ).split( '\t' ), bindings: bindings };
+							return {
+								headers: headers
+									.replace( /\?/g, '' )
+									.split( '\t' ),
+								bindings: bindings
+							};
 						} },
 						dataType: 'tsv'
 					}
@@ -1085,7 +1306,10 @@
 							noStatements = new OO.ui.LabelWidget( {
 								label: label
 							} );
-							widget.mainPanel.$element.append( noticeIcon.$element, noStatements.$element );
+							widget.mainPanel.$element.append(
+								noticeIcon.$element,
+								noStatements.$element
+							);
 						} else {
 							// Populate the result label cache
 							ids = new Set();
@@ -1149,7 +1373,10 @@
 							noStatements = new OO.ui.LabelWidget( {
 								label: label
 							} );
-							widget.mainPanel.$element.append( noticeIcon.$element, noStatements.$element );
+							widget.mainPanel.$element.append(
+								noticeIcon.$element,
+								noStatements.$element
+							);
 						} else {
 							// Populate the result label cache
 							ids = new Set();
@@ -1167,7 +1394,10 @@
 									}
 								} );
 							} );
-							console.debug( 'PRIMARY SOURCES TOOL: List of IDs from SPARQL query:', ids );
+							console.debug(
+								'PRIMARY SOURCES TOOL: List of IDs from SPARQL query:',
+								ids
+							);
 							ps.commons.loadEntityLabels( Array.from( ids ) );
 
 							// Paging
@@ -1226,11 +1456,20 @@
 					filteredItemValue = widget.filteredItemValue,
 					filteredDataset = widget.filteredDataset;
 
-				console.debug( 'PRIMARY SOURCES TOOL: Filter attributes. Dataset:', filteredDataset, 'Entity of interest:', filteredProperty, 'Property of interest:', filteredItemValue );
+				console.debug(
+					'PRIMARY SOURCES TOOL: Filter attributes. ' +
+					'Dataset:', filteredDataset,
+					'Entity of interest:', filteredProperty,
+					'Property of interest:', filteredItemValue
+				);
 
 				/*
-				 * Subject, property, statement_node, value, reference_property, reference_value, dataset
-				 *   [0]      [1]          [2]         [3]           [4]               [5]          [6]
+				 * Bindings order:
+				 *
+				 * Subject, property, statement_node
+				 *   [0]      [1]          [2]
+				 * value, reference_property, reference_value, dataset
+				 *  [3]           [4]               [5]          [6]
 				 */
 				// In case of defined filters, add headers and bindings accordingly
 				if ( filteredProperty ) {
@@ -1270,8 +1509,14 @@
 				} );
 				// Filter undefined values
 				finalBindings = merged.filter( Boolean );
-				console.debug( 'PRIMARY SOURCES TOOL: RAW SPARQL results:', bindings );
-				console.debug( 'PRIMARY SOURCES TOOL: MERGED SPARQL results (on statement node):', finalBindings );
+				console.debug(
+					'PRIMARY SOURCES TOOL: RAW SPARQL results:',
+					bindings
+				);
+				console.debug(
+					'PRIMARY SOURCES TOOL: MERGED SPARQL results (on statement node):',
+					finalBindings
+				);
 
 				// Build the URL blacklist check
 				ps.commons.getBlacklistedSourceUrls()
@@ -1279,13 +1524,21 @@
 						isBlacklisted = ps.commons.isBlackListedBuilder( blacklist );
 					} )
 					.fail( function () {
-						console.warn( 'PRIMARY SOURCES TOOL: Could not obtain blacklisted source URLs' );
+						console.warn(
+							'PRIMARY SOURCES TOOL: Could not obtain blacklisted source URLs'
+						);
 					} );
 				finalBindings.forEach( function ( binding ) {
 					var row;
 					// Get rid of statement_node
 					binding.splice( 2, 1 );
-					row = new SearchResultRow( binding, filteredProperty, filteredItemValue, filteredDataset, isBlacklisted );
+					row = new SearchResultRow(
+						binding,
+						filteredProperty,
+						filteredItemValue,
+						filteredDataset,
+						isBlacklisted
+					);
 					if ( row ) {
 						widget.table.append( row.$element );
 					}
@@ -1309,7 +1562,12 @@
 				headers.forEach( function ( header ) {
 					var formatted = header
 						.replace( '_', ' ' )
-						.replace( /\w+/, word => word.charAt( 0 ).toUpperCase() + word.substr( 1 ) );
+						.replace(
+							/\w+/,
+							word =>
+								word.charAt( 0 ).toUpperCase() +
+								word.substr( 1 )
+						);
 					htmlHeaders.push( $( '<th>' ).text( formatted ) );
 				} );
 				this.table = $( '<table>' )
