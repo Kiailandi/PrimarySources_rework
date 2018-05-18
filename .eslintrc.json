@@ -16,6 +16,7 @@
 		"ecmaVersion": 6
 	},
 	"rules": {
+		"max-len": [ "warn", 100 ],
 		"no-console": "off",
 		"no-loop-func": "off"
 	}
