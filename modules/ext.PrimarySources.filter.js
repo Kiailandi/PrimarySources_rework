@@ -724,33 +724,7 @@
 					} ),
 					formPanel = new OO.ui.PanelLayout( {
 						padded: true,
-						framed: true,
-						content: [
-							new OO.ui.HtmlSnippet( '<b>How to use</b>' ),
-							new OO.ui.HtmlSnippet(
-								'<ol>' +
-									'<li>Just hit <b>Run<b/> for a generic search</li>' +
-									'<li>Select a dataset or <i>All sources</i></li>' +
-									'<li>Choose a filter</li>' +
-									'<ul>' +
-										'<li>' +
-											'<i>Baked filters</i> ' +
-											'return links to entities that need curation. ' +
-											'They <b>run immediately</b> after you pick one' +
-										'</li>' +
-										'<li>' +
-											'<i>Entity</i> and <i>Property</i> of interest ' +
-											'return statements you can curate on the fly. ' +
-											'Pick a value and hit <b>enter</b> or <b>Run</b>' +
-										'</li>' +
-										'<li>' +
-											'Type an arbitrary <i>SPARQL query</i> and ' +
-											'hit <b>ctrl/cmd + enter</b> or <b>Run</b>' +
-										'</li>' +
-									'</ul>' +
-								'</ol>'
-							)
-						]
+						framed: true
 					} );
 
 				FilterDialog.super.prototype.initialize.apply( this, arguments );
@@ -998,7 +972,36 @@
 				] );
 				formPanel.$element.append( fieldSet.$element );
 
-				// Main panel
+				// Instructions
+				this.howToPanel = new OO.ui.PanelLayout( {
+					content: [
+						new OO.ui.HtmlSnippet( '<b>How to use</b>' ),
+						new OO.ui.HtmlSnippet(
+							'<ol>' +
+								'<li>Just hit <i>Run</i> for a generic search;</li>' +
+								'<li>Select a dataset or <b>All sources</b>;</li>' +
+								'<li>Choose a filter:</li>' +
+								'<ul>' +
+									'<li>' +
+										'<b>Baked filters</b> ' +
+										'return links to entities that need curation. ' +
+										'They <i>run immediately</i> after you pick one;' +
+									'</li>' +
+									'<li>' +
+										'<b>Entity</b> and <b>Property</b> of interest ' +
+										'return statements you can curate on the fly. ' +
+										'Pick a value and hit <i>enter</i> or <i>Run</i>;' +
+									'</li>' +
+									'<li>' +
+										'Type an arbitrary <b>SPARQL query</b> and ' +
+										'hit <i>ctrl/cmd + enter</i> or <i>Run</i>.' +
+									'</li>' +
+								'</ul>' +
+							'</ol>'
+						)
+					]
+				} );
+				// Filter results panel
 				this.mainPanel = new OO.ui.PanelLayout( {
 					padded: true,
 					scrollable: true
@@ -1008,7 +1011,7 @@
 				this.stackLayout = new OO.ui.StackLayout( {
 					continuous: true
 				} );
-				this.stackLayout.addItems( [ formPanel, this.mainPanel ] );
+				this.stackLayout.addItems( [ this.howToPanel, formPanel, this.mainPanel ] );
 				this.$body.append( this.stackLayout.$element );
 			};
 
