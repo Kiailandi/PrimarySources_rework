@@ -1282,8 +1282,8 @@
 						var dataset,
 							ids = new Set(),
 							header = serviceUrl.endsWith( 'properties' ) ?
-								'Properties' :
-								'Values';
+								'Property' :
+								'Value';
 						progressBar.$element.remove();
 						// Populate the result label cache
 						for ( dataset in data ) {
@@ -1298,7 +1298,7 @@
 							ids
 						);
 						ps.commons.loadEntityLabels( Array.from( ids ) );
-						widget.displayServiceResult( header, data );
+						widget.displayServiceResult( [ header ], data );
 					}
 				)
 					.fail( function () {
