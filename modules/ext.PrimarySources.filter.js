@@ -1344,7 +1344,7 @@
 						var label, noticeIcon, noStatements, ids;
 						progressBar.$element.remove();
 						// Handle empty results
-						if ( data.bindings.length === 0 ) {
+						if ( data.bindings.length === 1 ) {
 							label = more ? 'No more statements' : 'No statements found';
 							noticeIcon = new OO.ui.IconWidget( {
 								icon: 'notice'
