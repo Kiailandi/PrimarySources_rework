@@ -729,6 +729,39 @@
 
 				FilterDialog.super.prototype.initialize.apply( this, arguments );
 
+				// Instructions
+				this.instructions = new OO.ui.PopupButtonWidget( {
+					label: 'How to use',
+					icon: 'help',
+					popup: {
+						padded: true,
+						align: 'center',
+						$content: $(
+							'<ol>' +
+								'<li>Just hit <i>Run</i> for a generic search;</li>' +
+								'<li>Select a dataset or <b>All sources</b>;</li>' +
+								'<li>Choose a filter:</li>' +
+								'<ul>' +
+									'<li>' +
+										'<b>Baked filters</b> ' +
+										'return links to entities that need curation. ' +
+										'They <i>run immediately</i> after you pick one;' +
+									'</li>' +
+									'<li>' +
+										'<b>Entity</b> and <b>Property</b> of interest ' +
+										'return statements you can curate on the fly. ' +
+										'Pick a value and hit <i>enter</i> or <i>Run</i>;' +
+									'</li>' +
+									'<li>' +
+										'Type an arbitrary <b>SPARQL query</b> and ' +
+										'hit <i>ctrl/cmd + enter</i> or <i>Run</i>.' +
+									'</li>' +
+								'</ul>' +
+							'</ol>'
+						)
+					}
+				} );
+
 				// 'Dataset' drop-down menu
 				this.datasetInput = new OO.ui.DropdownInputWidget();
 				ps.commons.getDatasets( function ( datasets ) {
@@ -926,6 +959,13 @@
 
 				fieldSet.addItems( [
 					new OO.ui.FieldLayout(
+						this.instructions,
+						{
+							label: ' ',
+							align: 'right'
+						}
+					),
+					new OO.ui.FieldLayout(
 						this.datasetInput,
 						{
 							label: 'Dataset',
@@ -972,35 +1012,6 @@
 				] );
 				formPanel.$element.append( fieldSet.$element );
 
-				// Instructions
-				this.howToPanel = new OO.ui.PanelLayout( {
-					content: [
-						new OO.ui.HtmlSnippet( '<b>How to use</b>' ),
-						new OO.ui.HtmlSnippet(
-							'<ol>' +
-								'<li>Just hit <i>Run</i> for a generic search;</li>' +
-								'<li>Select a dataset or <b>All sources</b>;</li>' +
-								'<li>Choose a filter:</li>' +
-								'<ul>' +
-									'<li>' +
-										'<b>Baked filters</b> ' +
-										'return links to entities that need curation. ' +
-										'They <i>run immediately</i> after you pick one;' +
-									'</li>' +
-									'<li>' +
-										'<b>Entity</b> and <b>Property</b> of interest ' +
-										'return statements you can curate on the fly. ' +
-										'Pick a value and hit <i>enter</i> or <i>Run</i>;' +
-									'</li>' +
-									'<li>' +
-										'Type an arbitrary <b>SPARQL query</b> and ' +
-										'hit <i>ctrl/cmd + enter</i> or <i>Run</i>.' +
-									'</li>' +
-								'</ul>' +
-							'</ol>'
-						)
-					]
-				} );
 				// Filter results panel
 				this.mainPanel = new OO.ui.PanelLayout( {
 					padded: true,
@@ -1011,7 +1022,7 @@
 				this.stackLayout = new OO.ui.StackLayout( {
 					continuous: true
 				} );
-				this.stackLayout.addItems( [ this.howToPanel, formPanel, this.mainPanel ] );
+				this.stackLayout.addItems( [ formPanel, this.mainPanel ] );
 				this.$body.append( this.stackLayout.$element );
 			};
 
