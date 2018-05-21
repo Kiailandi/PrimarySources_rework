@@ -37,7 +37,7 @@
 		'OFFSET {{OFFSET}} ' +
 		'LIMIT {{LIMIT}}',
 		subjectsSparqlQuery =
-		'SELECT ?subject WHERE { ?subject a wikibase:Item } OFFSET {{OFFSET}} LIMIT {{LIMIT}}',
+		'SELECT ?Subject WHERE { ?Subject a wikibase:Item } OFFSET {{OFFSET}} LIMIT {{LIMIT}}',
 		datasetFilter = 'FILTER STRENDS(str(?dataset), "new") . ';
 
 	/*
