@@ -745,7 +745,7 @@
 									'Select a <b>Dataset</b> or <code>All sources</code>;' +
 								'</li>' +
 								'<li>' +
-									'Just hit <i>Run</i> for a generic search ' +
+									'Just hit <i>Run</i> for a generic search, ' +
 									'or choose a filter:</li>' +
 								'<ul>' +
 									'<li>' +
@@ -990,7 +990,7 @@
 						{
 							label: 'Entity of interest',
 							align: 'right',
-							help: 'It may take a while for some values to load'
+							help: 'It may take a while to load results for some values.'
 						}
 					),
 					new OO.ui.FieldLayout(
@@ -1311,7 +1311,6 @@
 
 				progressBar.$element.css( 'max-width', '100%' );
 				widget.mainPanel.$element.append( progressBar.$element );
-
 				$.ajax(
 					ps.globals.API_ENDPOINTS.SPARQL_SERVICE,
 					{
