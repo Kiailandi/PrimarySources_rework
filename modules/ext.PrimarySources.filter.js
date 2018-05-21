@@ -733,14 +733,20 @@
 				this.instructions = new OO.ui.PopupButtonWidget( {
 					label: 'How to use',
 					icon: 'help',
+					flags: 'progressive',
 					popup: {
 						padded: true,
 						align: 'center',
+						position: 'after',
+						width: 500,
 						$content: $(
 							'<ol>' +
-								'<li>Just hit <i>Run</i> for a generic search;</li>' +
-								'<li>Select a dataset or <b>All sources</b>;</li>' +
-								'<li>Choose a filter:</li>' +
+								'<li>' +
+									'Select a <b>Dataset</b> or <code>All sources</code>;' +
+								'</li>' +
+								'<li>' +
+									'Just hit <i>Run</i> for a generic search ' +
+									'or choose a filter:</li>' +
 								'<ul>' +
 									'<li>' +
 										'<b>Baked filters</b> ' +
@@ -748,7 +754,7 @@
 										'They <i>run immediately</i> after you pick one;' +
 									'</li>' +
 									'<li>' +
-										'<b>Entity</b> and <b>Property</b> of interest ' +
+										'<b>Entity</b> and <b>Property of interest</b> ' +
 										'return statements you can curate on the fly. ' +
 										'Pick a value and hit <i>enter</i> or <i>Run</i>;' +
 									'</li>' +
