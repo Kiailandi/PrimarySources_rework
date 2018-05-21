@@ -1269,7 +1269,7 @@
 
 			/* BEGIN: query execution */
 			// Call the primary sources tool API endpoints /properties or /values
-			FilterDialog.prototype.executeServiceCall = function ( url ) {
+			FilterDialog.prototype.executeServiceCall = function ( serviceUrl ) {
 				var widget = this,
 					progressBar = new OO.ui.ProgressBarWidget();
 
@@ -1277,10 +1277,13 @@
 				widget.mainPanel.$element.append( progressBar.$element );
 
 				$.get(
-					url,
+					serviceUrl,
 					function ( data ) {
 						var dataset,
-							ids = new Set();
+							ids = new Set(),
+							header = serviceUrl.endsWith( 'properties' ) ?
+								'Properties' :
+								'Values';
 						progressBar.$element.remove();
 						// Populate the result label cache
 						for ( dataset in data ) {
@@ -1295,7 +1298,7 @@
 							ids
 						);
 						ps.commons.loadEntityLabels( Array.from( ids ) );
-						widget.displayServiceResult( data );
+						widget.displayServiceResult( header, data );
 					}
 				)
 					.fail( function () {
@@ -1472,17 +1475,12 @@
 			/* END: query execution */
 
 			/* BEGIN: query result table display */
-			FilterDialog.prototype.displayServiceResult = function ( result ) {
+			FilterDialog.prototype.displayServiceResult = function ( header, result ) {
 				var dataset, entities,
-					widget = this,
-					datasetLabels = [];
+					widget = this;
 
 				if ( this.table === null ) {
-					Object.getOwnPropertyNames( result )
-						.forEach( function ( uri ) {
-							datasetLabels.push( ps.commons.datasetUriToLabel( uri ) );
-						} );
-					this.initResultTable( datasetLabels );
+					this.initResultTable( header );
 				}
 				for ( dataset in result ) {
 					if ( result.hasOwnProperty( dataset ) ) {
