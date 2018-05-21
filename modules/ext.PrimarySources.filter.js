@@ -1459,8 +1459,8 @@
 				console.debug(
 					'PRIMARY SOURCES TOOL: Filter attributes. ' +
 					'Dataset:', filteredDataset,
-					'Entity of interest:', filteredProperty,
-					'Property of interest:', filteredItemValue
+					'Entity of interest:', filteredItemValue,
+					'Property of interest:', filteredProperty
 				);
 
 				/*
