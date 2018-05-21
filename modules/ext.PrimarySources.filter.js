@@ -724,7 +724,33 @@
 					} ),
 					formPanel = new OO.ui.PanelLayout( {
 						padded: true,
-						framed: true
+						framed: true,
+						content: [
+							new OO.ui.HtmlSnippet( '<b>How to use</b>' ),
+							new OO.ui.HtmlSnippet(
+								'<ol>' +
+									'<li>Just hit <b>Run<b/> for a generic search</li>' +
+									'<li>Select a dataset or <i>All sources</i></li>' +
+									'<li>Choose a filter</li>' +
+									'<ul>' +
+										'<li>' +
+											'<i>Baked filters</i> ' +
+											'return links to entities that need curation. ' +
+											'They <b>run immediately</b> after you pick one' +
+										'</li>' +
+										'<li>' +
+											'<i>Entity</i> and <i>Property</i> of interest ' +
+											'return statements you can curate on the fly. ' +
+											'Pick a value and hit <b>enter</b> or <b>Run</b>' +
+										'</li>' +
+										'<li>' +
+											'Type an arbitrary <i>SPARQL query</i> and ' +
+											'hit <b>ctrl/cmd + enter</b> or <b>Run</b>' +
+										'</li>' +
+									'</ul>' +
+								'</ol>'
+							)
+						]
 					} );
 
 				FilterDialog.super.prototype.initialize.apply( this, arguments );
@@ -895,7 +921,7 @@
 
 				// 'SPARQL query' text area
 				this.sparqlQuery = new OO.ui.MultilineTextInputWidget( {
-					placeholder: 'Browse suggestions with SPARQL (limited to 100 results)',
+					placeholder: 'Browse suggestions with SPARQL (limited to 100 results).',
 					autosize: true
 				} )
 					.connect( this, {
@@ -943,7 +969,8 @@
 						this.itemValueInput,
 						{
 							label: 'Entity of interest',
-							align: 'right'
+							align: 'right',
+							help: 'It may take a while for some values to load'
 						}
 					),
 					new OO.ui.FieldLayout(
