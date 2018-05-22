@@ -1114,6 +1114,7 @@
 							this.executeSparqlQuery();
 							break;
 						case 'properties':
+							this.filteredDataset = filteredDataset;
 							console.debug(
 								'PRIMARY SOURCES TOOL: BAKED FILTER triggered. ' +
 								'All properties service call'
@@ -1123,6 +1124,7 @@
 							);
 							break;
 						case 'values':
+							this.filteredDataset = filteredDataset;
 							console.debug(
 								'PRIMARY SOURCES TOOL: BAKED FILTER triggered. ' +
 								'All values service call'
@@ -1278,6 +1280,7 @@
 
 				$.get(
 					serviceUrl,
+					{ dataset: this.filteredDataset },
 					function ( data ) {
 						var dataset,
 							ids = new Set(),
@@ -1294,8 +1297,8 @@
 							}
 						}
 						console.debug(
-							'PRIMARY SOURCES TOOL: List of IDs from service call:',
-							ids
+							'PRIMARY SOURCES TOOL: List of IDs from ' +
+							serviceUrl + ' :', ids
 						);
 						ps.commons.loadEntityLabels( Array.from( ids ) );
 						widget.displayServiceResult( [ header ], data );
